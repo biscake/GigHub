@@ -1,0 +1,16 @@
+.grid-container {
+    display: grid;
+    /* border: 1px solid red; */
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    background-color: gray;
+}
+
+.grid-item {
+    background-color: gray;
+    display: grid;
+    width: 100%;
+    border: 1px solid red;
+    padding: 1vh 0rem;
+    justify-self: center;
+    text-align: center;
+}
