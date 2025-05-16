@@ -1,21 +1,21 @@
-import styles from '../styles/Navbar.module.css';
+import styles from './Navbar.module.css';
 
-function Navbar() {
+const Navbar = () => {
   return (
     <nav className={styles['grid-container']}>
-      <a className={styles['grid-item']} href='#'>
-        GigHub
-      </a>
+      <div className={styles['grid-item']}>
+        <a href='/'>GigHub</a>
+      </div>
+      <p className={styles['grid-item']}>
+        Dashboard
+      </p>
+      <p className={styles['grid-item']}>
+      </p>
       <p className={styles['grid-item']}>
         SearchBar
       </p>
       <p className={styles['grid-item']}>
-        All Gigs(link)
-      </p>
-      <p className={styles['grid-item']}>
-      </p>
-      <p className={styles['grid-item']}>
-        User(with Notif button)
+        User
       </p>
   </nav>
   );

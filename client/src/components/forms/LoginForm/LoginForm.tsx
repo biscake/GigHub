@@ -4,7 +4,7 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import api from '../../../lib/api';
 import { type ApiErrorResponse } from '../../../types/api';
 import { type LoginFormInputs } from '../../../types/form';
-import { Input } from '../..//Input/Input';
+import { Input } from '../../Input/Input';
 
 const LoginForm = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
