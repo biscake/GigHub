@@ -1,0 +1,28 @@
+.grid-container {
+    display: grid;
+    /* border: 1px solid red; */
+    grid-template-columns: 1fr 1fr 4fr 1fr 1fr;
+    background-color: gray;
+}
+
+.grid-item {
+    background-color: gray;
+    width: 100%;
+    /* border: 1px solid red; */
+    padding: 1vh 0rem;
+    justify-self: center;
+    font-size: 0.7rem;
+}
+
+a {
+    background-color: gray;
+    text-decoration: none;
+}
+
+a:hover {
+    color: pink;
+}
+
+p {
+    text-align: center;
+}
