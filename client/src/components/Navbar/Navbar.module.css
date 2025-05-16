@@ -12,17 +12,14 @@
     padding: 1vh 0rem;
     justify-self: center;
     font-size: 0.7rem;
+    text-align: center;
 }
 
-a {
+.logo {
     background-color: gray;
     text-decoration: none;
 }
 
-a:hover {
+.logo:hover {
     color: pink;
-}
-
-p {
-    text-align: center;
 }
