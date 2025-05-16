@@ -4,7 +4,7 @@ const Navbar = () => {
   return (
     <nav className={styles['grid-container']}>
       <div className={styles['grid-item']}>
-        <a href='/'>GigHub</a>
+        <a className={styles['logo']} href='/'>GigHub</a>
       </div>
       <p className={styles['grid-item']}>
         Dashboard
