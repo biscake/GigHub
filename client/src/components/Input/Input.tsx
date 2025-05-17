@@ -7,6 +7,8 @@ type InputProps = {
   name: string;
   validation?: RegisterOptions;
   autocomplete?: string;
+  className?: string;
+  text?: string;
 };
 
 //TODO: add styling
@@ -16,7 +18,9 @@ export const Input : React.FC<InputProps> = ({
   placeholder, 
   name, 
   validation, 
-  autocomplete = 'off' 
+  autocomplete = 'off',
+  className,
+  text
 }) => {
   const { register, formState: { errors } } = useFormContext();
 
@@ -25,13 +29,17 @@ export const Input : React.FC<InputProps> = ({
   return (
     <div>
       {inputError?.message && <InputError message={inputError.message} />}
-      <input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        {...register(name, validation)}
-        autoComplete={autocomplete}
-      />
+      <label className="flex flex-row">
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          {...register(name, validation)}
+          autoComplete={autocomplete}
+          className={className}
+        />
+        <p className="text-[0.5rem] align-middle">{text}</p>
+      </label>
     </div>
   )
 }
