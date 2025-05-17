@@ -1,6 +1,9 @@
+import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
+import ValidationError from '../errors/validation-error';
 import { prisma } from '../lib/prisma';
+import { issueJwt } from '../utils/issue-jwt.util';
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -21,6 +24,57 @@ export const registerUser = asyncHandler(
       },
     });
 
-    res.json({ message: 'User successfully registered', user });
+    const { token, expires } = issueJwt(user);
+
+    res.status(200).json({
+      message: 'User successfully registered',
+      user,
+      token: token,
+      expiresIn: expires,
+    });
+  },
+);
+
+export const loginUserCredentials = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { username, password } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+      include: {
+        accounts: {
+          where: {
+            provider: 'credentials',
+          },
+          select: {
+            passwordHash: true,
+          },
+        },
+      },
+    });
+
+    if (!user || !user.accounts[0]?.passwordHash) {
+      throw new ValidationError('Invalid username or password', 401);
+    }
+
+    const isValid = await bcrypt.compare(
+      password,
+      user.accounts[0].passwordHash,
+    );
+
+    if (!isValid) {
+      throw new ValidationError('Invalid username or password', 401);
+    }
+
+    const { token, expires } = issueJwt(user);
+
+    res.status(200).json({
+      message: 'Login successful',
+      user,
+      token: token,
+      expiresIn: expires,
+    });
   },
 );

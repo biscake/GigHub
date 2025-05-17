@@ -4,11 +4,20 @@ export default class ValidationError extends Error {
   statusCode: number;
   errors: ExpressValidatorError[];
 
-  constructor(errors: ExpressValidatorError[], message = 'Invalid input') {
-    super(message);
+  constructor(message: string, statusCode: number);
+  constructor(errors: ExpressValidatorError[]);
+  constructor(arg1: string | ExpressValidatorError[], arg2?: number) {
+    if (typeof arg1 === 'string') {
+      super(arg1);
+      this.errors = [];
+      this.statusCode = arg2 ?? 400;
+    } else {
+      super('Invalid input');
+      this.errors = arg1;
+      this.statusCode = 400;
+    }
+
     this.name = 'ValidationError';
-    this.statusCode = 400;
-    this.errors = errors;
     Error.captureStackTrace(this, ValidationError);
   }
 }

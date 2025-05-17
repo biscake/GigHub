@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import ValidationError from '../errors/validation-error';
-import { CustomError } from '../types/error';
+import { CustomError, ErrorResponse } from '../types/error';
 
 export const errorHandler = (
   err: CustomError,
@@ -14,22 +13,19 @@ export const errorHandler = (
 
   const message = err.message || 'Something went wrong';
 
-  if (err instanceof ValidationError) {
-    res.status(statusCode).json({
-      success: false,
-      status: statusCode,
-      message,
-      errors,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : {},
-    });
-
-    return;
-  }
-
-  res.status(statusCode).json({
+  const response: ErrorResponse = {
     success: false,
     status: statusCode,
     message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : {},
-  });
+  };
+
+  if (process.env.NODE_ENV === 'development') {
+    response.stack = err.stack;
+  }
+
+  if (errors) {
+    response.errors = errors;
+  }
+
+  res.status(statusCode).json(response);
 };
