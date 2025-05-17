@@ -1,5 +1,8 @@
 import { Router } from 'express';
-import { registerUser } from '../controllers/auth.controller';
+import {
+  loginUserCredentials,
+  registerUser,
+} from '../controllers/auth.controller';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { hashPassword } from '../utils/hash-password.util';
 import { validateForm } from '../validators/auth.validator';
@@ -13,5 +16,7 @@ router.post(
   hashPassword,
   registerUser,
 );
+
+router.post('/login', loginUserCredentials);
 
 export default router;

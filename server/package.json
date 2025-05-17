@@ -11,7 +11,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec \"ts-node --files\" src/server.ts",
+    "dev": "nodemon --watch src --ext ts,json --exec \"ts-node --files\" src/server.ts",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
@@ -23,18 +23,14 @@
   "dependencies": {
     "@prisma/client": "^6.8.2",
     "bcryptjs": "^3.0.2",
-    "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
-    "express-session": "^1.18.1",
     "express-validator": "^7.2.0",
-    "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.9",
+    "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
-    "pg": "^8.13.1"
+    "passport-jwt": "^4.0.1",
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -42,7 +38,9 @@
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.18",
     "@types/passport": "^1.0.17",
+    "@types/passport-jwt": "^4.0.1",
     "gts": "^6.0.2",
+    "nodemon": "^3.1.10",
     "prettier-plugin-prisma": "^5.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
