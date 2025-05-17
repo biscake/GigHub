@@ -1,8 +1,13 @@
+import Navbar from "./components/Navbar/Navbar"
+import Sidebar from "./components/Sidebar/Sidebar"
+import "./styles/App.css"
+
 const App = () => {
 
   return (
     <>
-      <h1>GigHub</h1>
+      <Navbar />
+      <Sidebar />
     </>
   )
 }
