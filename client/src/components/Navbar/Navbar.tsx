@@ -1,23 +1,18 @@
-import styles from './Navbar.module.css';
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <nav className={styles['grid-container']}>
-      <div className={styles['grid-item']}>
-        <a className={styles['logo']} href='/'>GigHub</a>
+    <nav className="bg-gray-600 text-black px-5 py-1 shadow">
+      <div className="flex justify-between items-center">
+        <div className="text-xl font-bold">
+          <a href="/">GigHub</a>
+        </div>
+        <div className="space-x-4">
+          <Link to="/Login">Login</Link>
+          <Link to="/Signup">Signup</Link>
+        </div>
       </div>
-      <p className={styles['grid-item']}>
-        Dashboard
-      </p>
-      <p className={styles['grid-item']}>
-      </p>
-      <p className={styles['grid-item']}>
-        SearchBar
-      </p>
-      <p className={styles['grid-item']}>
-        User
-      </p>
-  </nav>
+    </nav>
   );
 }
 
