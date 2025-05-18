@@ -1,32 +1,20 @@
+import { User } from '@prisma/client';
+import { PassportStatic } from 'passport';
 import {
   ExtractJwt,
   Strategy as JwtStrategy,
   StrategyOptions,
   VerifiedCallback,
 } from 'passport-jwt';
-
-import { User } from '@prisma/client';
-import fs from 'fs';
-import { PassportStatic } from 'passport';
-import path from 'path';
 import { prisma } from '../lib/prisma';
 import { JwtPayload } from '../types/jwt-payload';
+import { getKeys } from './keys';
 
-const PUB_KEY_PATH = process.env.PUBLIC_KEY_PATH;
-
-if (!PUB_KEY_PATH) {
-  throw new Error('PUBLIC_KEY_PATH not defined in envrionment variables');
-}
-
-const PUB_KEY = fs.readFileSync(path.resolve(PUB_KEY_PATH), 'utf-8');
-
-if (!PUB_KEY) {
-  throw new Error('PUBLIC_KEY not found');
-}
+const keys = getKeys();
 
 const opts: StrategyOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: PUB_KEY,
+  secretOrKey: keys.access.public,
   issuer: process.env.NODE_ENV === 'production' ? 'dummy.com' : 'localhost',
   audience:
     process.env.NODE_ENV === 'production' ? 'dummysite.com' : 'localhost',

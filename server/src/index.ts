@@ -1,8 +1,10 @@
-const express = require('express');
+import dotenv from 'dotenv';
+import express from 'express';
+
 const app = express();
 
 //import .env
-require('dotenv').config();
+dotenv.config();
 
 // Middleware for parsing form data
 app.use(express.urlencoded({extended: true}));

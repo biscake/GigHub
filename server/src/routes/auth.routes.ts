@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import {
   loginUserCredentials,
-  registerUser,
+  logoutUser,
+  refreshToken,
+  registerUser
 } from '../controllers/auth.controller';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { hashPassword } from '../utils/hash-password.util';
@@ -18,5 +20,9 @@ router.post(
 );
 
 router.post('/login', loginUserCredentials);
+
+router.post('/refreshtoken', refreshToken);
+
+router.post('/logout', logoutUser);
 
 export default router;
