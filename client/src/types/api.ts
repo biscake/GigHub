@@ -1,3 +1,7 @@
-export interface ApiErrorResponse {
-  message: string;
+export type ValidationError = {
+  msg: string;
+}
+
+export type ApiErrorResponse = {
+  errors?: ValidationError[]; 
 }
