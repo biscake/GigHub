@@ -27,6 +27,7 @@ export const registerUser = asyncHandler(
     const { token, expires } = issueJwt(user);
 
     res.status(200).json({
+      success: true,
       message: 'User successfully registered',
       user,
       token: token,
@@ -71,6 +72,7 @@ export const loginUserCredentials = asyncHandler(
     const { token, expires } = issueJwt(user);
 
     res.status(200).json({
+      success: true,
       message: 'Login successful',
       user,
       token: token,
@@ -106,7 +108,8 @@ export const refreshToken = (req: Request, res: Response, next: NextFunction) =>
     const accessToken = issueAccessToken(user);
 
     res.status(200).json({
-      message: 'Login successful',
+      success: true,
+      message: 'Access token refreshed',
       user,
       accessToken: accessToken,
     });    
