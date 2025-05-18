@@ -36,7 +36,7 @@ export const registerUser = asyncHandler(
       httpOnly: true,
       sameSite: 'none',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000 // 24hrs * 14d 
+      maxAge: 24 * 14 * 60 * 60 * 1000, // 24hrs * 14d
     });
 
     res.status(200).json({
@@ -88,7 +88,7 @@ export const loginUserCredentials = asyncHandler(
       httpOnly: true,
       sameSite: 'none',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000 // 24hrs * 14d 
+      maxAge: 24 * 14 * 60 * 60 * 1000, // 24hrs * 14d
     });
 
     res.status(200).json({
@@ -100,41 +100,50 @@ export const loginUserCredentials = asyncHandler(
   },
 );
 
-export const refreshToken = (req: Request, res: Response, next: NextFunction) => {
+export const refreshToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    next(new ValidationError("Unauthorized", 401));
+    next(new ValidationError('Unauthorized', 401));
   }
 
-  jwt.verify(token, keys.refresh.public, { algorithms: ['RS256'] }, async (err, decoded) => {
-    if (err) {
-      next(new ValidationError("Invalid refresh token", 403));
-    }
-
-    const payload = decoded as unknown as JwtPayload;
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: payload.sub 
+  jwt.verify(
+    token,
+    keys.refresh.public,
+    { algorithms: ['RS256'] },
+    async (err, decoded) => {
+      if (err) {
+        next(new ValidationError('Invalid refresh token', 403));
       }
-    })
 
-    if (!user) {
-      throw new ValidationError("User not found", 404);
-    }
+      const payload = decoded as unknown as JwtPayload;
 
-    const accessToken = issueAccessToken(user);
+      const user = await prisma.user.findUnique({
+        where: {
+          id: payload.sub,
+        },
+      });
 
-    res.status(200).json({
-      success: true,
-      message: 'Access token refreshed',
-      user,
-      accessToken: accessToken,
-    });    
-  })
-}
+      if (!user) {
+        throw new ValidationError('User not found', 404);
+      }
+
+      const accessToken = issueAccessToken(user);
+
+      res.status(200).json({
+        success: true,
+        message: 'Access token refreshed',
+        user,
+        accessToken: accessToken,
+      });
+    },
+  );
+};
 
 export const logoutUser = (_req: Request, res: Response) => {
   res.clearCookie('jwt').json({ success: true, message: 'Cookie cleared' });
-}
+};
