@@ -113,7 +113,7 @@ export const refreshToken = (
 
   jwt.verify(
     token,
-    keys.refresh.public,
+    keys.access.public,
     { algorithms: ['RS256'] },
     async (err, decoded) => {
       if (err) {
