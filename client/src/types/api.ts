@@ -4,4 +4,5 @@ export type ValidationError = {
 
 export type ApiErrorResponse = {
   errors?: ValidationError[]; 
+  message: string;
 }
