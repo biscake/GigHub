@@ -78,3 +78,41 @@ export const loginUserCredentials = asyncHandler(
     });
   },
 );
+
+export const refreshToken = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.cookies.jwt;
+
+  if (!token) {
+    next(new ValidationError("Unauthorized", 401));
+  }
+
+  jwt.verify(token, keys.refresh.public, { algorithms: ['RS256'] }, async (err, decoded) => {
+    if (err) {
+      next(new ValidationError("Invalid refresh token", 403));
+    }
+
+    const payload = decoded as unknown as JwtPayload;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: payload.sub 
+      }
+    })
+
+    if (!user) {
+      throw new ValidationError("User not found", 404);
+    }
+
+    const accessToken = issueAccessToken(user);
+
+    res.status(200).json({
+      message: 'Login successful',
+      user,
+      accessToken: accessToken,
+    });    
+  })
+}
+
+export const logoutUser = (_req: Request, res: Response) => {
+  res.clearCookie('jwt').json({ success: true, message: 'Cookie cleared' });
+}
