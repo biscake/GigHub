@@ -123,14 +123,6 @@ export const refreshToken = (req: Request, res: Response, next: NextFunction) =>
     }
 
     const accessToken = issueAccessToken(user);
-    const refreshToken = issueRefreshToken(user);
-
-    res.cookie('jwt', refreshToken, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000 // 24hrs * 14d 
-    });
 
     res.status(200).json({
       message: 'Login successful',
