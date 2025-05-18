@@ -1,21 +1,29 @@
 import { User } from '@prisma/client';
-import fs from 'fs';
 import jsonwebtoken from 'jsonwebtoken';
-import path from 'path';
+import { getKeys } from '../config/keys';
 
-const PRIV_KEY_PATH = process.env.PRIVATE_KEY_PATH;
+const keys = getKeys();
 
-if (!PRIV_KEY_PATH) {
-  throw new Error('PRIVATE_KEY_PATH not defined in envrionment variables');
-}
+export const issueAccessToken = (user: User) => {
+  const { id, username } = user;
 
-const PRIV_KEY = fs.readFileSync(path.resolve(PRIV_KEY_PATH), 'utf-8');
+  const expiresIn = '15m';
 
-if (!PRIV_KEY) {
-  throw new Error('PRIVATE_KEY not found');
-}
+  const payload = {
+    sub: id,
+    username,
+    iat: Date.now(),
+  };
 
-export const issueJwt = (user: User) => {
+  const signedToken = jsonwebtoken.sign(payload, keys.access.private, {
+    expiresIn,
+    algorithm: 'RS256',
+  });
+
+  return signedToken;
+};
+
+export const issueRefreshToken = (user: User) => {
   const { id } = user;
 
   const expiresIn = '14d';
@@ -25,13 +33,10 @@ export const issueJwt = (user: User) => {
     iat: Date.now(),
   };
 
-  const signedToken = jsonwebtoken.sign(payload, PRIV_KEY, {
+  const signedToken = jsonwebtoken.sign(payload, keys.refresh.private, {
     expiresIn,
     algorithm: 'RS256',
   });
 
-  return {
-    token: 'Bearer ' + signedToken,
-    expires: expiresIn,
-  };
-};
+  return signedToken;
+}

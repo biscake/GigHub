@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { errorHandler } from './middleware/error-handler.middleware';
@@ -13,14 +14,16 @@ app.use(
   }),
 );
 
+// cookie parser
+app.use(cookieParser());
+
 // Middleware for parsing form data
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // health check
 app.get('/health', (req: Request, res: Response) => {
-  console.log('ok');
-  res.status(200).json({ health: 'ok' });
+  res.status(200).json({ connected: true, status: 'up' });
 });
 
 // api route
