@@ -108,7 +108,7 @@ export const refreshToken = (
   const token = req.cookies.jwt;
 
   if (!token) {
-    next(new ValidationError('Unauthorized', 401));
+    return next(new ValidationError('Unauthorized', 401));
   }
 
   jwt.verify(
@@ -117,7 +117,7 @@ export const refreshToken = (
     { algorithms: ['RS256'] },
     async (err, decoded) => {
       if (err) {
-        next(new ValidationError('Invalid refresh token', 403));
+        return next(new ValidationError('Invalid refresh token', 403));
       }
 
       const payload = decoded as unknown as JwtPayload;
@@ -129,7 +129,7 @@ export const refreshToken = (
       });
 
       if (!user) {
-        throw new ValidationError('User not found', 404);
+        return next(new ValidationError('User not found', 404));
       }
 
       const accessToken = issueAccessToken(user);
