@@ -1,35 +1,25 @@
-import { type AxiosError } from 'axios';
 import { useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
-import api from '../../../lib/api';
-import { type ApiErrorResponse } from '../../../types/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
 import { type LoginFormInputs } from '../../../types/form';
 import { Input } from '../../Input/Input';
-import { Link } from 'react-router-dom';
 
 const LoginForm = () => {
+  const { login } = useAuth();
   const [apiErr, setApiErr] = useState<string | null>(null);
 
   const methods = useForm<LoginFormInputs>();
+  const navigate = useNavigate();
 
-  const submitCredential: SubmitHandler<LoginFormInputs> = data => {
-    // post request to api 
-    api.post('api/user/login', data, {headers: {'Content-Type': 'application/json'}})
-      .then(res => {
-        // TODO: login user;
-        return res;
-      })
-      .catch(error => {
-        const err = error as AxiosError;
+  const submitCredential: SubmitHandler<LoginFormInputs> = async (data) => {
+    const result = await login(data);
 
-        const data = err.response?.data as ApiErrorResponse;
-
-        if (data?.message) {
-          setApiErr(data.message);
-        } else {
-          setApiErr("Error. Please try again.");
-        }
-      })
+    if (!result.success && result.error) {
+      setApiErr(result.error);
+    } else {
+      navigate('/');
+    }
   }
 
   return (

@@ -1,35 +1,35 @@
-import { type AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
 import api from '../../../lib/api';
 import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../../lib/validators';
-import { type ApiErrorResponse } from '../../../types/api';
 import { type SignupFormInputs } from '../../../types/form';
 import { Input } from '../../Input/Input';
 
 const SignupForm = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
 
-  const methods = useForm<SignupFormInputs>({mode: 'onChange'});
+  const methods = useForm<SignupFormInputs>({ mode: 'onChange' });
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const submitCredential: SubmitHandler<SignupFormInputs> = data => {
-    //post request to api
-    api.post('api/user/login', data, {headers: {'Content-Type': 'application/json'}})
-      .then(res => {
-        // TODO: login user;
-        return res;
-      })
-      .catch(error => {
-        const err = error as AxiosError;
+  const submitCredential: SubmitHandler<SignupFormInputs> = async (data) => {
+    try {
+      const res = await api.post('/api/register', data, { headers: { 'Content-Type': 'application/json' } });
 
-        const data = err.response?.data as ApiErrorResponse;
+      if (res.data.success) {
+        await login({ username: data.username, password: data.password });
+        navigate('/');
+      } else {
+        setApiErr(res.data.message);
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      setApiErr(error && "Something went wrong. Please try again");
+    }
 
-        if (data?.message) {
-          setApiErr(data.message);
-        } else {
-          setApiErr("An unexpected error occurred. Please try again.");
-        }
-      })
   }
 
   return (
