@@ -2,7 +2,7 @@ import { type CheckBoxProp } from "../../types/checkBoxProps";
 
 const Sidebar = () => {
   return (
-    <aside className="w-24 h-100 bg-blue-400 text-black text-[0.5rem] px-1 py-2 shadow">
+    <aside className="w-fit h-[100vh] bg-blue-400 text-black text-[1.5rem] px-4 py-6 shadow">
       <p className="px-2">Filter By:</p>
       <ul>
         <li><Checkbox title="Genre 1"/></li>
@@ -17,8 +17,8 @@ const Checkbox = ({ title }: CheckBoxProp) => {
   // TODO logic
   return (
     <label>
-      <input type="checkbox" className="accent-pink-300 cursor-pointer scale-50 align-middle" />
-      <span className="text-[0.4rem] py-1 align-middle">{title}</span>
+      <input type="checkbox" className="accent-pink-300 cursor-pointer align-middle" />
+      <span className="text-[1rem] py-1 align-middle">{title}</span>
     </label>
   )
 }
