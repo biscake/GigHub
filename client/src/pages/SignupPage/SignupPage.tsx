@@ -4,7 +4,6 @@ import SignupForm from "../../components/forms/SignupForm/SignupForm";
 const SignupPage = () => {
   return (
     <div>
-      <div>Blab</div>
       <SignupForm /> 
     </div>
   )   

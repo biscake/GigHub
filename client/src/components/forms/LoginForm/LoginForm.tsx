@@ -52,7 +52,7 @@ const LoginForm = () => {
               id="remember"
               type="checkbox"
               className="accent-pink-400 cursor-pointer align-middle mx-1"
-              text="remember me"
+              text="Remember me"
             />
             {/* Link to Reset Password Page TODO */}
             <Link to="/" className="text-sm align-middle h-fit">Forgot password?</Link>

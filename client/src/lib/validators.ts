@@ -18,7 +18,7 @@ export const usernameValidation : InputValidation = {
   validation: {
     required: {
       value: true,
-      message: "Required"
+      message: "Username Required"
     },
     pattern: {
       value: /^[a-zA-Z0-9]+$/,
@@ -26,7 +26,7 @@ export const usernameValidation : InputValidation = {
     },
     minLength: {
       value: 4,
-      message: "Username too short"
+      message: "Username is too short"
     },
   }
 }
@@ -40,14 +40,14 @@ export const passwordValidation : InputValidation = {
   validation: {
     required: {
       value: true,
-      message: 'Required',
+      message: 'Password Required',
     },
     minLength: {
       value: 8,
       message: 'Password is too short'
     },
     pattern: {
-      value: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/,
+      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,16}$/,
       message: 'Invalid password'
     }
   }
@@ -62,7 +62,7 @@ export const cpasswordValidation = (watch: UseFormWatch<SignupFormInputs>) => ({
   validation: {
     required: {
       value: true,
-      message: 'Required',
+      message: 'Please confirm your password',
     },
     validate: (val: string) => {
       return watch('password') === val || "Password does not match"
@@ -74,11 +74,11 @@ export const emailValidation = {
   name: 'email',
   type: 'text',
   id: 'email',
-  placeholder: 'email',
+  placeholder: 'Email',
   validation: {
     required: {
       value: true,
-      message: "Required"
+      message: "Email Required"
     },
     pattern: {
       value: /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/,

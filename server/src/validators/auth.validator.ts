@@ -6,9 +6,9 @@ const validateFormPassword = [
     .notEmpty()
     .withMessage('Password is required')
     .trim()
-    .matches(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/)
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,16}$/)
     .withMessage(
-      'Password must be 8–16 characters and include uppercase, lowercase, number, and special character',
+      'Password must be 8–16 characters and include uppercase, lowercase and number',
     )
     .escape(),
 ];

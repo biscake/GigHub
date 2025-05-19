@@ -8,6 +8,7 @@ import { cpasswordValidation, emailValidation, passwordValidation, usernameValid
 import type { ApiErrorResponse, ValidationError } from '../../../types/api';
 import { type SignupFormInputs } from '../../../types/form';
 import { Input } from '../../Input/Input';
+import { Link } from 'react-router-dom';
 
 const SignupForm = () => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
@@ -45,33 +46,45 @@ const SignupForm = () => {
 
   return (
     <FormProvider {...methods}>
-      <form 
-        method='post' 
-        noValidate
-        onSubmit={methods.handleSubmit(submitCredential)} 
-      >
-        <Input {...usernameValidation} />
-        <Input {...emailValidation}/>
-        <Input {...passwordValidation}/>
-        <Input {...cpasswordValidation(methods.watch)}/>
-        {apiErr && (
-          <p style={{ color: 'red' }}>
-            {Array.isArray(apiErr)
-              ? apiErr.map((err, i) => (
-                  <span key={i}>
-                    {err.msg}
-                    <br />
-                  </span>
-                ))
-              : apiErr}
-          </p>
-        )}
-        <button 
-          type='submit' 
+      <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
+        <form 
+          method='post' 
+          noValidate
+          onSubmit={methods.handleSubmit(submitCredential)} 
+          className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
-          Register
-        </button>
-      </form>
+          <div className="font-bold text-3xl">Sign Up</div>
+          <Input {...usernameValidation} 
+            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+          <Input {...emailValidation}
+            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+          <Input {...passwordValidation}
+            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+          <Input {...cpasswordValidation(methods.watch)}
+            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+          {apiErr && (
+            <p className="text-sm text-rose-400">
+              {Array.isArray(apiErr)
+                ? apiErr.map((err, i) => (
+                    <span key={i}>
+                      {err.msg}
+                    </span>
+                  ))
+                : apiErr}
+            </p>
+          )}
+          <button 
+            type='submit'
+            className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+          >
+            Register
+          </button>
+          <div className="text-sm">
+            <span>Already have an account? </span>
+            <Link className="font-bold :hover" to="/login">Log In</Link>
+          </div>
+        </form>
+      </div>
     </FormProvider>
   )
 }
