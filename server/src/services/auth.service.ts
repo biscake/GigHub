@@ -27,7 +27,7 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
   return { accessToken, refreshToken, user };
 }
 
-export const login = async ({ username, password, remember }: loginInput) => {
+export const login = async ({ username, password }: loginInput) => {
   const user = await prisma.user.findUnique({
     where: {
       username: username,
@@ -60,10 +60,6 @@ export const login = async ({ username, password, remember }: loginInput) => {
   const accessToken = issueAccessToken(user);
   const refreshToken = issueRefreshToken();
 
-  if (remember) {
-    return { accessToken, user };
-  }
-
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
@@ -89,7 +85,7 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
     }
   })
 
-  if (storedToken?.revoked) {
+  if (!storedToken || storedToken?.revoked || storedToken?.expiresAt < new Date()) {
     throw new ValidationError('Invalid refresh token', 403);
   }
 

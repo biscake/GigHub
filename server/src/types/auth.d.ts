@@ -7,7 +7,6 @@ export type registerInput = {
 export type loginInput = {
   username: string;
   password: string;
-  remember: boolean;
 }
 
 export type rotateTokenInput = {

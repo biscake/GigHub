@@ -15,14 +15,12 @@ export const registerUser = asyncHandler(
 
     const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
 
-    if (refreshToken) {
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: true,
-        maxAge: TWO_WEEKS_MS
-      });
-    }
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: true,
+      maxAge: TWO_WEEKS_MS
+    });
 
     res.status(200).json({
       success: true,
@@ -35,15 +33,16 @@ export const registerUser = asyncHandler(
 
 export const loginUserCredentials = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const { username, password, remember } = req.body;
+    const { username, password, rememberMe } = req.body;
+    console.log(req.body);
 
-    const { accessToken, refreshToken, user } = await login({ username, password, remember });
+    const { accessToken, refreshToken, user } = await login({ username, password });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       sameSite: 'strict',
       secure: true,
-      maxAge: TWO_WEEKS_MS
+      ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
 
     res.status(200).json({
@@ -59,9 +58,10 @@ export const refreshToken = asyncHandler(
   async (
     req: Request,
     res: Response,
-    next: NextFunction,
   ) => {
+    console.log('called');
     const refreshToken = req.cookies.refreshToken;
+    console.log(req.cookies);
 
     const { newAccessToken, newRefreshToken, user } = await rotateToken({ refreshToken });
 

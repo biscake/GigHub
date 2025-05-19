@@ -14,19 +14,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchAccessToken = async () => {
-      try {
-        const res = await api.post('/api/refreshtoken');
-        const token = res.data.accessToken;
-
-        if (token) {
-          setAccessToken(token);
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          const decoded = jwtDecode(token) as JwtPayload;
-          setUser({ id: decoded.sub, username: decoded.username });
+      if (localStorage.getItem("rememberMe") === "true") {
+        try {
+          const res = await api.post('/api/refreshtoken');
+          const token = res.data.accessToken;
+  
+          if (token) {
+            setAccessToken(token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            const decoded = jwtDecode(token) as JwtPayload;
+            setUser({ id: decoded.sub, username: decoded.username });
+          }
+        } catch (err) {
+          console.log(err);
+          setUser(null);
         }
-      } catch (err) {
-        console.log(err);
-        setUser(null);
       }
     }
 
@@ -45,10 +47,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const token = res.data.accessToken; 
 
-      setAccessToken(token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      const decoded = jwtDecode(token) as JwtPayload;
-      setUser({ id: decoded.sub, username: decoded.username });
+      if (token) {
+        setAccessToken(token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const decoded = jwtDecode(token) as JwtPayload;
+        setUser({ id: decoded.sub, username: decoded.username });
+
+        localStorage.setItem('rememberMe', data.rememberMe ? "true" : "false");
+      }
 
       return { success: true };
     } catch (error) {
@@ -66,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (res.data.success) {
       setAccessToken(null);
       setUser(null);
+      localStorage.removeItem("rememberMe");
   
       delete api.defaults.headers.common.Authorization;
     }
