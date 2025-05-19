@@ -1,11 +1,8 @@
-import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import ValidationError from '../errors/validation-error';
-import { prisma } from '../lib/prisma';
 import { login, logout, register, rotateToken } from '../services/auth.service';
-import { issueAccessToken, issueRefreshToken } from '../utils/issue-tokens.util';
 
+const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -18,12 +15,14 @@ export const registerUser = asyncHandler(
 
     const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000, // 24hrs * 14d
-    });
+    if (refreshToken) {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: true,
+        maxAge: TWO_WEEKS_MS
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -36,15 +35,15 @@ export const registerUser = asyncHandler(
 
 export const loginUserCredentials = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const { username, password } = req.body;
+    const { username, password, remember } = req.body;
 
-    const { accessToken, refreshToken, user } = await login({ username, password });
+    const { accessToken, refreshToken, user } = await login({ username, password, remember });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'strict',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000, // 24hrs * 14d
+      maxAge: TWO_WEEKS_MS
     });
 
     res.status(200).json({
@@ -68,9 +67,9 @@ export const refreshToken = asyncHandler(
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'strict',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000, // 14days
+      maxAge: TWO_WEEKS_MS
     });
 
     res.status(200).json({

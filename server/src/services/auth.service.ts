@@ -4,6 +4,8 @@ import { prisma } from "../lib/prisma";
 import { loginInput, logoutInput, registerInput, rotateTokenInput } from "../types/auth";
 import { issueAccessToken, issueRefreshToken } from "../utils/issue-tokens.util";
 
+const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+
 export const register = async ({ username, email, pwHash }: registerInput) => {
   const user = await prisma.user.create({
     data: {
@@ -25,7 +27,7 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
   return { accessToken, refreshToken, user };
 }
 
-export const login = async ({ username, password }: loginInput) => {
+export const login = async ({ username, password, remember }: loginInput) => {
   const user = await prisma.user.findUnique({
     where: {
       username: username,
@@ -58,10 +60,14 @@ export const login = async ({ username, password }: loginInput) => {
   const accessToken = issueAccessToken(user);
   const refreshToken = issueRefreshToken();
 
+  if (remember) {
+    return { accessToken, user };
+  }
+
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
-      expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14days
+      expiresAt: new Date(Date.now() + TWO_WEEKS_MS),
       userId: user.id
     }
   })
@@ -104,7 +110,7 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
     prisma.refreshToken.create({
       data: {
         token: newRefreshToken,
-        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14days
+        expiresAt: new Date(Date.now() + TWO_WEEKS_MS), 
         userId: storedToken.userId
       }
     })
