@@ -22,6 +22,8 @@ const LoginForm = () => {
     }
   }
 
+  const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";
+
   return (
     <FormProvider { ...methods }> 
       <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
@@ -36,7 +38,7 @@ const LoginForm = () => {
             id="username"
             type="text"
             placeholder="Username"
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className={inputStyle}
           />
           <Input
             name="password"
@@ -44,7 +46,7 @@ const LoginForm = () => {
             type="password"
             placeholder="Password"
             autocomplete="on"
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className={inputStyle}
           />
           <div className="flex flex-row items-center justify-between w-full">
             <Input

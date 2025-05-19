@@ -44,6 +44,8 @@ const SignupForm = () => {
 
   }
 
+  const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";
+
   return (
     <FormProvider {...methods}>
       <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
@@ -55,13 +57,13 @@ const SignupForm = () => {
         >
           <div className="font-bold text-3xl">Sign Up</div>
           <Input {...usernameValidation} 
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           <Input {...emailValidation}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           <Input {...passwordValidation}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           <Input {...cpasswordValidation(methods.watch)}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           {apiErr && (
             <p className="text-sm text-rose-400">
               {Array.isArray(apiErr)
