@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { login, logout, register, rotateToken } from '../services/auth.service';
 
@@ -34,7 +34,6 @@ export const registerUser = asyncHandler(
 export const loginUserCredentials = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { username, password, rememberMe } = req.body;
-    console.log(req.body);
 
     const { accessToken, refreshToken, user } = await login({ username, password });
 
@@ -59,9 +58,8 @@ export const refreshToken = asyncHandler(
     req: Request,
     res: Response,
   ) => {
-    console.log('called');
     const refreshToken = req.cookies.refreshToken;
-    console.log(req.cookies);
+    const { rememberMe } = req.body;
 
     const { newAccessToken, newRefreshToken, user } = await rotateToken({ refreshToken });
 
@@ -69,7 +67,7 @@ export const refreshToken = asyncHandler(
       httpOnly: true,
       sameSite: 'strict',
       secure: true,
-      maxAge: TWO_WEEKS_MS
+      ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
 
     res.status(200).json({

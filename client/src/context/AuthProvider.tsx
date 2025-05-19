@@ -14,9 +14,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchAccessToken = async () => {
-      if (localStorage.getItem("rememberMe") === "true") {
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
+      const sessionActive = sessionStorage.getItem("sessionActive") === "true";
+
+      if (rememberMe || sessionActive) {
         try {
-          const res = await api.post('/api/refreshtoken');
+          const res = await api.post('/api/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
           const token = res.data.accessToken;
   
           if (token) {
@@ -53,7 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const decoded = jwtDecode(token) as JwtPayload;
         setUser({ id: decoded.sub, username: decoded.username });
 
-        localStorage.setItem('rememberMe', data.rememberMe ? "true" : "false");
+        localStorage.setItem("rememberMe", data.rememberMe ? "true" : "false");
+        sessionStorage.setItem("sessionActive", "true");
       }
 
       return { success: true };
@@ -73,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAccessToken(null);
       setUser(null);
       localStorage.removeItem("rememberMe");
+      sessionStorage.removeItem("sessionActive");
   
       delete api.defaults.headers.common.Authorization;
     }
