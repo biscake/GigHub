@@ -1,14 +1,10 @@
 import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import jwt from 'jsonwebtoken';
-import { getKeys } from '../config/keys';
 import ValidationError from '../errors/validation-error';
 import { prisma } from '../lib/prisma';
-import { JwtPayload } from '../types/jwt-payload';
-import { issueAccessToken, issueRefreshToken } from '../utils/issue-jwt.util';
+import { issueAccessToken, issueRefreshToken } from '../utils/issue-tokens.util';
 
-const keys = getKeys();
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -30,9 +26,9 @@ export const registerUser = asyncHandler(
     });
 
     const accessToken = issueAccessToken(user);
-    const refreshToken = issueRefreshToken(user);
+    const refreshToken = issueRefreshToken();
 
-    res.cookie('jwt', refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
@@ -82,9 +78,17 @@ export const loginUserCredentials = asyncHandler(
     }
 
     const accessToken = issueAccessToken(user);
-    const refreshToken = issueRefreshToken(user);
+    const refreshToken = issueRefreshToken();
 
-    res.cookie('jwt', refreshToken, {
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14days
+        userId: user.id
+      }
+    })
+
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       sameSite: 'none',
       secure: true,
@@ -100,50 +104,71 @@ export const loginUserCredentials = asyncHandler(
   },
 );
 
-export const refreshToken = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const token = req.cookies.jwt;
+export const refreshToken = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const refreshToken = req.cookies.refreshToken;
 
-  if (!token) {
-    return next(new ValidationError('Unauthorized', 401));
+    if (!refreshToken) {
+      return next(new ValidationError('No refresh token', 401));
+    }
+
+    const storedToken = await prisma.refreshToken.findUnique({
+      where: {
+        token: refreshToken
+      },
+      include: {
+        user: true
+      }
+    })
+
+    if (storedToken?.revoked) {
+      return next(new ValidationError('Invalid refresh token', 403));
+    }
+
+    if (!storedToken?.user) {
+      throw new Error("Missing user to create refresh token");
+    }
+
+    const newAccessToken = issueAccessToken(storedToken.user);
+    const newRefreshToken = issueRefreshToken();
+
+    await prisma.$transaction([
+      prisma.refreshToken.update({
+        where: { token: refreshToken },
+        data: {
+          revoked: true
+        }
+      }),
+      prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14days
+          userId: storedToken.userId
+        }
+      })
+    ])
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: 24 * 14 * 60 * 60 * 1000, // 14days
+    });
+
+
+    res.status(200).json({
+      success: true,
+      message: 'Access token refreshed',
+      user: storedToken.user,
+      accessToken: newAccessToken,
+    });
   }
-
-  jwt.verify(
-    token,
-    keys.refresh.public,
-    { algorithms: ['RS256'] },
-    async (err, decoded) => {
-      if (err) {
-        return next(new ValidationError('Invalid refresh token', 403));
-      }
-
-      const payload = decoded as unknown as JwtPayload;
-
-      const user = await prisma.user.findUnique({
-        where: {
-          id: payload.sub,
-        },
-      });
-
-      if (!user) {
-        return next(new ValidationError('User not found', 404));
-      }
-
-      const accessToken = issueAccessToken(user);
-
-      res.status(200).json({
-        success: true,
-        message: 'Access token refreshed',
-        user,
-        accessToken: accessToken,
-      });
-    },
-  );
-};
+)
 
 export const logoutUser = (_req: Request, res: Response) => {
-  res.clearCookie('jwt').json({ success: true, message: 'Cookie cleared' });
+  res.clearCookie('refreshToken').json({ success: true, message: 'Cookie cleared' });
 };

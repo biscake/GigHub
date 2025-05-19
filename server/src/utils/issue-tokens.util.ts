@@ -1,4 +1,5 @@
 import { User } from '@prisma/client';
+import crypto from 'crypto';
 import jsonwebtoken from 'jsonwebtoken';
 import { getKeys } from '../config/keys';
 
@@ -23,20 +24,8 @@ export const issueAccessToken = (user: User) => {
   return signedToken;
 };
 
-export const issueRefreshToken = (user: User) => {
-  const { id } = user;
+export const issueRefreshToken = () => {
+  const refreshToken = crypto.randomBytes(40).toString('hex');
 
-  const expiresIn = '14d';
-
-  const payload = {
-    sub: id,
-    iat: Date.now(),
-  };
-
-  const signedToken = jsonwebtoken.sign(payload, keys.refresh.private, {
-    expiresIn,
-    algorithm: 'RS256',
-  });
-
-  return signedToken;
+  return refreshToken;
 }
