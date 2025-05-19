@@ -38,7 +38,7 @@ export const Input : React.FC<InputProps> = ({
           autoComplete={autocomplete}
           className={className}
         />
-        <p className="text-[0.5rem] align-middle">{text}</p>
+        <p className="text-sm align-middle">{text}</p>
       </label>
     </div>
   )

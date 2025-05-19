@@ -24,19 +24,19 @@ const LoginForm = () => {
 
   return (
     <FormProvider { ...methods }> 
-      <div className="flex items-center justify-center h-screen">
+      <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
         <form
           method='post' 
           onSubmit={methods.handleSubmit(submitCredential)} 
-          className="flex flex-col gap-[0.7rem] text-center text-sm border border-gray-300 rounded-md px-5 py-7 focus:outline-none"
+          className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
-          <div className="font-bold text-xl">Log in</div>
+          <div className="font-bold text-3xl">Log in</div>
           <Input
             name="username"
             id="username"
             type="text"
             placeholder="Username"
-            className="border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
           />
           <Input
             name="password"
@@ -44,27 +44,27 @@ const LoginForm = () => {
             type="password"
             placeholder="Password"
             autocomplete="on"
-            className="border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
           />
           <div className="flex flex-row items-center justify-between w-full">
             <Input
               name="remember"
               id="remember"
               type="checkbox"
-              className="accent-pink-300 cursor-pointer align-middle scale-50"
+              className="accent-pink-400 cursor-pointer align-middle mx-1"
               text="remember me"
             />
             {/* Link to Reset Password Page TODO */}
-            <Link to="/" className="text-[0.5rem] align-middle h-fit">Forgot password?</Link>
+            <Link to="/" className="text-sm align-middle h-fit">Forgot password?</Link>
           </div>
-          {apiErr && <p style={{color: "gray"}}>{apiErr}</p>}
+          {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
           <button 
             type='submit'
-            className="border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
           >
             Log in
           </button>
-          <div className="text-[0.5rem]">
+          <div className="text-sm">
             <span>Don't have an account? </span>
             <Link className="font-bold :hover" to="/signup">Register</Link>
           </div>
