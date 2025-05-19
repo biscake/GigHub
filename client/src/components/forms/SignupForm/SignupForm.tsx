@@ -1,19 +1,26 @@
 import type { AxiosError } from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import api from '../../../lib/api';
 import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../../lib/validators';
+import type { ApiErrorResponse, ValidationError } from '../../../types/api';
 import { type SignupFormInputs } from '../../../types/form';
 import { Input } from '../../Input/Input';
 
 const SignupForm = () => {
-  const [apiErr, setApiErr] = useState<string | null>(null);
+  const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
 
   const methods = useForm<SignupFormInputs>({ mode: 'onChange' });
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const submitCredential: SubmitHandler<SignupFormInputs> = async (data) => {
     try {
@@ -26,8 +33,12 @@ const SignupForm = () => {
         setApiErr(res.data.message);
       }
     } catch (err) {
-      const error = err as AxiosError;
-      setApiErr(error && "Something went wrong. Please try again");
+      console.error(err)
+      const error = err as AxiosError<ApiErrorResponse>;
+
+      const validationErrors = error.response?.data?.errors;
+
+      setApiErr(validationErrors || "Something went wrong. Please try again");
     }
 
   }
@@ -43,7 +54,18 @@ const SignupForm = () => {
         <Input {...emailValidation}/>
         <Input {...passwordValidation}/>
         <Input {...cpasswordValidation(methods.watch)}/>
-        {apiErr && <p style={{color: "red"}}>{apiErr}</p>}
+        {apiErr && (
+          <p style={{ color: 'red' }}>
+            {Array.isArray(apiErr)
+              ? apiErr.map((err, i) => (
+                  <span key={i}>
+                    {err.msg}
+                    <br />
+                  </span>
+                ))
+              : apiErr}
+          </p>
+        )}
         <button 
           type='submit' 
         >

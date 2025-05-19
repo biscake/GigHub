@@ -16,8 +16,4 @@ export const getKeys = () => ({
     private: loadKey('ACCESS_PRIVATE_KEY_PATH'),
     public: loadKey('ACCESS_PUBLIC_KEY_PATH'),
   },
-  refresh: {
-    private: loadKey('REFRESH_PRIVATE_KEY_PATH'),
-    public: loadKey('REFRESH_PUBLIC_KEY_PATH'),
-  },
 });
