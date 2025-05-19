@@ -18,7 +18,8 @@
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "posttest": "npm run lint",
+    "test:cron": "ts-node scripts/test-cron.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
@@ -30,6 +31,7 @@
     "express-async-handler": "^1.2.0",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.0.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1"
   },

@@ -159,7 +159,6 @@ export const refreshToken = asyncHandler(
       maxAge: 24 * 14 * 60 * 60 * 1000, // 14days
     });
 
-
     res.status(200).json({
       success: true,
       message: 'Access token refreshed',
