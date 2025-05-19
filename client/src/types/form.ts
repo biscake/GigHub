@@ -9,3 +9,7 @@ export type SignupFormInputs = {
   password: string;
   cpassword: string;
 }
+
+export type ResetRequestFormInputs = {
+  email: string;
+}
