@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth';
-import { type LoginFormInputs } from '../../../types/form';
-import { Input } from '../../Input/Input';
+import { useAuth } from '../../hooks/useAuth';
+import { type LoginFormInputs } from '../../types/form';
+import { Input } from '../Input';
 
 const LoginForm = () => {
   const { login } = useAuth();

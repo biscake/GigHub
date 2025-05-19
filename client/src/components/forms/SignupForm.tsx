@@ -2,12 +2,12 @@ import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth';
-import api from '../../../lib/api';
-import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../../lib/validators';
-import type { ApiErrorResponse, ValidationError } from '../../../types/api';
-import { type SignupFormInputs } from '../../../types/form';
-import { Input } from '../../Input/Input';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../lib/api';
+import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../lib/validators';
+import type { ApiErrorResponse, ValidationError } from '../../types/api';
+import { type SignupFormInputs } from '../../types/form';
+import { Input } from '../Input';
 import { Link } from 'react-router-dom';
 
 const SignupForm = () => {

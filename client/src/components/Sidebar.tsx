@@ -1,4 +1,4 @@
-import { type CheckBoxProp } from "../../types/checkBoxProps";
+import { type CheckBoxProp } from "../types/checkBoxProps";
 
 const Sidebar = () => {
   return (
