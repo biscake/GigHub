@@ -28,7 +28,6 @@ export const Input : React.FC<InputProps> = ({
 
   return (
     <div>
-      {inputError?.message && <InputError message={inputError.message} />}
       <label className="flex flex-row">
         <input
           id={id}
@@ -38,8 +37,9 @@ export const Input : React.FC<InputProps> = ({
           autoComplete={autocomplete}
           className={className}
         />
-        <p className="text-[0.5rem] align-middle">{text}</p>
+        <p className="text-sm align-middle">{text}</p>
       </label>
+      {inputError?.message && <InputError message={inputError.message} />}
     </div>
   )
 }
@@ -50,6 +50,6 @@ type InputErrorProps = {
 
 const InputError : React.FC<InputErrorProps> = ({ message }) => {
   return (
-    <span style={{color: 'red'}}>{message}</span>
+    <span className="text-rose-400 text-sm">{message}</span>
   )
 }
