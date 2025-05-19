@@ -49,6 +49,7 @@
     "prettier-plugin-prisma": "^5.0.0",
     "prisma": "^6.8.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3"
   }
 }

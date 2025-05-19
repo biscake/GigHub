@@ -1,38 +1,25 @@
-import bcrypt from 'bcryptjs';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import ValidationError from '../errors/validation-error';
-import { prisma } from '../lib/prisma';
-import { issueAccessToken, issueRefreshToken } from '../utils/issue-tokens.util';
+import { login, logout, register, rotateToken } from '../services/auth.service';
 
+const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { username, email } = req.body;
     const pwHash = req.pwHash;
 
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        accounts: {
-          create: {
-            provider: 'credentials',
-            providerAccountId: email,
-            passwordHash: pwHash,
-          },
-        },
-      },
-    });
+    if (!pwHash) {
+      throw new Error("pwHash missing");
+    }
 
-    const accessToken = issueAccessToken(user);
-    const refreshToken = issueRefreshToken();
+    const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'strict',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000, // 24hrs * 14d
+      maxAge: TWO_WEEKS_MS
     });
 
     res.status(200).json({
@@ -46,53 +33,15 @@ export const registerUser = asyncHandler(
 
 export const loginUserCredentials = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const { username, password } = req.body;
+    const { username, password, rememberMe } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: {
-        username: username,
-      },
-      include: {
-        accounts: {
-          where: {
-            provider: 'credentials',
-          },
-          select: {
-            passwordHash: true,
-          },
-        },
-      },
-    });
-
-    if (!user || !user.accounts[0]?.passwordHash) {
-      throw new ValidationError('Invalid username or password', 406);
-    }
-
-    const isValid = await bcrypt.compare(
-      password,
-      user.accounts[0].passwordHash,
-    );
-
-    if (!isValid) {
-      throw new ValidationError('Invalid username or password', 406);
-    }
-
-    const accessToken = issueAccessToken(user);
-    const refreshToken = issueRefreshToken();
-
-    await prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14days
-        userId: user.id
-      }
-    })
+    const { accessToken, refreshToken, user } = await login({ username, password });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'strict',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000, // 24hrs * 14d
+      ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
 
     res.status(200).json({
@@ -108,66 +57,30 @@ export const refreshToken = asyncHandler(
   async (
     req: Request,
     res: Response,
-    next: NextFunction,
   ) => {
     const refreshToken = req.cookies.refreshToken;
+    const { rememberMe } = req.body;
 
-    if (!refreshToken) {
-      return next(new ValidationError('No refresh token', 401));
-    }
-
-    const storedToken = await prisma.refreshToken.findUnique({
-      where: {
-        token: refreshToken
-      },
-      include: {
-        user: true
-      }
-    })
-
-    if (storedToken?.revoked) {
-      return next(new ValidationError('Invalid refresh token', 403));
-    }
-
-    if (!storedToken?.user) {
-      throw new Error("Missing user to create refresh token");
-    }
-
-    const newAccessToken = issueAccessToken(storedToken.user);
-    const newRefreshToken = issueRefreshToken();
-
-    await prisma.$transaction([
-      prisma.refreshToken.update({
-        where: { token: refreshToken },
-        data: {
-          revoked: true
-        }
-      }),
-      prisma.refreshToken.create({
-        data: {
-          token: newRefreshToken,
-          expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14days
-          userId: storedToken.userId
-        }
-      })
-    ])
+    const { newAccessToken, newRefreshToken, user } = await rotateToken({ refreshToken });
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'strict',
       secure: true,
-      maxAge: 24 * 14 * 60 * 60 * 1000, // 14days
+      ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
 
     res.status(200).json({
       success: true,
       message: 'Access token refreshed',
-      user: storedToken.user,
+      user,
       accessToken: newAccessToken,
     });
   }
 )
 
-export const logoutUser = (_req: Request, res: Response) => {
+export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
+  await logout({ token });
   res.clearCookie('refreshToken').json({ success: true, message: 'Cookie cleared' });
-};
+})

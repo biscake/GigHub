@@ -50,8 +50,8 @@ const LoginForm = () => {
           />
           <div className="flex flex-row items-center justify-between w-full">
             <Input
-              name="remember"
-              id="remember"
+              name="rememberMe"
+              id="rememberMe"
               type="checkbox"
               className="accent-pink-400 cursor-pointer align-middle mx-1"
               text="Remember me"
