@@ -126,7 +126,7 @@ export const logout = async ({ token }: logoutInput) => {
 }
 
 export const resetPassword = async ({ resetToken, pwHash }: resetPasswordInput) => {
-  const tokenRecord = await prisma.refreshToken.findUnique({
+  const tokenRecord = await prisma.resetToken.findUnique({
     where: { token: resetToken }
   })
   

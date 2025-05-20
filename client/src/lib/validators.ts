@@ -1,5 +1,5 @@
-import { type RegisterOptions, type UseFormWatch } from "react-hook-form";
-import { type SignupFormInputs } from "../types/form";
+import { type RegisterOptions, type UseFormWatch, type Path } from "react-hook-form";
+import { type hasPasswordField } from "../types/form";
 
 export type InputValidation = {
   name: string;
@@ -53,7 +53,9 @@ export const passwordValidation : InputValidation = {
   }
 }
 
-export const cpasswordValidation = (watch: UseFormWatch<SignupFormInputs>) => ({
+const passwordField = 'password'
+
+export const cpasswordValidation = <T extends hasPasswordField>(watch: UseFormWatch<T>) => ({
   name: 'cpassword',
   type: 'password', 
   id: 'cpassword',
@@ -65,7 +67,8 @@ export const cpasswordValidation = (watch: UseFormWatch<SignupFormInputs>) => ({
       message: 'Please confirm your password',
     },
     validate: (val: string) => {
-      return watch('password') === val || "Password does not match"
+      const password = watch(passwordField as Path<T>);
+        return password === val || 'Password does not match';
     }
   }
 })

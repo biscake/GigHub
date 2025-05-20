@@ -14,3 +14,12 @@ export type SignupFormInputs = {
 export type ResetRequestFormInputs = {
   email: string;
 }
+
+export type ResetPasswordFormInputs = {
+  password: string;
+  cpassword: string;
+}
+
+export type hasPasswordField = {
+  password: string;
+}
