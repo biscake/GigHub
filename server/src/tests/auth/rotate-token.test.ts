@@ -3,16 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import { rotateToken } from "../../services/auth.service";
 
-type RefreshTokenWithUser = {
-  id: string;
-  token: string;
-  revoked: boolean;
-  createdAt: Date;
-  expiresAt: Date;
-  userId: number;
-  user: typeof mockUser | null;
-};
-
 const TWO_WEEKS_MS = 1000 * 60 * 60 * 24 * 14;
 
 const mockOldRefreshToken = "old_refresh_token";
@@ -27,7 +17,7 @@ const mockUser = {
   createdAt: new Date(),
 };
 
-const mockOldToken: RefreshTokenWithUser = {
+const mockOldToken = {
   id: '1',
   token: mockOldRefreshToken,
   revoked: false,
@@ -154,7 +144,7 @@ describe("Auth: Rotate refresh token", () => {
   })
 
   it("Token without user should throw error", async () => {
-    const mockRefreshToken: RefreshTokenWithUser = { ...mockOldToken, user: null };
+    const mockRefreshToken = { ...mockOldToken, user: null };
     prisma.refreshToken.findUnique.mockResolvedValue(mockRefreshToken);
     await expect(rotateToken({ refreshToken: mockOldRefreshToken })).rejects.toThrow("Missing user to create refresh token");
   })
