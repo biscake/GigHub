@@ -15,7 +15,7 @@ const ResetRequestForm = () => {
 
   const submitCredential: SubmitHandler<ResetRequestFormInputs> = async (data) => {
     try {
-      await api.post('/api/request-reset', data, { headers: { 'Content-Type': 'application/json' } });
+      await api.post('/api/auth/request-reset', data, { headers: { 'Content-Type': 'application/json' } });
 
       setSuccess(true);
     } catch (err) {

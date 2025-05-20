@@ -27,7 +27,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // api route
-app.use('/api', authRoute);
+app.use('/api/auth', authRoute);
 
 // Use error handler
 app.use(errorHandler);

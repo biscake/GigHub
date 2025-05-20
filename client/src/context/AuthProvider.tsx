@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (rememberMe || sessionActive) {
         try {
-          const res = await api.post('/api/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
+          const res = await api.post('/api/auth/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
           const token = res.data.accessToken;
   
           if (token) {
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: LoginFormInputs) => {
     try {
-      const res = await api.post('/api/login', data, { headers: { 'Content-Type': 'application/json' } });
+      const res = await api.post('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
       
       const token = res.data.accessToken; 
 
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const logout = async () => {
-    const res = await api.post('/api/logout');
+    const res = await api.post('/api/auth/logout');
     
     if (res.data.success) {
       setAccessToken(null);

@@ -24,7 +24,7 @@ const SignupForm = () => {
 
   const submitCredential: SubmitHandler<SignupFormInputs> = async (data) => {
     try {
-      const res = await api.post('/api/register', data, { headers: { 'Content-Type': 'application/json' } });
+      const res = await api.post('/api/auth/register', data, { headers: { 'Content-Type': 'application/json' } });
 
       await login({ username: res.data.username, password: res.data.password, rememberMe: true });
       navigate('/');
