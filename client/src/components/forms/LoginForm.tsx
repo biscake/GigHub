@@ -3,7 +3,8 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { type LoginFormInputs } from '../../types/form';
-import { Input } from '../Input';
+import { Checkbox } from '../Checkbox';
+import { FormInput } from './FormInput';
 
 const LoginForm = () => {
   const { login } = useAuth();
@@ -22,8 +23,6 @@ const LoginForm = () => {
     }
   }
 
-  const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";
-
   return (
     <FormProvider { ...methods }> 
       <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
@@ -33,23 +32,21 @@ const LoginForm = () => {
           className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
           <div className="font-bold text-3xl">Log in</div>
-          <Input
+          <FormInput
             name="username"
             id="username"
             type="text"
             placeholder="Username"
-            className={inputStyle}
           />
-          <Input
+          <FormInput
             name="password"
             id="password"
             type="password"
             placeholder="Password"
             autocomplete="on"
-            className={inputStyle}
           />
           <div className="flex flex-row items-center justify-between w-full">
-            <Input
+            <Checkbox
               name="rememberMe"
               id="rememberMe"
               type="checkbox"

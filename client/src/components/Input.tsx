@@ -1,18 +1,7 @@
-import { useFormContext, type FieldError, type RegisterOptions } from 'react-hook-form';
+import { useFormContext, type FieldError } from 'react-hook-form';
+import type { InputProps } from '../types/inputProps';
 
-type InputProps = {
-  type: string;
-  id: string;
-  placeholder?: string;
-  name: string;
-  validation?: RegisterOptions;
-  autocomplete?: string;
-  className?: string;
-  text?: string;
-};
-
-//TODO: add styling
-export const Input : React.FC<InputProps> = ({ 
+export const Input: React.FC<InputProps> = ({ 
   type, 
   id, 
   placeholder, 
@@ -20,7 +9,6 @@ export const Input : React.FC<InputProps> = ({
   validation, 
   autocomplete = 'off',
   className,
-  text
 }) => {
   const { register, formState: { errors } } = useFormContext();
 
@@ -37,7 +25,6 @@ export const Input : React.FC<InputProps> = ({
           autoComplete={autocomplete}
           className={className}
         />
-        <p className="text-sm align-middle">{text}</p>
       </label>
       {inputError?.message && <InputError message={inputError.message} />}
     </div>

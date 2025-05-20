@@ -8,6 +8,7 @@ import { cpasswordValidation, emailValidation, passwordValidation, usernameValid
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type SignupFormInputs } from '../../types/form';
 import { Input } from '../Input';
+import { FormInput } from './FormInput';
 
 const SignupForm = () => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
@@ -41,8 +42,6 @@ const SignupForm = () => {
 
   }
 
-  const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";
-
   return (
     <FormProvider {...methods}>
       <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
@@ -53,14 +52,10 @@ const SignupForm = () => {
           className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
           <div className="font-bold text-3xl">Sign Up</div>
-          <Input {...usernameValidation} 
-            className={inputStyle}/>
-          <Input {...emailValidation}
-            className={inputStyle}/>
-          <Input {...passwordValidation}
-            className={inputStyle}/>
-          <Input {...cpasswordValidation(methods.watch)}
-            className={inputStyle}/>
+          <FormInput {...usernameValidation} />
+          <FormInput {...emailValidation} />
+          <FormInput {...passwordValidation} />
+          <Input {...cpasswordValidation(methods.watch)} />
           {apiErr && (
             <p className="text-sm text-rose-400">
               {Array.isArray(apiErr)
