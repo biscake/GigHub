@@ -1,7 +1,7 @@
 import ResetRequestForm from "../components/forms/ResetRequestForm";
 
 //TODO: add styling
-const SignupPage = () => {
+const ResetRequestPage = () => {
   return (
     <div>
       <ResetRequestForm /> 
@@ -9,4 +9,4 @@ const SignupPage = () => {
   )   
 }
 
-export default SignupPage;
+export default ResetRequestPage;

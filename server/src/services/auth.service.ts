@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs';
 import ValidationError from "../errors/validation-error";
 import { prisma } from "../lib/prisma";
-import { loginInput, logoutInput, registerInput, rotateTokenInput } from "../types/auth";
+import { loginInput, logoutInput, registerInput, rotateTokenInput, resetPasswordInput } from "../types/auth";
 import { issueAccessToken, issueRefreshToken } from "../utils/issue-tokens.util";
+import { validateRequest } from '../middleware/validate-request.middleware';
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -120,6 +121,34 @@ export const logout = async ({ token }: logoutInput) => {
     where: { token: token },
     data: {
       revoked: true
+    }
+  })
+}
+
+export const resetPassword = async ({ resetToken, pwHash }: resetPasswordInput) => {
+  const tokenRecord = await prisma.refreshToken.findUnique({
+    where: { token: resetToken }
+  })
+  
+  if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
+    throw new ValidationError('Invalid reset token', 400);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: tokenRecord.userId }
+  });
+
+  if (!user) {
+    throw new ValidationError('User not found', 404);
+  }
+
+  await prisma.account.updateMany({
+    where: { 
+      providerAccountId: user.email, 
+      provider: 'credentials'
+    },
+    data: {
+      passwordHash: pwHash
     }
   })
 }

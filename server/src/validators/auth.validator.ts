@@ -1,7 +1,8 @@
 import { body } from 'express-validator';
 import { prisma } from '../lib/prisma';
+import ValidationError from '../errors/validation-error';
 
-const validateFormPassword = [
+export const validateFormPassword = [
   body('password')
     .notEmpty()
     .withMessage('Password is required')
@@ -11,9 +12,20 @@ const validateFormPassword = [
       'Password must be 8–16 characters and include uppercase, lowercase and number',
     )
     .escape(),
+
+  body('cpassword')
+    .notEmpty()
+    .withMessage('Confirm password required')
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new ValidationError('Passwords do not match', 400);
+      }
+      return true;
+    })
+    .escape(),
 ];
 
-const validateFormDuplicates = [
+export const validateFormDuplicates = [
   body('username')
     .notEmpty()
     .withMessage('Username is required')
@@ -53,8 +65,3 @@ const validateFormDuplicates = [
     .escape(),
 ];
 
-// ✅ Flatten validators into one array for middleware use
-export const validateForm = [
-  ...validateFormPassword,
-  ...validateFormDuplicates,
-];

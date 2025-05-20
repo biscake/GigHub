@@ -56,8 +56,7 @@ const LoginForm = () => {
               className="accent-pink-400 cursor-pointer align-middle mx-1"
               text="Remember me"
             />
-            {/* Link to Reset Password Page TODO */}
-            <Link to="/" className="text-sm align-middle h-fit">Forgot password?</Link>
+            <Link to="/request-reset" className="text-sm align-middle h-fit">Forgot password?</Link>
           </div>
           {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
           <button 

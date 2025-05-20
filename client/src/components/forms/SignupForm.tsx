@@ -26,19 +26,17 @@ const SignupForm = () => {
     try {
       const res = await api.post('/api/register', data, { headers: { 'Content-Type': 'application/json' } });
 
-      if (res.data.success) {
-        await login({ username: data.username, password: data.password, rememberMe: true });
-        navigate('/');
-      } else {
-        setApiErr(res.data.message);
-      }
+      await login({ username: res.data.username, password: res.data.password, rememberMe: true });
+      navigate('/');
     } catch (err) {
       console.error(err)
       const error = err as AxiosError<ApiErrorResponse>;
 
       const validationErrors = error.response?.data?.errors;
 
-      setApiErr(validationErrors || "Something went wrong. Please try again");
+      const errorMessage = error.response?.data?.message;
+
+      setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
     }
 
   }
