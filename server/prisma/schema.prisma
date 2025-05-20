@@ -16,6 +16,7 @@ model User {
   posts        Post[]
   accounts     Account[]
   RefreshToken RefreshToken[]
+  ResetToken   ResetToken?
 }
 
 model Account {
@@ -50,6 +51,15 @@ model RefreshToken {
   createdAt DateTime @default(now())
   expiresAt DateTime
   userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  userId    Int      @unique
   user      User     @relation(fields: [userId], references: [id])
 }
 

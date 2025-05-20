@@ -22,6 +22,8 @@ const LoginForm = () => {
     }
   }
 
+  const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";
+
   return (
     <FormProvider { ...methods }> 
       <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
@@ -36,7 +38,7 @@ const LoginForm = () => {
             id="username"
             type="text"
             placeholder="Username"
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className={inputStyle}
           />
           <Input
             name="password"
@@ -44,7 +46,7 @@ const LoginForm = () => {
             type="password"
             placeholder="Password"
             autocomplete="on"
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className={inputStyle}
           />
           <div className="flex flex-row items-center justify-between w-full">
             <Input
@@ -54,8 +56,7 @@ const LoginForm = () => {
               className="accent-pink-400 cursor-pointer align-middle mx-1"
               text="Remember me"
             />
-            {/* Link to Reset Password Page TODO */}
-            <Link to="/" className="text-sm align-middle h-fit">Forgot password?</Link>
+            <Link to="/request-reset" className="text-sm align-middle h-fit">Forgot password?</Link>
           </div>
           {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
           <button 

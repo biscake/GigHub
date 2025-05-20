@@ -26,22 +26,22 @@ const SignupForm = () => {
     try {
       const res = await api.post('/api/register', data, { headers: { 'Content-Type': 'application/json' } });
 
-      if (res.data.success) {
-        await login({ username: data.username, password: data.password, rememberMe: true });
-        navigate('/');
-      } else {
-        setApiErr(res.data.message);
-      }
+      await login({ username: res.data.username, password: res.data.password, rememberMe: true });
+      navigate('/');
     } catch (err) {
       console.error(err)
       const error = err as AxiosError<ApiErrorResponse>;
 
       const validationErrors = error.response?.data?.errors;
 
-      setApiErr(validationErrors || "Something went wrong. Please try again");
+      const errorMessage = error.response?.data?.message;
+
+      setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
     }
 
   }
+
+  const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";
 
   return (
     <FormProvider {...methods}>
@@ -53,14 +53,14 @@ const SignupForm = () => {
           className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
           <div className="font-bold text-3xl">Sign Up</div>
-          <Input {...usernameValidation}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+          <Input {...usernameValidation} 
+            className={inputStyle}/>
           <Input {...emailValidation}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           <Input {...passwordValidation}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           <Input {...cpasswordValidation(methods.watch)}
-            className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"/>
+            className={inputStyle}/>
           {apiErr && (
             <p className="text-sm text-rose-400">
               {Array.isArray(apiErr)

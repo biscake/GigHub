@@ -29,3 +29,9 @@ export const issueRefreshToken = () => {
 
   return refreshToken;
 }
+
+export const issueResetToken = () => {
+  const refreshToken = crypto.randomBytes(40).toString('hex');
+
+  return refreshToken;
+}

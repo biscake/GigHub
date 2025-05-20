@@ -16,3 +16,12 @@ export type rotateTokenInput = {
 export type logoutInput = {
   token: string;
 }
+
+export type resetRequestInput = {
+  email: string;
+}
+
+export type resetPasswordInput = {
+  resetToken: string;
+  pwHash: string;
+}
