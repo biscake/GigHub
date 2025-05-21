@@ -3,5 +3,5 @@ export type CreateGigInDatabaseInput = {
   title: string;
   price: number;
   description: string;
-  authorId: Integer;
+  authorId: number;
 }
