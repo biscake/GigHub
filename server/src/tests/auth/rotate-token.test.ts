@@ -1,31 +1,13 @@
-import { Role } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import { rotateToken } from "../../services/auth.service";
+import { mockRefreshTokenRecord as mockOldToken, mockUser } from "../__mocks__/mock-prisma-models";
 
 const TWO_WEEKS_MS = 1000 * 60 * 60 * 24 * 14;
 
 const mockOldRefreshToken = "old_refresh_token";
 const mockNewRefreshToken = "new_refresh_token";
 const mockNewAccessToken = "new_access_token";
-
-const mockUser = {
-  id: 1,
-  email: "test@example.com",
-  username: "testuser",
-  role: Role.USER,
-  createdAt: new Date(),
-};
-
-const mockOldToken = {
-  id: '1',
-  token: mockOldRefreshToken,
-  revoked: false,
-  createdAt: new Date(),
-  expiresAt: new Date(Date.now() + TWO_WEEKS_MS),
-  userId: 1,
-  user: mockUser,
-};
 
 const mockNewToken = {
   id: '2',

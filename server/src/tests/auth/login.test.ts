@@ -1,21 +1,13 @@
-import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import { login } from "../../services/auth.service";
+import { mockUser } from "../__mocks__/mock-prisma-models";
 
 const mockAccessToken = "access_token";
 const mockRefreshToken = "refresh_token";
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
-
-const mockUser = {
-  id: 1,
-  email: "test@example.com",
-  username: "testuser",
-  role: Role.USER,
-  createdAt: new Date()
-};
 
 type MockUserWithAccounts = typeof mockUser & {
   accounts: { passwordHash: string }[]
