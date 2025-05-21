@@ -1,6 +1,5 @@
-import LoginForm from "../components/forms/LoginForm";
+import LoginForm from "../../components/forms/LoginForm";
 
-//TODO: add styling
 const LoginPage = () => {
   return (
     <div>

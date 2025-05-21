@@ -21,29 +21,24 @@ export const resetRequest = async ({ email }: resetRequestInput) => {
     throw new ValidationError('Email not registered.', 400);
   }
 
-  const generated = await prisma.resetToken.findUnique({
-    where: { userId: user.id }
-  })
-
   const resetToken = issueResetToken();
 
-  if (!generated) {
-    await prisma.resetToken.create({
-      data: {
-        token: resetToken,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-        userId: user.id
-      }
-    })
-  } else {
-    await prisma.resetToken.update({
-      where: { userId: user.id },
-      data: {
-        token: resetToken,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-      }
-    })
-  }
+  await prisma.resetToken.create({
+    data: {
+      token: resetToken,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      userId: user.id
+    }
+  });
+
+  await prisma.resetToken.updateMany({
+    where: {
+      userId: user.id
+    },
+    data: {
+      revoked: true
+    }
+  })
 
   await transporter.sendMail({
     from: `"GigHub" <${process.env.EMAIL_USER}>`,
