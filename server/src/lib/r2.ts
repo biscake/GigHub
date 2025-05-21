@@ -5,9 +5,10 @@ const {
   R2_ENDPOINT,
   R2_ACCESS_KEY,
   R2_SECRET_KEY,
+  R2_BUCKET
 } = process.env;
 
-if (!R2_REGION || !R2_ENDPOINT || !R2_ACCESS_KEY || !R2_SECRET_KEY) {
+if (!R2_REGION || !R2_ENDPOINT || !R2_ACCESS_KEY || !R2_SECRET_KEY || R2_BUCKET) {
   throw new Error("Missing required R2 environment variables");
 }
 
