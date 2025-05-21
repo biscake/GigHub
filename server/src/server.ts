@@ -5,7 +5,7 @@ import { cleanUpRefreshToken } from './cron/clean-refresh-token.cron';
 import { cleanUpResetToken } from './cron/clean-reset-token.cron';
 
 // import env
-dotenv.config();
+const result = dotenv.config();
 
 // Use PORT provided in environment or default to 3000
 const PORT = process.env.PORT || 3000;

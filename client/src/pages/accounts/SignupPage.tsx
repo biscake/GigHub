@@ -1,6 +1,5 @@
-import SignupForm from "../components/forms/SignupForm";
+import SignupForm from "../../components/forms/SignupForm";
 
-//TODO: add styling
 const SignupPage = () => {
   return (
     <div>

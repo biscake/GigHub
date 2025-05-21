@@ -1,4 +1,5 @@
 import { User } from '@prisma/client';
+import dotenv from 'dotenv';
 import { PassportStatic } from 'passport';
 import {
   ExtractJwt,
@@ -9,6 +10,8 @@ import {
 import { prisma } from '../lib/prisma';
 import { JwtPayload } from '../types/jwt-payload';
 import { getKeys } from './keys';
+
+dotenv.config();
 
 const keys = getKeys();
 
