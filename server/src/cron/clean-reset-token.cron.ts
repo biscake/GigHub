@@ -2,11 +2,15 @@ import { prisma } from "../lib/prisma";
 
 export const cleanUpResetToken = async () => {
   try {
-    const result = await prisma.refreshToken.deleteMany({
+    const result = await prisma.resetToken.deleteMany({
       where: {
-        expiresAt: {
-          lt: new Date()
-        }
+        OR: [
+          { revoked: true },
+          {
+            expiresAt: {
+            lt: new Date()
+          }}
+        ]
       },
     })
 
