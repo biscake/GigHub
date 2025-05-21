@@ -7,20 +7,32 @@ import { CreateGigInDatabaseInput } from '../types/gig';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
-  const gigDetails: CreateGigInDatabaseInput = req.body;
 
   const key = file
     ? `gigs/${createId()}-${file.originalname}`
     : "default/default.jpg";
 
-  const gig = await createGigInDatabase({ ...gigDetails, imgKey: key });
+  const gigDetails: CreateGigInDatabaseInput = {
+    ...req.body,
+    price: parseFloat(req.body.price),
+    authorId: parseInt(req.body.authorId, 10),
+    imgKey: key
+  };
+
+  let gig;
+
+  try {
+    gig = await createGigInDatabase(gigDetails);
   
-  if (file) {
-    await uploadSingleImageToR2({
-      fileBuffer: file.buffer,
-      key: key,
-      contentType: file.mimetype
-    })
+    if (file) {
+      await uploadSingleImageToR2({
+        fileBuffer: file.buffer,
+        key: key,
+        contentType: file.mimetype
+      })
+    }
+  } catch (err) {
+    throw err;
   }
 
   res.status(200).json({

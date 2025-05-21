@@ -8,9 +8,9 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
       title: gig.title,
       price: gig.price,
       description: gig.description,
-      authorId: gig.authorId
+      authorId: gig.authorId,
     }
-  })
+  });
 
   return result;
 }

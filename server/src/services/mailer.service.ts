@@ -1,8 +1,8 @@
 import NodeMailer from 'nodemailer';
+import ValidationError from '../errors/validation-error';
 import { prisma } from "../lib/prisma";
 import { resetRequestInput } from '../types/auth';
 import { issueResetToken } from "../utils/issue-tokens.util";
-import ValidationError from '../errors/validation-error';
 
 const transporter = NodeMailer.createTransport({
   service: 'gmail',
@@ -44,7 +44,6 @@ export const resetRequest = async ({ email }: resetRequestInput) => {
       }
     })
   }
-
 
   await transporter.sendMail({
     from: `"GigHub" <${process.env.EMAIL_USER}>`,
