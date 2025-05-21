@@ -7,10 +7,12 @@ import type { ApiErrorResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
+import { Loading } from "../components/Loading"
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<Boolean>(true);
 
   useEffect(() => {
     const fetchAccessToken = async () => {
@@ -33,7 +35,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(null);
         }
       }
-    }
+
+      setLoading(false);
+    };
 
     fetchAccessToken();
   }, [])
@@ -67,20 +71,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const message = err.response?.data?.message;
 
       return { success: false, error: message || "Something went wrong. Please try again" };
+    } finally {
+      setLoading(false);
     }
   }
 
   const logout = async () => {
-    const res = await api.post('/api/auth/logout');
-    
-    if (res.data.success) {
+    try {
+      const res = await api.post('/api/auth/logout');
+
       setAccessToken(null);
       setUser(null);
       localStorage.removeItem("rememberMe");
       sessionStorage.removeItem("sessionActive");
   
       delete api.defaults.headers.common.Authorization;
+
+      return { success: true, data: res.data };
+    } catch(error) {
+      const err = error as AxiosError<ApiErrorResponse>;
+
+      const message = err.response?.data?.message;
+
+      return { success: false, error: message || "Something went wrong. Please try again" };
+    } finally {
+      setLoading(false);
     }
+  }
+
+  if (loading) {
+    return <Loading />
   }
 
   return (

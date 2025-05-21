@@ -5,10 +5,16 @@ const Navbar = () => {
   const { user, logout } = useAuth();
 
   return (
-    <nav className="bg-gray-600 text-black px-5 py-5 shadow">
+    <nav className="bg-gray-600 text-black p-1 shadow">
       <div className="flex justify-between items-center">
         <div className="text-4xl font-bold">
-          <a href="/">GigHub</a>
+          <a href="/">
+            <img 
+              className="w-auto h-12 rounded-lg shadow" 
+              src="../public/GigHub_nameplate.png" 
+              alt="GigHub"
+            />
+          </a>
         </div>
         {user ? (
           <div className="space-x-4 flex">
