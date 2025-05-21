@@ -4,6 +4,6 @@ import { uploadSingleImage } from '../middleware/upload-assets.middleware';
 
 const router = Router();
 
-router.post('/upload', uploadSingleImage, createGig);
+router.post('/create', uploadSingleImage, createGig);
 
 export default router
