@@ -35,7 +35,7 @@ const ResetRequestForm = () => {
           <span className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none">Email Sent!</span>
           <div className="text-sm">
             <span>Back to </span>
-            <Link className="font-bold :hover" to="/login">Log in</Link>
+            <Link className="font-bold :hover" to="/accounts/login">Log in</Link>
           </div>
         </div>
       </div>

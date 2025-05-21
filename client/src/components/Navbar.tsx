@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth"
+import { useAuth } from "../hooks/useAuth";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -17,8 +17,8 @@ const Navbar = () => {
           </div>
         ) : (
           <div className="space-x-4">
-            <Link className="text-2xl" to="/Login">Login</Link>
-            <Link className="text-2xl" to="/Signup">Signup</Link>
+            <Link className="text-2xl" to="/accounts/login">Login</Link>
+            <Link className="text-2xl" to="/accounts/signup">Signup</Link>
           </div>
         )}
         
