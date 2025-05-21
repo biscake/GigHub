@@ -57,6 +57,7 @@ model RefreshToken {
 model ResetToken {
   id        String   @id @default(cuid())
   token     String   @unique
+  revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
   userId    Int      @unique
