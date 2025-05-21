@@ -1,6 +1,7 @@
 import { body } from 'express-validator';
-import { prisma } from '../lib/prisma';
+import { ConflictError } from '../errors/conflict-error';
 import ValidationError from '../errors/validation-error';
+import { prisma } from '../lib/prisma';
 
 export const validateFormPassword = [
   body('password')
@@ -18,7 +19,7 @@ export const validateFormPassword = [
     .withMessage('Confirm password required')
     .custom((value, { req }) => {
       if (value !== req.body.password) {
-        throw new ValidationError('Passwords do not match', 400);
+        throw new Error('Passwords do not match');
       }
       return true;
     })

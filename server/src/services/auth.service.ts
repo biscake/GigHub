@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import ValidationError from "../errors/validation-error";
+import { BadRequestError } from '../errors/bad-request-error';
+import { NotFoundError } from '../errors/not-found-error';
 import { prisma } from "../lib/prisma";
-import { loginInput, logoutInput, registerInput, rotateTokenInput, resetPasswordInput } from "../types/auth";
+import { loginInput, logoutInput, registerInput, resetPasswordInput, rotateTokenInput } from "../types/auth";
 import { issueAccessToken, issueRefreshToken } from "../utils/issue-tokens.util";
-import { validateRequest } from '../middleware/validate-request.middleware';
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -46,7 +46,7 @@ export const login = async ({ username, password }: loginInput) => {
   });
 
   if (!user || !user.accounts[0]?.passwordHash) {
-    throw new ValidationError('Invalid username or password', 406);
+    throw new BadRequestError('Invalid username or password');
   }
 
   const isValid = await bcrypt.compare(
@@ -55,7 +55,7 @@ export const login = async ({ username, password }: loginInput) => {
   );
 
   if (!isValid) {
-    throw new ValidationError('Invalid username or password', 406);
+    throw new BadRequestError('Invalid username or password');
   }
 
   const accessToken = issueAccessToken(user);
@@ -74,7 +74,7 @@ export const login = async ({ username, password }: loginInput) => {
 
 export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
   if (!refreshToken) {
-    throw new ValidationError('No refresh token', 401);
+    throw new BadRequestError('No refresh token');
   }
 
   const storedToken = await prisma.refreshToken.findUnique({
@@ -87,7 +87,7 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
   })
 
   if (!storedToken || storedToken?.revoked || storedToken?.expiresAt < new Date()) {
-    throw new ValidationError('Invalid refresh token', 403);
+    throw new BadRequestError('Invalid refresh token');
   }
 
   if (!storedToken?.user) {
@@ -131,7 +131,7 @@ export const resetPassword = async ({ resetToken, pwHash }: resetPasswordInput) 
   })
   
   if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
-    throw new ValidationError('Invalid reset token', 400);
+    throw new BadRequestError('Invalid reset token');
   }
 
   const user = await prisma.user.findUnique({
@@ -139,7 +139,7 @@ export const resetPassword = async ({ resetToken, pwHash }: resetPasswordInput) 
   });
 
   if (!user) {
-    throw new ValidationError('User not found', 404);
+    throw new NotFoundError('User not found');
   }
 
   await prisma.account.updateMany({

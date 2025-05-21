@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { login, logout, register, rotateToken, resetPassword } from '../services/auth.service';
+import { BadRequestError } from '../errors/bad-request-error';
+import { login, logout, register, resetPassword, rotateToken } from '../services/auth.service';
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -10,7 +11,7 @@ export const registerUser = asyncHandler(
     const pwHash = req.pwHash;
 
     if (!pwHash) {
-      throw new Error("pwHash missing");
+      throw new BadRequestError("Password hash missing");
     }
 
     const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
@@ -91,7 +92,7 @@ export const resetUserPassword = asyncHandler(
     const pwHash = req.pwHash;
 
     if (!pwHash) {
-      throw new Error("pwHash missing");
+      throw new BadRequestError("Password Hash missing");
     }
 
     await resetPassword({ resetToken, pwHash });
