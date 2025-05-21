@@ -7,7 +7,6 @@ import api from '../../lib/api';
 import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../lib/validators';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type SignupFormInputs } from '../../types/form';
-import { Input } from '../Input';
 import { FormInput } from './FormInput';
 
 const SignupForm = () => {
@@ -55,7 +54,7 @@ const SignupForm = () => {
           <FormInput {...usernameValidation} />
           <FormInput {...emailValidation} />
           <FormInput {...passwordValidation} />
-          <Input {...cpasswordValidation(methods.watch)} />
+          <FormInput {...cpasswordValidation(methods.watch)} />
           {apiErr && (
             <p className="text-sm text-rose-400">
               {Array.isArray(apiErr)
