@@ -1,15 +1,7 @@
-import { Role } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import { register } from "../../services/auth.service";
-
-const mockUser = {
-  id: 1,
-  email: "test@example.com",
-  username: "testuser",
-  role: Role.USER,
-  createdAt: new Date()
-};
+import { mockUser } from "../__mocks__/mock-prisma-models";
 
 const mockAccessToken = "access_token";
 const mockRefreshToken = "refresh_token";
