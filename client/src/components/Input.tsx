@@ -1,5 +1,5 @@
 import { useFormContext, type FieldError } from 'react-hook-form';
-import type { InputProps } from '../types/inputProps';
+import type { InputErrorProps, InputProps } from '../types/inputProps';
 
 export const Input: React.FC<InputProps> = (props) => {
   const { register, formState: { errors } } = useFormContext();
@@ -17,10 +17,6 @@ export const Input: React.FC<InputProps> = (props) => {
       {inputError?.message && <InputError message={inputError.message} />}
     </div>
   )
-}
-
-type InputErrorProps = {
-  message?: string;
 }
 
 const InputError : React.FC<InputErrorProps> = ({ message }) => {
