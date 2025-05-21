@@ -8,15 +8,16 @@ generator client {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  createdAt    DateTime       @default(now())
-  email        String         @unique
-  username     String         @unique
-  role         Role           @default(USER)
-  posts        Post[]
+  id           Int              @id @default(autoincrement())
+  createdAt    DateTime         @default(now())
+  email        String           @unique
+  username     String           @unique
+  role         Role             @default(USER)
+  gigs         Gig[]
   accounts     Account[]
   RefreshToken RefreshToken[]
   ResetToken   ResetToken?
+  applications GigApplication[]
 }
 
 model Account {
@@ -32,20 +33,31 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
-model Post {
-  id          Int      @id @default(autoincrement())
-  imgUrl      String?
-  title       String
-  price       Float
-  description String?
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  authorId    Int
-  author      User     @relation(fields: [authorId], references: [id])
+model Gig {
+  id             Int              @id @default(autoincrement())
+  imgKey         String
+  title          String
+  price          Float
+  description    String
+  published      Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  authorId       Int
+  author         User             @relation(fields: [authorId], references: [id])
+  GigApplication GigApplication[]
+}
+
+model GigApplication {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  status    Status   @default(PENDING)
+  gig       Gig      @relation(fields: [gigId], references: [id])
+  gigId     Int
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   token     String   @unique
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -55,7 +67,7 @@ model RefreshToken {
 }
 
 model ResetToken {
-  id        String   @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   token     String   @unique
   createdAt DateTime @default(now())
   expiresAt DateTime
@@ -66,4 +78,10 @@ model ResetToken {
 enum Role {
   USER
   ADMIN
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
