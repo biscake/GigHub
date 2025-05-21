@@ -1,27 +1,10 @@
-import { Role } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
-import { resetPassword, rotateToken } from "../../services/auth.service";
-
-const mockUser = {
-  id: 1,
-  email: "test@example.com",
-  username: "testuser",
-  role: Role.USER,
-  createdAt: new Date(),
-};
+import { resetPassword } from "../../services/auth.service";
+import { mockUser, mockResetTokenRecord } from "../__mocks__/mock-prisma-models";
 
 const mockResetToken = "reset_token";
 const mockPwHash = "pw_hash";
-
-const mockResetTokenRecord = {
-  id: "1",
-  token: mockResetToken,
-  createdAt: new Date(),
-  expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-  userId: 1,
-  user: mockUser
-}
 
 vi.mock("../../lib/prisma", async () => {
   const actual = await vi.importActual("../../lib/__mocks__/prisma");

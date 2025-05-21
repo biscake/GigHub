@@ -1,17 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import { logout } from "../../services/auth.service";
+import { mockRefreshTokenRecord } from "../__mocks__/mock-prisma-models";
 
 const mockToken = "refresh_token";
-
-const mockRefreshToken = {
-  id: '1',
-  token: mockToken,
-  revoked: false,
-  createdAt: new Date(),
-  expiresAt: new Date(Date.now() + 24 * 14 * 60 * 60 * 1000),
-  userId: 1,
-};
 
 vi.mock("../../lib/prisma", async () => {
   const actual = await vi.importActual("../../lib/__mocks__/prisma");
@@ -26,7 +18,7 @@ describe("Auth: logout", () => {
   });
 
   it("Should revoke refresh token", async () => {
-    prisma.refreshToken.update.mockResolvedValue({ ...mockRefreshToken, revoked: true });
+    prisma.refreshToken.update.mockResolvedValue({ ...mockRefreshTokenRecord, revoked: true });
 
     await logout({ token: mockToken });
 
