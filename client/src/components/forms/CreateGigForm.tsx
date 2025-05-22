@@ -20,7 +20,7 @@ const CreateGigForm = () => {
         throw new Error("User not logged in");
       }
       
-      const res = await api.post('/api/gig/create', { ...data, file: data.file[0], authorId: user.id }, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const res = await api.post('/api/gigs/create', { ...data, file: data.file[0], authorId: user.id }, { headers: { 'Content-Type': 'multipart/form-data' } });
 
       return res;
     } catch (err) {
