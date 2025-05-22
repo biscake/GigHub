@@ -30,7 +30,7 @@ app.get('/health', (_req: Request, res: Response) => {
 // api route
 app.use('/api/auth', authRoute);
 
-app.use('/api/gig', gigRoute);
+app.use('/api/gigs', gigRoute);
 
 // Use error handler
 app.use(errorHandler);

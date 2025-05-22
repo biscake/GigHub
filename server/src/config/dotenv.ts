@@ -8,9 +8,10 @@ const envVariables = [
   "DATABASE_URL",
   "R2_ACCESS_KEY",
   "R2_SECRET_KEY",
-  "R2_BUCKET_NAME",
+  "R2_BUCKET",
   "R2_ENDPOINT",
-  "R2_REGION"
+  "R2_REGION",
+  "R2_PUBLIC_ENDPOINT"
 ]
 
 envVariables.forEach(variable => {
