@@ -19,22 +19,16 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
     imgKey: key
   };
 
-  let gig;
-
-  try {
-    gig = await createGigInDatabase(gigDetails);
+  const gig = await createGigInDatabase(gigDetails);
   
-    if (file) {
-      await uploadSingleImageToR2({
-        fileBuffer: file.buffer,
-        key: key,
-        contentType: file.mimetype
-      })
-    }
-  } catch (err) {
-    throw err;
+  if (file) {
+    await uploadSingleImageToR2({
+      fileBuffer: file.buffer,
+      key: key,
+      contentType: file.mimetype
+    })
   }
-
+  
   res.status(200).json({
     success: true,
     gig
