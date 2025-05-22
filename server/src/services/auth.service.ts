@@ -1,7 +1,5 @@
-import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { BadRequestError } from '../errors/bad-request-error';
-import { ConflictError } from '../errors/conflict-error';
 import { NotFoundError } from '../errors/not-found-error';
 import { ServiceError } from '../errors/service-error';
 import { prisma } from "../lib/prisma";

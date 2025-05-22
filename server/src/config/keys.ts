@@ -11,9 +11,9 @@ const loadKey = (keyPathEnv: string): string => {
   return fs.readFileSync(path.resolve(keyPath), 'utf8');
 };
 
-export const getKeys = () => ({
+export const keys = {
   access: {
     private: loadKey('ACCESS_PRIVATE_KEY_PATH'),
     public: loadKey('ACCESS_PUBLIC_KEY_PATH'),
   },
-});
+};

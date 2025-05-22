@@ -1,11 +1,9 @@
 import { User } from '@prisma/client';
 import crypto from 'crypto';
 import jsonwebtoken from 'jsonwebtoken';
-import { getKeys } from '../config/keys';
+import { keys } from '../config/keys';
 
 export const issueAccessToken = (user: User) => {
-  const keys = getKeys();
-
   const { id, username } = user;
 
   const expiresIn = '15m';
@@ -14,6 +12,8 @@ export const issueAccessToken = (user: User) => {
     sub: id,
     username,
     iat: Date.now(),
+    iss: process.env.JWT_ISSUER || 'localhost',
+    aud: process.env.JWT_AUDIENCE || 'localhost'
   };
 
   const signedToken = jsonwebtoken.sign(payload, keys.access.private, {
