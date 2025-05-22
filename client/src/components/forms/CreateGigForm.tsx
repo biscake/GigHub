@@ -15,6 +15,7 @@ const CreateGigForm = () => {
 
   const submitCredential: SubmitHandler<CreateGigFormInputs> = async (data) => {
     try {
+      console.log(user);
       if (!user) {
         throw new Error("User not logged in");
       }
