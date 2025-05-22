@@ -39,6 +39,7 @@ model Gig {
   title          String
   price          Float
   description    String
+  category       String?
   published      Boolean          @default(false)
   createdAt      DateTime         @default(now())
   authorId       Int
