@@ -12,6 +12,8 @@ export const issueAccessToken = (user: User) => {
     sub: id,
     username,
     iat: Date.now(),
+    iss: process.env.JWT_ISSUER || 'localhost',
+    aud: process.env.JWT_AUDIENCE || 'localhost'
   };
 
   const signedToken = jsonwebtoken.sign(payload, keys.access.private, {

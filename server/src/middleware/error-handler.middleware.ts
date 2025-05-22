@@ -29,10 +29,6 @@ export const errorHandler = (
     errors = err.errors ?? null;
   }
 
-  else if (err instanceof Error) {
-    message = err.message;
-  }
-
   const response: ErrorResponse = {
     success: false,
     status: statusCode,

@@ -34,3 +34,7 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
     gig
   })
 })
+
+export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
+  
+})

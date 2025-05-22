@@ -13,9 +13,8 @@ import { keys } from './keys';
 const opts: StrategyOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: keys.access.public,
-  issuer: process.env.NODE_ENV === 'production' ? 'dummy.com' : 'localhost',
-  audience:
-    process.env.NODE_ENV === 'production' ? 'dummysite.com' : 'localhost',
+  issuer: process.env.JWT_ISSUER || 'localhost',
+  audience: process.env.JWT_AUDIENCE || 'localhost',
   algorithms: ['RS256'],
 };
 
@@ -26,8 +25,6 @@ const strategy = new JwtStrategy(
       const user: User | null = await prisma.user.findUnique({
         where: { id: payload.sub },
       });
-
-      console.log(user);
 
       if (user) {
         return done(null, user);
