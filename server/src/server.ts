@@ -1,6 +1,6 @@
 import cron from 'node-cron';
-import app from './app';
 import './config/dotenv';
+import app from './app';
 import { cleanUpRefreshToken } from './cron/clean-refresh-token.cron';
 import { cleanUpResetToken } from './cron/clean-reset-token.cron';
 
