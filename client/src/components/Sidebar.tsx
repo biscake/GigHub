@@ -5,7 +5,7 @@ const Sidebar = () => {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[20vw] hidden md:block bg-black text-white text-[1rem] font-mono font-bold border-r-2 border-red-200">
+    <aside className="fixed left-0 top-0 h-screen w-[20vw] hidden md:block bg-black text-white text-[1rem] font-mono font-bold border-r border-white/20">
       <div className="h-full flex flex-col justify-between gap-5 p-5">
         <div className="flex flex-col gap-5">
           <div className="text-4xl">
