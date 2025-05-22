@@ -1,5 +1,5 @@
 import NodeMailer from 'nodemailer';
-import ValidationError from '../errors/validation-error';
+import { BadRequestError } from '../errors/bad-request-error';
 import { prisma } from "../lib/prisma";
 import { resetRequestInput } from '../types/auth';
 import { issueResetToken } from "../utils/issue-tokens.util";
@@ -18,7 +18,7 @@ export const resetRequest = async ({ email }: resetRequestInput) => {
   });
 
   if (!user) {
-    throw new ValidationError('Email not registered.', 400);
+    throw new BadRequestError('Email not registered.');
   }
 
   const resetToken = issueResetToken();

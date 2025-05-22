@@ -74,7 +74,7 @@ const SignupForm = () => {
           </button>
           <div className="text-sm">
             <span>Already have an account? </span>
-            <Link className="font-bold :hover" to="/login">Log In</Link>
+            <Link className="font-bold :hover" to="/accounts/login">Log In</Link>
           </div>
         </form>
       </div>

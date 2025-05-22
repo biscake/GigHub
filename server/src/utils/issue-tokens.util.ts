@@ -3,9 +3,9 @@ import crypto from 'crypto';
 import jsonwebtoken from 'jsonwebtoken';
 import { getKeys } from '../config/keys';
 
-const keys = getKeys();
-
 export const issueAccessToken = (user: User) => {
+  const keys = getKeys();
+
   const { id, username } = user;
 
   const expiresIn = '15m';
