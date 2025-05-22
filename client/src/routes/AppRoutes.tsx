@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import App from "../App";
+import CreateGigForm from "../components/forms/CreateGigForm";
 import AccountsLayout from "../layouts/accountsLayout";
 import GigsLayout from "../layouts/gigsLayout";
 import LoginPage from "../pages/accounts/LoginPage";
@@ -20,7 +21,7 @@ const AppRoutes = () => {
       </Route>
 
       <Route path="gigs" element={<GigsLayout />}>
-        <Route path="upload" element={<div>upload gig form</div>} />
+        <Route path="create" element={<CreateGigForm />} />
       </Route>
     </Routes>
   );

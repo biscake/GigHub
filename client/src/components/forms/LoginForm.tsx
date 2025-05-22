@@ -43,7 +43,7 @@ const LoginForm = () => {
             id="password"
             type="password"
             placeholder="Password"
-            autocomplete="on"
+            autoComplete="on"
           />
           <div className="flex flex-row items-center justify-between w-full">
             <Checkbox
@@ -64,7 +64,7 @@ const LoginForm = () => {
           </button>
           <div className="text-sm">
             <span>Don't have an account? </span>
-            <Link className="font-bold :hover" to="/accounts/signup">Register</Link>
+            <Link className="font-bold :hover" to="/signup">Register</Link>
           </div>
         </form>
       </div>
