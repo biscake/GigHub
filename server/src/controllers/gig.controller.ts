@@ -1,8 +1,8 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { createGigInDatabase } from '../services/gig.service';
-import { uploadSingleImageToR2 } from '../services/r2.service';
+import { createGigInDatabase, deleteGigFromDatabase } from '../services/gig.service';
+import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseInput } from '../types/gig';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
@@ -29,12 +29,19 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
     })
   }
   
-  res.status(200).json({
+  res.status(201).location(`gigs/${gig.id}`).json({
     success: true,
-    gig
+    message: "Gig successfully created",
+    data: gig
   })
 })
 
 export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
-  
+  const gigId = parseInt(req.params.gigId);
+
+  const deletedGig = await deleteGigFromDatabase({ gigId });
+
+  await deleteSingleImageFromR2({ key: deletedGig.imgKey });
+
+  res.status(204).send();
 })

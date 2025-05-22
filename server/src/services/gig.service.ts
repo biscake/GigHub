@@ -20,7 +20,7 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   }
 }
 
-export const deleletGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
+export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
   try {
     const result = await prisma.gig.delete({
       where: {
