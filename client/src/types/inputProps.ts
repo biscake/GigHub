@@ -1,16 +1,15 @@
+import type { InputHTMLAttributes } from 'react';
 import { type RegisterOptions } from 'react-hook-form';
 
-export type InputProps = {
-  type: string;
-  id: string;
-  placeholder?: string;
-  name: string;
+export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   validation?: RegisterOptions;
-  autocomplete?: string;
-  className?: string;
-  text?: string;
-};
+  name: string;
+}
 
 export type CheckBoxProp = React.InputHTMLAttributes<HTMLInputElement> & {
   text: string;
+}
+
+export type InputErrorProps = {
+  message?: string;
 }
