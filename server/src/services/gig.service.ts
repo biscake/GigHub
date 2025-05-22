@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { CreateGigInDatabaseInput, GetGigsFromDatabaseInput } from "../types/gig";
@@ -8,7 +9,7 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
       data: {
         imgKey: gig.imgKey,
         title: gig.title,
-        price: gig.price,
+        price: new Prisma.Decimal(gig.price).toFixed(2),
         description: gig.description,
         authorId: gig.authorId,
         ...(gig.category && { category: gig.category })
