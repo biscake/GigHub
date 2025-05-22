@@ -53,7 +53,7 @@ const LoginForm = () => {
               className="accent-pink-400 cursor-pointer align-middle mx-1"
               text="Remember me"
             />
-            <Link to="/request-reset" className="text-sm align-middle h-fit">Forgot password?</Link>
+            <Link to="/accounts/request-reset" className="text-sm align-middle h-fit">Forgot password?</Link>
           </div>
           {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
           <button 
@@ -64,7 +64,7 @@ const LoginForm = () => {
           </button>
           <div className="text-sm">
             <span>Don't have an account? </span>
-            <Link className="font-bold :hover" to="/signup">Register</Link>
+            <Link className="font-bold :hover" to="/accounts/signup">Register</Link>
           </div>
         </form>
       </div>

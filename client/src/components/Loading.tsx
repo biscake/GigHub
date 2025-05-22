@@ -1,9 +1,9 @@
 export const Loading = () => {
   return (
-    <div className="w-screen h-screen bg-gray-600">
+    <div className="w-inherit h-screen bg-gray-600">
       <div className="w-auto h-full flex justify-center items-center">
         <img 
-          src="../public/GigHub.png"
+          src="/GigHub.png"
           alt="Gighub"
           className="h-[30vh]"
         />
