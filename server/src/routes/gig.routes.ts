@@ -8,6 +8,6 @@ const router = Router();
 
 router.post('/create', authenticateJWT, uploadSingleImage, createGig);
 
-router.delete('/delete/:id', authenticateJWT, isUserAuthorizedToDeleteGig, deleteGig);
+router.delete('/delete/:gigId', authenticateJWT, isUserAuthorizedToDeleteGig, deleteGig);
 
 export default router
