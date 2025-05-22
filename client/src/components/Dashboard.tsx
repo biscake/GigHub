@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { Loading } from "./Loading";
 import type { AxiosError } from 'axios';
 import type { ApiErrorResponse } from '../types/api';
+import type { Gig } from "../types/gig";
 
 export const Dashboard = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
-  const [cards, setCards] = useState([]);
+  const [gigs, setGigs] = useState<Gig[] | null>(null);
   const [loading, setLoading] = useState(true);
   // SetFilters to be done
   const [filters, setFilters] = useState({
@@ -29,7 +30,7 @@ export const Dashboard = () => {
           }
         });
 
-        setCards(res.data.gigs);
+        setGigs(res.data.gigs);
       } catch (err) {
 
         const error = err as AxiosError<ApiErrorResponse>;
@@ -60,9 +61,7 @@ export const Dashboard = () => {
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
-            <Card />
-            <Card />
-            <Card />
+            {gigs && gigs.map(gig => <Card {...gig} />)}
           </div>
         </>
       )}
