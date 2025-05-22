@@ -15,12 +15,13 @@ export const setupInterceptors = (auth: AuthContextType) => {
     },
     async (error) => {
       const originalRequest = error.config;
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
   
       if (error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         
         try {
-          const res = await api.post('/api/refreshtoken');
+          const res = await api.post('/api/auth/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
   
           originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
   

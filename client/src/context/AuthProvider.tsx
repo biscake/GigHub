@@ -1,18 +1,18 @@
 import { type AxiosError } from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { type ReactNode, useEffect, useState } from "react";
+import { Loading } from "../components/Loading";
 import api from '../lib/api';
 import { setupInterceptors } from '../lib/apiInterceptors';
 import type { ApiErrorResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
-import { Loading } from "../components/Loading"
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<Boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchAccessToken = async () => {
