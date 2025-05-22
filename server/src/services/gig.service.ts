@@ -1,10 +1,15 @@
 import { Prisma } from "@prisma/client";
+import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { CreateGigInDatabaseInput, GetGigsFromDatabaseInput } from "../types/gig";
 
 export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   try {
+    if (gig.price < 0) {
+      throw new BadRequestError("Price cannot be less than 0");
+    }
+
     const result = await prisma.gig.create({
       data: {
         imgKey: gig.imgKey,
@@ -18,6 +23,10 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   
     return result;
   } catch (err) {
+    if (err instanceof BadRequestError) {
+      throw err;
+    }
+
     throw new ServiceError("Prisma", "Failed to create gig in database");
   }
 }
