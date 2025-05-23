@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { CreateGigInDatabaseInput, GetGigsFromDatabaseInput } from "../types/gig";
@@ -8,7 +10,7 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
       data: {
         imgKey: gig.imgKey,
         title: gig.title,
-        price: gig.price,
+        price: new Prisma.Decimal(gig.price).toFixed(2),
         description: gig.description,
         authorId: gig.authorId,
         ...(gig.category && { category: gig.category })
@@ -17,6 +19,10 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   
     return result;
   } catch (err) {
+    if (err instanceof BadRequestError) {
+      throw err;
+    }
+
     throw new ServiceError("Prisma", "Failed to create gig in database");
   }
 }
@@ -66,7 +72,8 @@ export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
 
     const gigsWithImgUrl = result.map(gig => ({
       ...gig,
-      imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`
+      imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`,
+      price: gig.price.toFixed(2)
     }))
 
     return gigsWithImgUrl;

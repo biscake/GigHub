@@ -47,7 +47,7 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const getGigs = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getGigsFromDatabase(req.params);
+  const result = await getGigsFromDatabase(req.query);
 
   res.status(200).json({
     success: true,

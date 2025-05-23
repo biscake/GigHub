@@ -37,7 +37,7 @@ model Gig {
   id             Int              @id @default(autoincrement())
   imgKey         String
   title          String
-  price          Float
+  price          Decimal          @db.Decimal(10, 2)
   description    String
   category       String?
   published      Boolean          @default(false)
