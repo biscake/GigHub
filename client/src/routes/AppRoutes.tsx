@@ -1,8 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import App from "../App";
-import CreateGigForm from "../components/forms/CreateGigForm";
 import AccountsLayout from "../layouts/accountsLayout";
-import GigsLayout from "../layouts/gigsLayout";
 import LoginPage from "../pages/accounts/LoginPage";
 import ResetPasswordPage from "../pages/accounts/ResetPasswordPage";
 import ResetRequestPage from "../pages/accounts/ResetRequestPage";
@@ -20,9 +18,6 @@ const AppRoutes = () => {
         <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
 
-      <Route path="gigs" element={<GigsLayout />}>
-        <Route path="create" element={<CreateGigForm />} />
-      </Route>
     </Routes>
   );
 };
