@@ -6,10 +6,6 @@ import { CreateGigInDatabaseInput, GetGigsFromDatabaseInput } from "../types/gig
 
 export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   try {
-    if (gig.price < 0) {
-      throw new BadRequestError("Price cannot be less than 0");
-    }
-
     const result = await prisma.gig.create({
       data: {
         imgKey: gig.imgKey,
@@ -76,7 +72,8 @@ export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
 
     const gigsWithImgUrl = result.map(gig => ({
       ...gig,
-      imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`
+      imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`,
+      price: gig.price.toFixed(2)
     }))
 
     return gigsWithImgUrl;

@@ -14,6 +14,6 @@ export const createGigValidators = [
     .withMessage("Description must be at least 10 characters long"),
 
   body("price")
-    .isInt({ gt: 0 })
-    .withMessage("Price must be a positive integer"),
+    .isFloat({ gt: 0 })
+    .withMessage("Price must be a positive number"),
 ];
