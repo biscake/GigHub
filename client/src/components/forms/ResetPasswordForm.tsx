@@ -6,7 +6,7 @@ import api from '../../lib/api';
 import { cpasswordValidation, passwordValidation } from '../../lib/validators';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type ResetPasswordFormInputs } from '../../types/form';
-import { Input } from '../Input';
+import { FormInput } from './FormInput';
 
 const ResetPasswordForm = () => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
@@ -46,9 +46,9 @@ const ResetPasswordForm = () => {
           className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
           <div className="font-bold text-3xl">Reset Password</div>
-          <Input {...passwordValidation}
+          <FormInput {...passwordValidation}
             className={inputStyle}/>
-          <Input {...cpasswordValidation(methods.watch)}
+          <FormInput {...cpasswordValidation(methods.watch)}
             className={inputStyle}/>
           {apiErr && (
             <p className="text-sm text-rose-400">
