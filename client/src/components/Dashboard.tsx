@@ -46,7 +46,7 @@ export const Dashboard = () => {
   }, [filters.category, filters.search, filters.page]);
 
   return (
-    <div className="w-full md:ml-[20vw] md:w-[80vw] bg-black h-screen text-white">
+    <div className="w-full md:ml-[20vw] md:w-[80vw] bg-black h-screen text-white overflow-y-auto no-scrollbar">
       {loading ? <Loading /> : (
         <>
           {apiErr && (
@@ -60,7 +60,7 @@ export const Dashboard = () => {
                 : apiErr}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
             {gigs && gigs.map(gig => <Card key={gig.id} {...gig} />)}
           </div>
         </>

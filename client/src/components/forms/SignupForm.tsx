@@ -48,9 +48,9 @@ const SignupForm = () => {
           method='post' 
           noValidate
           onSubmit={methods.handleSubmit(submitCredential)} 
-          className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
+          className="w-full max-w-sm flex flex-col gap-1.5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
         >
-          <div className="font-bold text-3xl">Sign Up</div>
+          <div className="font-bold text-3xl mb-4 -mt-2">Sign Up</div>
           <FormInput {...usernameValidation} />
           <FormInput {...emailValidation} />
           <FormInput {...passwordValidation} />
@@ -68,7 +68,7 @@ const SignupForm = () => {
           )}
           <button 
             type='submit'
-            className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+            className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none mt-5"
           >
             Register
           </button>
