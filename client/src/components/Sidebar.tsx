@@ -8,16 +8,12 @@ const Sidebar = () => {
     <aside className="fixed left-0 top-0 h-screen w-[20vw] hidden md:block bg-black text-white text-[1rem] font-mono font-bold border-r border-white/20">
       <div className="h-full flex flex-col justify-between gap-5 p-5">
         <div className="flex flex-col gap-5">
-          <div className="text-4xl">
-            <a href="/">
-              GigHub
-            </a>
-          </div>
-          <div className="text-2xl">
-            <a href="/">
+          <Link to="/" className="text-4xl">
+            GigHub
+          </Link>
+          <Link to="/" className="text-2xl">
               Home
-            </a>
-          </div>
+          </Link>
           <div className="text-2xl">
             Gigs (TODO)
           </div>
