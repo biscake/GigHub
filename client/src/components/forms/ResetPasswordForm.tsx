@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../lib/api';
-import { cpasswordValidation, passwordValidation } from '../../lib/validators';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type ResetPasswordFormInputs } from '../../types/form';
+import { cpasswordValidation, passwordValidation } from '../../utils/validators';
 import { FormInput } from './FormInput';
 
 const ResetPasswordForm = () => {
