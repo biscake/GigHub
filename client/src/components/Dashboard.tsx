@@ -5,6 +5,7 @@ import { Loading } from "./Loading";
 import type { AxiosError } from 'axios';
 import type { ApiErrorResponse } from '../types/api';
 import type { Gig } from "../types/gig";
+import { SearchBar } from "./SearchBar";
 
 export const Dashboard = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
@@ -45,8 +46,17 @@ export const Dashboard = () => {
     fetchData();
   }, [filters.category, filters.search, filters.page]);
 
+  const handleSearchChange = (value : string) => {
+    setFilters(prev => ({
+      category: prev.category,
+      search: value,
+      page: 1
+    }));
+  }
+
   return (
-    <div className="w-full md:ml-[20vw] md:w-[80vw] bg-black h-screen text-white overflow-y-auto no-scrollbar">
+    <div className="w-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center bg-black h-screen text-white">
+      <SearchBar placeholder="Search All Gigs" handleSearch={ handleSearchChange } />
       {loading ? <Loading /> : (
         <>
           {apiErr && (
@@ -60,13 +70,11 @@ export const Dashboard = () => {
                 : apiErr}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto no-scrollbar">
             {gigs && gigs.map(gig => <Card key={gig.id} {...gig} />)}
           </div>
         </>
       )}
-
-
     </div>
   )
 }

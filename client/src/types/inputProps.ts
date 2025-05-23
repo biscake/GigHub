@@ -13,3 +13,7 @@ export type CheckBoxProp = React.InputHTMLAttributes<HTMLInputElement> & {
 export type InputErrorProps = {
   message?: string;
 }
+
+export type SearchBarProp = React.InputHTMLAttributes<HTMLInputElement> & {
+  handleSearch: (value : string) => void;
+}
