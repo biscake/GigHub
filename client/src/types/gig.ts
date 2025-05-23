@@ -14,3 +14,7 @@ export type Gig = {
   author: string;
   category: string | undefined;
 }
+
+export type GigImageProp = {
+  imgUrl: string;
+}
