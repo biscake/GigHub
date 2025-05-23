@@ -3,6 +3,6 @@ import { AppError } from './app-error';
 
 export default class ValidationError extends AppError {
   constructor(errors: ExpressValidatorError[]) {
-    super("Invalid inpu", 400, errors);
+    super("Invalid input", 400, errors);
   }
 }
