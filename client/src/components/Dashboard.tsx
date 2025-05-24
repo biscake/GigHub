@@ -1,7 +1,7 @@
 import { Card } from "./Card"
 import api from '../lib/api';
 import { useEffect, useState } from "react";
-import { Loading } from "./Loading";
+import { Spinner } from "./Spinner";
 import type { AxiosError } from 'axios';
 import type { ApiErrorResponse } from '../types/api';
 import type { Gig } from "../types/gig";
@@ -57,7 +57,7 @@ export const Dashboard = () => {
   return (
     <div className="w-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center h-screen text-white">
       <SearchBar placeholder="Search All Gigs" handleSearch={ handleSearchChange } />
-      {loading ? <Loading /> : (
+      {loading ? <Spinner /> : (
         <>
           {apiErr && (
             <p className="text-sm text-rose-400">
