@@ -4,9 +4,9 @@ import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
-import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../lib/validators';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type SignupFormInputs } from '../../types/form';
+import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../utils/validators';
 import { FormInput } from './FormInput';
 
 const SignupForm = () => {
