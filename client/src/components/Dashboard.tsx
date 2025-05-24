@@ -55,7 +55,7 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="w-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center bg-black h-screen text-white">
+    <div className="w-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center h-screen text-white">
       <SearchBar placeholder="Search All Gigs" handleSearch={ handleSearchChange } />
       {loading ? <Loading /> : (
         <>

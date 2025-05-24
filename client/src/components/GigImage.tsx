@@ -5,7 +5,7 @@ export const GigImage = ({ imgUrl } : GigImageProp) => {
     <div className="w-full aspect-[4/3] overflow-hidden flex flex-row items-center justify-center">
       <img 
         src={ imgUrl } 
-        className="max-w-full h-auto object-cover object-center"
+        className="rounded-2xl max-w-full h-auto object-cover object-center"
       />
     </div>
   )
