@@ -29,3 +29,9 @@ export type SearchBarProp = {
   placeholder: string;
   handleSearch: (value : string) => void;
 }
+
+export type PageSelectorProp = {
+  currentPage: number;
+  totalPages: number;
+  handlePageChange: (value: number) => void;
+}

@@ -16,7 +16,7 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
         ...(gig.category && { category: gig.category })
       }
     });
-  
+
     return result;
   } catch (err) {
     if (err instanceof BadRequestError) {
@@ -31,7 +31,7 @@ export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
   try {
     const result = await prisma.gig.delete({
       where: {
-        id: gigId 
+        id: gigId
       }
     })
 
@@ -43,40 +43,48 @@ export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
 
 export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
   try {
-    const NUMBER_OF_GIGS: number = 20;
+    const NUMBER_OF_GIGS: number = 48;
 
     const { category, minPrice, maxPrice, search, page = 1 } = params;
 
+    const filters = {
+      ...(category && { category }),
+      ...(search && {
+        title: {
+          contains: search,
+          mode: 'insensitive' as const
+        }
+      }),
+      ...(minPrice || maxPrice ? {
+        price: {
+          ...(minPrice && { gte: minPrice }),
+          ...(maxPrice && { lte: maxPrice })
+        }
+      } : {}),
+    };
+
     const result = await prisma.gig.findMany({
-      where: {
-        ...(category && { category }),
-        ...(search && {
-          title: {
-            contains: search,
-            mode: 'insensitive'
-          }
-        }),
-        ...(minPrice || maxPrice ? {
-          price: {
-            ...(minPrice && { gte: minPrice }),
-            ...(maxPrice && { lte: maxPrice })
-          }
-        } : {}),
-      },
+      where: filters,
       orderBy: {
         createdAt: 'desc',
       },
       take: NUMBER_OF_GIGS,
-      skip: (page - 1) * 20
-    })
+      skip: (page - 1) * NUMBER_OF_GIGS
+    });
+
+    const totalGigs = await prisma.gig.count({
+      where: filters,
+    });
+
+    const totalPages = Math.ceil(totalGigs / NUMBER_OF_GIGS);
 
     const gigsWithImgUrl = result.map(gig => ({
       ...gig,
       imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`,
-      price: gig.price.toFixed(2)
+      price: gig.price.toFixed(2),
     }))
 
-    return gigsWithImgUrl;
+    return { gigs: gigsWithImgUrl, totalPages: totalPages };
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to fetch gigs from database");
   }
