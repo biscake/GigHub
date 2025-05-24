@@ -11,7 +11,9 @@ export const FormInput: React.FC<InputProps> = (props) => {
       <label className="flex flex-row">
         <input
           {...props}
-          {...(props.className ? { className: props.className } : { className: "autofill:bg-black w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40"})}
+          {...(props.className 
+            ? { className: props.className } 
+            : { className: "autofill:shadow-[inset_0_0_0px_1000px_rgb(255,209,220)] w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40"})}
           {...register(props.name, props.validation)}
         />
       </label>

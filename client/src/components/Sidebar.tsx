@@ -16,11 +16,11 @@ const Sidebar = () => {
     <aside className="fixed left-0 top-0 h-screen w-[20vw] hidden md:block text-white text-[1rem] font-mono font-bold border-r border-white/50 backdrop-blur-sm">
       <div className="h-full flex flex-col justify-between gap-5 p-5">
         <div className="flex flex-col gap-5">
-          <Link to="/" className="text-4xl">
+          <Link to="/" className="text-4xl hover:link-hover">
             GigHub
           </Link>
           <Link to="/" className="text-2xl">
-              Home
+            Home
           </Link>
           <div className="text-2xl">
             Gigs (TODO)
@@ -40,12 +40,12 @@ const Sidebar = () => {
           <CreateGigFormModal isCreateGigModalOpen={isCreateGigModalOpen} setIsCreateGigModalOpen={setIsCreateGigModalOpen} />
         </div>
         {user ? (
-          <div className="space-x-4 flex flex-col">
+          <div className="space-x-4 flex flex-col gap-5 items-start">
             <p className="text-2xl">{user.username}</p>
-            <button onClick={logout} className="text-2xl">Log out</button>
+            <button onClick={logout} className="text-2xl hover:link-hover">Log out</button>
           </div>
         ) : (
-          <div className="space-x-4 flex flex-col gap-5">
+          <div className="space-x-4 flex flex-col gap-5 items-start">
             <Link className="text-2xl" to="/accounts/login">Login</Link>
             <Link className="text-2xl" to="/accounts/signup">Signup</Link>
           </div>
