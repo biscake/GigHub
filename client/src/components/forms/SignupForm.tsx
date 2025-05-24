@@ -2,6 +2,7 @@ import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from "uuid";
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
@@ -10,6 +11,7 @@ import { cpasswordValidation, emailValidation, passwordValidation, usernameValid
 import { FormInput } from './FormInput';
 
 const SignupForm = () => {
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
 
   const methods = useForm<SignupFormInputs>({ mode: 'onChange' });
@@ -24,7 +26,17 @@ const SignupForm = () => {
 
   const submitCredential: SubmitHandler<SignupFormInputs> = async (data) => {
     try {
-      await api.post('/api/auth/register', data, { headers: { 'Content-Type': 'application/json' } });
+      const key = idempotencyKey ?? uuidv4();
+      if (!idempotencyKey) {
+        setIdempotencyKey(key);
+      }
+
+      await api.post('/api/auth/register', data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': key
+        }
+      });
 
       await login({ username: data.username , password: data.password, rememberMe: true });
       navigate('/');
@@ -38,7 +50,6 @@ const SignupForm = () => {
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
     }
-
   }
 
   return (

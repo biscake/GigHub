@@ -1,15 +1,26 @@
 import { type AuthContextType } from "../types/auth";
 import api from "./api";
 
+let requestInterceptorId: number | null = null;
+let responseInterceptorId: number | null = null;
+
 export const setupInterceptors = (auth: AuthContextType) => {
-  api.interceptors.request.use((config) => {
+  if (requestInterceptorId !== null) {
+    api.interceptors.request.eject(requestInterceptorId);
+  }
+
+  if (responseInterceptorId !== null) {
+    api.interceptors.response.eject(responseInterceptorId);
+  }
+
+  requestInterceptorId = api.interceptors.request.use((config) => {
     if (auth.accessToken) {
       config.headers.Authorization = `Bearer ${auth.accessToken}`;
     }
     return config;
   });
 
-  api.interceptors.response.use(
+  responseInterceptorId = api.interceptors.response.use(
     (response) => {
       return response;
     },
@@ -24,6 +35,8 @@ export const setupInterceptors = (auth: AuthContextType) => {
           const res = await api.post('/api/auth/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
   
           originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
+
+          auth.setAccessToken(res.data.accessToken);
   
           return api(originalRequest);
         } catch (error) {
@@ -35,4 +48,15 @@ export const setupInterceptors = (auth: AuthContextType) => {
       return Promise.reject(error);
     }
   )
+};
+
+export const ejectInterceptors = () => {
+  if (requestInterceptorId !== null) {
+    api.interceptors.request.eject(requestInterceptorId);
+    requestInterceptorId = null;
+  }
+  if (responseInterceptorId !== null) {
+    api.interceptors.response.eject(responseInterceptorId);
+    responseInterceptorId = null;
+  }
 };

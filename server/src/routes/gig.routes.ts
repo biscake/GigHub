@@ -5,10 +5,12 @@ import { isUserAuthorizedToDeleteGig } from '../middleware/authorize-gig.middlew
 import { uploadSingleImage } from '../middleware/upload-assets.middleware';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { createGigValidators } from '../validators/gig.validator';
+import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 
 const router = Router();
 
 router.post('/create',
+  idempotencyKey,
   authenticateJWT,
   uploadSingleImage,
   createGigValidators,
