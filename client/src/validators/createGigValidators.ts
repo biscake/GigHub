@@ -27,10 +27,10 @@ export const priceValidation: InputValidation = {
   validation: {
     required: {
       value: true,
-      message: "Title required"
+      message: "Price required"
     },
     pattern: {
-      value: /^0\d/,
+      value: /^(0|[1-9]\d*)(\.\d+)?$/,
       message: "Cannot start with 0"
     },
   }
