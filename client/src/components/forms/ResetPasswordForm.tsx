@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type ResetPasswordFormInputs } from '../../types/form';
-import { cpasswordValidation, passwordValidation } from '../../utils/validators';
+import { cpasswordValidation, passwordValidation } from '../../validators/signupFormValidators';
 import { FormInput } from './FormInput';
 
 const ResetPasswordForm = () => {
