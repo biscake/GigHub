@@ -4,12 +4,11 @@ import { GigImage } from "./GigImage"
 
 export const Card : React.FC<Gig> = ({ imgUrl, title, price, description, author, category }) => {
   return (
-    <div className="h-auto border border-gray-400 rounded-4xl p-4 mb-2 shadow">
-      {/* Custom image component */}
+    <div className="w-full max-w-md h-auto border border-gray-400 rounded-2xl p-4 mb-2 shadow">
       <GigImage imgUrl={ imgUrl } />
-      <h2 className="font-bold">{ title }</h2>
+      <h2 className="text-lg font-bold">{ title }</h2>
       {/* Link component to wrap whole card */}
-      <p>{ description }</p>
+      <p className="text-sm md:text-base">{ description }</p>
       <p>${ price }</p>
       {/* <p>{ author }</p>
       <p>{ category }</p> */}
