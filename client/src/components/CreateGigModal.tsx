@@ -16,6 +16,7 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [croppedImagePixels, setCroppedImagePixels] = useState<Area | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const methods = useForm<CreateGigFormInputs>({ mode: 'onChange' });
   const { user } = useAuth();
@@ -50,6 +51,8 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
         throw new Error("User not logged in");
       }
 
+      setIsSubmitting(true);
+
       const formData = new FormData();
 
       const croppedImage = await cropImage();
@@ -74,6 +77,8 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
       const errorMessage = error.response?.data?.message;
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -119,6 +124,7 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
                   onClick={() => setIsCreateGigModalOpen(false)}
                   className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-
                     900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>

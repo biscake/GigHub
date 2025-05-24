@@ -40,7 +40,7 @@ const CreateGigForm: React.FC<CreateGigFormProps> = ({ apiErr, methods, image, s
         </div>
         
         {apiErr && (
-          <p className="text-sm text-rose-400 flex flex-col">
+          <p className="text-sm text-rose-400 flex flex-col mb-4">
             {Array.isArray(apiErr)
               ? apiErr.map((err, i) => (
                   <span key={i}>
