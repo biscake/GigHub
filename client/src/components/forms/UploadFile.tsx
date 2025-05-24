@@ -78,7 +78,7 @@ export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, imag
           </label>
           <span className="text-xs text-gray-400">Only JPG, JPEG, PNG, or WEBP image files are allowed.</span>
         </>
-      : <div className="w-full">
+      : <>
           <ImageCropper image={image} setCroppedImagePixels={setCroppedImagePixels} />
           <button
               onClick={handleFileDelete}
@@ -86,7 +86,7 @@ export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, imag
           >
             Delete Image
           </button>
-        </div>
+        </>
       }
     </div>
   );

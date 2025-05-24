@@ -12,7 +12,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, setCroppedImagePixel
   }
 
   return (
-    <div className="w-full">
+    <>
       <div className="relative w-full max-w-[900px] aspect-[4/3] mx-auto"> {/* cropper container */}
         <Cropper 
           image={image}
@@ -29,7 +29,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, setCroppedImagePixel
           {/* slider component here */}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
