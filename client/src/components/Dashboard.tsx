@@ -1,16 +1,18 @@
 import { Card } from "./Card"
 import api from '../lib/api';
 import { useEffect, useState } from "react";
-import { Loading } from "./Loading";
+import { Spinner } from "./Spinner";
 import type { AxiosError } from 'axios';
 import type { ApiErrorResponse } from '../types/api';
 import type { Gig } from "../types/gig";
 import { SearchBar } from "./SearchBar";
+import { PageSelector } from "./PageSelector";
 
 export const Dashboard = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
   const [gigs, setGigs] = useState<Gig[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
   // SetFilters to be done
   const [filters, setFilters] = useState({
     category: '',
@@ -31,6 +33,9 @@ export const Dashboard = () => {
           }
         });
 
+        setTotalPages(res.data.totalPages);
+        console.log(res.data.totalPages)
+        console.log(res.data.gigs)
         setGigs(res.data.gigs);
       } catch (err) {
 
@@ -46,7 +51,7 @@ export const Dashboard = () => {
     fetchData();
   }, [filters.category, filters.search, filters.page]);
 
-  const handleSearchChange = (value : string) => {
+  const handleSearchChange = (value: string) => {
     setFilters(prev => ({
       category: prev.category,
       search: value,
@@ -54,10 +59,18 @@ export const Dashboard = () => {
     }));
   }
 
+  const handlePageChange = (newPage: number) => {
+    setFilters(prev => ({
+      category: prev.category,
+      search: prev.search,
+      page: newPage
+    }));
+  }
+
   return (
-    <div className="w-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center bg-black h-screen text-white">
-      <SearchBar placeholder="Search All Gigs" handleSearch={ handleSearchChange } />
-      {loading ? <Loading /> : (
+    <div className="w-full h-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center justify-between h-screen text-white">
+      <SearchBar placeholder="Search All Gigs" handleSearch={handleSearchChange} />
+      {loading ? <Spinner /> : (
         <>
           {apiErr && (
             <p className="text-sm text-rose-400">
@@ -75,6 +88,12 @@ export const Dashboard = () => {
           </div>
         </>
       )}
+      <PageSelector 
+        currentPage={ filters.page } 
+        totalPages={ totalPages } 
+        handlePageChange={ handlePageChange }
+
+      />
     </div>
   )
 }

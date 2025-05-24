@@ -5,10 +5,10 @@ import "./styles/App.css"
 const App = () => {
 
   return (
-    <>
+    <div style={{ backgroundImage: "url('/Home.png')" }} className="bg-cover">
       <Sidebar />
       <Dashboard />
-    </>
+    </div>
   )
 }
 

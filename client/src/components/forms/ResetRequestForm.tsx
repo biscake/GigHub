@@ -29,42 +29,45 @@ const ResetRequestForm = () => {
   }
 
   return (
-    success ? (
-      <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
-        <div className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white">
-          <span className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none">Email Sent!</span>
-          <div className="text-sm">
-            <span>Back to </span>
-            <Link className="font-bold :hover" to="/accounts/login">Log in</Link>
+    <div style={{ backgroundImage: "url('/Login.png')" }} className="bg-cover text-white">
+      {success ? (
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <div className="w-full max-w-sm flex flex-col gap-5 text-center text-xl border border-gray-200 shadow-lg rounded-2xl px-8 py-10 backdrop-blur-sm">
+            <span className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none">Email Sent!</span>
+            <div className="text-sm">
+              <span>Back to </span>
+              <Link className="font-bold :hover" to="/accounts/login">Log in</Link>
+            </div>
           </div>
         </div>
-      </div>
-    ) : (
-      <FormProvider {...methods}>
-        <div className="bg-gray-50 flex items-center justify-center min-h-screen px-4">
-          <form
-            method='post'
-            onSubmit={methods.handleSubmit(submitCredential)}
-            className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 bg-white"
-          >
-            <div className="font-bold text-3xl">Forgot Password?</div>
-            <FormInput 
-              name="email"
-              id="email"
-              type="email"
-              placeholder="Email"
-            />
-            {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
-            <button
-              type='submit'
-              className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+      ) : (
+        <FormProvider {...methods}>
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <form
+              method='post'
+              onSubmit={methods.handleSubmit(submitCredential)}
+              className="w-full max-w-sm flex flex-col gap-5 text-center text-sm border border-gray-200 shadow-lg rounded-2xl px-8 py-10 backdrop-blur-sm"
             >
-              Reset Password
-            </button>
-          </form>
-        </div>
-      </FormProvider>
-    )
+              <div className="font-bold text-3xl">Forgot Password?</div>
+              <FormInput
+                name="email"
+                id="email"
+                type="email"
+                placeholder="Email"
+              />
+              {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
+              <button
+                type='submit'
+                className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+              >
+                Reset Password
+              </button>
+            </form>
+          </div>
+        </FormProvider>
+      )}
+    </div>
+
   )
 }
 

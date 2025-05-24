@@ -26,7 +26,7 @@ const LoginForm = () => {
   return (
     <FormProvider { ...methods }> 
       <div 
-        className="bg-gray-50 flex items-center justify-center min-h-screen px-4 bg-center bg-cover text-white" 
+        className="flex items-center justify-center min-h-screen px-4 bg-center bg-cover text-white" 
         style={{ backgroundImage: "url('/Login.png')" }}
       >
         <form

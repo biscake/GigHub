@@ -1,0 +1,10 @@
+export const Spinner = () => {
+  return (
+    <div className="h-full flex flex-col items-center justify-center">
+      <div
+        className="animate-spin rounded-full border-4 border-white/50 border-t-transparent w-[3vw] aspect-[1/1]"
+      />
+    </div>
+
+  )
+}

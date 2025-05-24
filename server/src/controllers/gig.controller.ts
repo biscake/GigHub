@@ -58,6 +58,7 @@ export const getGigs = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Get gigs successfully",
-    gigs: result 
+    gigs: result.gigs,
+    totalPages: result.totalPages
   })
 })

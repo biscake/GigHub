@@ -6,6 +6,7 @@ export type Gig = {
   description: string;
   author: string;
   category: string | undefined;
+  totalPages: number;
 }
 
 export type GigImageProp = {

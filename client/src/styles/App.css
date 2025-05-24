@@ -9,3 +9,9 @@
     scrollbar-width: none;
   }
 }
+
+@utility link-hover {
+  transition-property: opacity;
+  transition-duration: 100ms;
+  opacity: 0.5;
+}

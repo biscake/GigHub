@@ -24,3 +24,14 @@ export type UploadFileProps = React.InputHTMLAttributes<HTMLInputElement> & {
   setImage: React.Dispatch<React.SetStateAction<string | null>>;
   setCroppedImagePixels: React.Dispatch<React.SetStateAction<Area | null>>;
 }
+
+export type SearchBarProp = {
+  placeholder: string;
+  handleSearch: (value : string) => void;
+}
+
+export type PageSelectorProp = {
+  currentPage: number;
+  totalPages: number;
+  handlePageChange: (value: number) => void;
+}
