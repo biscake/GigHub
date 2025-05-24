@@ -2,29 +2,18 @@ import { useState } from "react";
 import type { Area, Point } from "react-easy-crop";
 import Cropper from "react-easy-crop";
 import type { ImageCropperProps } from "../types/imageCropper";
-import getCroppedImg from "../utils/cropImage";
 
-const ImageCropper: React.FC<ImageCropperProps> = ({ image, setCroppedImage }) => {
+const ImageCropper: React.FC<ImageCropperProps> = ({ image, setCroppedImagePixels }) => {
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
 
-  const onCropComplete = async (_croppedArea: Area, croppedAreaPixels: Area) => {
-    try {
-      const croppedImage = await getCroppedImg(
-        image,
-        croppedAreaPixels,
-        0
-      );
-
-      setCroppedImage(croppedImage);
-    } catch (err) {
-      console.error(err);
-    }
+  const onCropComplete = async (_croppedArea: Area, croppedImagePixels: Area) => {
+      setCroppedImagePixels(croppedImagePixels);
   }
 
   return (
-    <div>
-      <div className="relative w-full h-64"> {/* cropper container */}
+    <div className="w-full">
+      <div className="relative w-full max-w-[900px] aspect-[4/3] mx-auto"> {/* cropper container */}
         <Cropper 
           image={image}
           crop={crop}

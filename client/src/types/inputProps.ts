@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes } from 'react';
 import type { RegisterOptions, UseFormRegister } from 'react-hook-form';
 import type { CreateGigFormInputs } from './form';
+import type { Area } from 'react-easy-crop';
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   validation?: RegisterOptions;
@@ -21,5 +22,5 @@ export type UploadFileProps = React.InputHTMLAttributes<HTMLInputElement> & {
   name: keyof CreateGigFormInputs;
   image: string | null;
   setImage: React.Dispatch<React.SetStateAction<string | null>>;
-  setCroppedImage: React.Dispatch<React.SetStateAction<string | null>>;
+  setCroppedImagePixels: React.Dispatch<React.SetStateAction<Area | null>>;
 }

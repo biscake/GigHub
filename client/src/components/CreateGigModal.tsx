@@ -1,6 +1,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import type { AxiosError } from 'axios';
 import { useState } from 'react';
+import type { Area } from 'react-easy-crop';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { useAuth } from '../hooks/useAuth';
 import api from '../lib/api';
@@ -8,15 +9,40 @@ import type { ApiErrorResponse, ValidationError } from '../types/api';
 import type { CreateGigFormInputs } from '../types/form';
 import type { CreateGigModalProps } from '../types/modal';
 import blobUrlToFile from '../utils/blobToImage';
+import getCroppedImg from '../utils/cropImage';
 import CreateGigForm from './forms/CreateGigForm';
 
 const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpen, setIsCreateGigModalOpen }) => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
   const [image, setImage] = useState<string | null>(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [croppedImagePixels, setCroppedImagePixels] = useState<Area | null>(null);
 
   const methods = useForm<CreateGigFormInputs>({ mode: 'onChange' });
   const { user } = useAuth();
+
+  const cropImage = async () => {
+    try {
+      if (!image || !croppedImagePixels) {
+        return;
+      }
+
+      const croppedImageBlob = await getCroppedImg(
+        image,
+        croppedImagePixels,
+        0
+      );
+
+      if (!croppedImageBlob) {
+        return;
+      }
+
+      const file = await blobUrlToFile(croppedImageBlob, `upload-${Date.now()}.png`);
+  
+      return file;
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   const submitCredential: SubmitHandler<CreateGigFormInputs> = async (data) => {
     try {
@@ -26,11 +52,12 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
 
       const formData = new FormData();
 
-      if (croppedImage) {
-        const file = await blobUrlToFile(croppedImage, `upload-${Date.now()}.png`);
-        formData.append("file", file);
-      }
+      const croppedImage = await cropImage();
 
+      if (croppedImage) {
+        formData.append("file", croppedImage);
+      }
+      
       formData.append("title", data.title);
       formData.append("price", String(data.price));
       formData.append("description", data.description);
@@ -57,11 +84,11 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
         className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
       />
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div className="flex min-h-full items-end justify-center text-center sm:items-center sm:p-0">
           <DialogPanel
             transition
             className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 
-              data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full 
+              data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-[85%] min-w-[300px] sm:w-full 
               sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
           >
             <div className="sm:flex-col sm:items-start">
@@ -70,13 +97,13 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
                     Create Gig
                 </DialogTitle>
               </div>
-              <div className='mt-4 w-full flex justify-center'>
+              <div className='w-full flex justify-center'>
                 <CreateGigForm
                   apiErr={apiErr}
                   methods={methods}
                   image={image}
                   setImage={setImage}
-                  setCroppedImage={setCroppedImage}
+                  setCroppedImagePixels={setCroppedImagePixels}
                 />
               </div>
               <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">

@@ -1,4 +1,6 @@
+import type { Area } from "react-easy-crop";
+
 export type ImageCropperProps = {
   image: string;
-  setCroppedImage: React.Dispatch<React.SetStateAction<string | null>>;
+  setCroppedImagePixels: React.Dispatch<React.SetStateAction<Area | null>>;
 }

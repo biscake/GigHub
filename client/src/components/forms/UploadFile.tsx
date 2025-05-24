@@ -2,7 +2,9 @@ import { useState } from "react";
 import type { UploadFileProps } from "../../types/inputProps";
 import ImageCropper from "../ImageCropper";
 
-export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, image, setImage, setCroppedImage }) => {
+const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, image, setImage, setCroppedImagePixels }) => {
   const [dragActive, setDragActive] = useState<boolean>(false);
 
   const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
@@ -18,7 +20,7 @@ export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, imag
   };
 
   const setImageFile = (file: File | undefined) => {
-    if (file) {
+    if (file && allowedTypes.includes(file.type)) {
       const reader = new FileReader();
       reader.onload = () => {
         setImage(reader.result as string);
@@ -42,35 +44,48 @@ export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, imag
     setImageFile(file);
   };
 
+  const handleFileDelete = () => {
+    setImage(null);
+    setCroppedImagePixels(null);
+  }
+
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col items-center">
       {!image
-        ? <label
-            htmlFor={id}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`flex items-center justify-center border-2 border-dashed rounded-md p-6 text-sm text-gray-500 cursor-pointer ${dragActive ? 'bg-blue-50 border-blue-400' : 'border-gray-300'
-            }`}
+      ? <>
+          <label
+              htmlFor={id}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`w-[75%] sm:w-[35%] mt-5 aspect-square flex hover:bg-blue-50 hover:border-blue-400 justify-center items-center border-2 border-dashed rounded-md text-sm text-gray-500 cursor-pointer
+                transition-colors ${dragActive ? 'bg-blue-50 border-blue-400' : 'border-gray-300'}`}
+            >
+            <input
+              id={id}
+              type="file"
+              accept=".jpg, .jpeg, .png, .webp"
+              {...register(name)}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <div className="flex flex-col items-center space-y-2">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+              <p>Upload or drag & drop your file</p>
+            </div>
+          </label>
+          <span className="text-xs text-gray-400">Only JPG, JPEG, PNG, or WEBP image files are allowed.</span>
+        </>
+      : <div className="w-full">
+          <ImageCropper image={image} setCroppedImagePixels={setCroppedImagePixels} />
+          <button
+              onClick={handleFileDelete}
+              className="mt-2 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-3 border border-blue-500 hover:border-transparent rounded"
           >
-          <input
-            id={id}
-            type="file"
-            accept="image/*"
-            {...register(name)}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <div className="flex flex-col items-center space-y-2">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-            <p>Upload or drag & drop your file</p>
-          </div>
-        </label>
-      :
-        <div>
-          <ImageCropper image={image} setCroppedImage={setCroppedImage} />
+            Delete Image
+          </button>
         </div>
       }
     </div>
