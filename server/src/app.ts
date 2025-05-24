@@ -8,12 +8,10 @@ import gigRoute from './routes/gig.routes';
 const app = express();
 
 // enable cors
-app.use(
-  cors({
-    credentials: true,
-    origin: 'http://localhost:5173',
-  }),
-);
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 
 // cookie parser
 app.use(cookieParser());

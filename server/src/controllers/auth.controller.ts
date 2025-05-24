@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
 import { login, logout, register, resetPassword, rotateToken } from '../services/auth.service';
+import { storeResponse } from '../services/idempotency.service';
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -9,12 +10,22 @@ export const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const { username, email } = req.body;
     const pwHash = req.pwHash;
+    const idempotencyKey = req.idempotencyKey;
 
     if (!pwHash) {
       throw new BadRequestError("Password hash missing");
     }
 
     const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
+
+    const responseBody = {
+      success: true,
+      message: 'User successfully registered',
+      user,
+      accessToken: accessToken,
+    };
+
+    await storeResponse({responseBody, idempotencyKey});
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -23,12 +34,7 @@ export const registerUser = asyncHandler(
       maxAge: TWO_WEEKS_MS
     });
 
-    res.status(200).json({
-      success: true,
-      message: 'User successfully registered',
-      user,
-      accessToken: accessToken,
-    });
+    res.status(200).json(responseBody);
   },
 );
 

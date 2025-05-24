@@ -77,6 +77,12 @@ model ResetToken {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+model IdempotencyKey {
+  id           String   @id
+  responseBody Json?
+  createdAt    DateTime @default(now())
+}
+
 enum Role {
   USER
   ADMIN

@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { type ReactNode, useEffect, useState } from "react";
 import { Loading } from "../components/Loading";
 import api from '../lib/api';
-import { setupInterceptors } from '../lib/apiInterceptors';
+import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
 import type { ApiErrorResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (accessToken) {
-      setupInterceptors({ accessToken, user, login, logout });
+      setupInterceptors({ accessToken, user, login, logout, setAccessToken });
     }
   }, [accessToken, user])
 
@@ -86,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.removeItem("sessionActive");
   
       delete api.defaults.headers.common.Authorization;
+      ejectInterceptors();
 
       return { success: true, data: res.data };
     } catch(error) {
@@ -104,7 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ accessToken, user, login, logout }}>
+    <AuthContext.Provider value={{ accessToken, user, login, logout, setAccessToken }}>
       { children }
     </AuthContext.Provider>
   )

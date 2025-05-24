@@ -3,6 +3,7 @@ import type { AxiosError } from 'axios';
 import { useState } from 'react';
 import type { Area } from 'react-easy-crop';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../hooks/useAuth';
 import api from '../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../types/api';
@@ -17,6 +18,7 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
   const [image, setImage] = useState<string | null>(null);
   const [croppedImagePixels, setCroppedImagePixels] = useState<Area | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
 
   const methods = useForm<CreateGigFormInputs>({ mode: 'onChange' });
   const { user } = useAuth();
@@ -51,6 +53,12 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
         throw new Error("User not logged in");
       }
 
+      const key = idempotencyKey ?? uuidv4();
+
+      if (!idempotencyKey) {
+        setIdempotencyKey(key);
+      }
+
       setIsSubmitting(true);
 
       const formData = new FormData();
@@ -66,7 +74,13 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
       formData.append("description", data.description);
       formData.append("authorId", String(user.id));
 
-      await api.post('/api/gigs/create', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await api.post('/api/gigs/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Idempotency-Key': key
+        }
+      });
+
       setIsCreateGigModalOpen(false);
     } catch (err) {
       console.error(err)
