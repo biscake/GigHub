@@ -1,13 +1,12 @@
 import { Role } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
-import { AppError } from "../errors/app-error";
-import { AuthenticationError } from "../errors/authentication-error";
-import { AuthorizationError } from "../errors/authorization-error";
-import { BadRequestError } from "../errors/bad-request-error";
-import { NotFoundError } from "../errors/not-found-error";
-import { ServiceError } from "../errors/service-error";
-import { prisma } from "../lib/prisma";
+import { AppError } from "../../errors/app-error";
+import { AuthenticationError } from "../../errors/authentication-error";
+import { AuthorizationError } from "../../errors/authorization-error";
+import { NotFoundError } from "../../errors/not-found-error";
+import { ServiceError } from "../../errors/service-error";
+import { prisma } from "../../lib/prisma";
 
 export const isUserAuthorizedToDeleteGig = asyncHandler(async (
   req: Request,
@@ -19,10 +18,7 @@ export const isUserAuthorizedToDeleteGig = asyncHandler(async (
       throw new AuthenticationError("User not authenticated");
     }
 
-    const gigId = parseInt(req.params.gigId);
-    if (isNaN(gigId)) {
-      throw new BadRequestError("Invalid gig ID");
-    }
+    const gigId = req.gigId;
 
     const user = req.user;
 

@@ -1,4 +1,4 @@
-export type CreateGigInDatabaseInput = {
+export interface CreateGigInDatabaseParams {
   imgKey: string;
   title: string;
   price: number;
@@ -7,10 +7,24 @@ export type CreateGigInDatabaseInput = {
   category?: string;
 }
 
-export type GetGigsFromDatabaseInput = {
+export interface DeleteGigFromDatabaseParams {
+  id: number;
+}
+
+export interface GetGigsFromDatabaseParams {
   category?: string | undefined;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
   page?: number
+}
+
+export interface GetGigFromDatabaseByIdParams {
+  id: number;
+}
+
+export interface AcceptGigByIdParams {
+  gigId: number;
+  userId: number;
+  message?: string;
 }

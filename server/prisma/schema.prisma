@@ -55,6 +55,7 @@ model GigApplication {
   status    Status   @default(PENDING)
   gig       Gig      @relation(fields: [gigId], references: [id])
   gigId     Int
+  message   String?
 }
 
 model RefreshToken {
@@ -92,4 +93,5 @@ enum Status {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
 }

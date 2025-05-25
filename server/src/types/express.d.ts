@@ -6,5 +6,6 @@ declare module 'express-serve-static-core' {
     pwHash?: string;
     user?: User;
     idempotencyKey?: string;
+    gigId?: number;
   }
 }

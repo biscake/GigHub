@@ -1,5 +1,5 @@
 import passport from "passport";
-import useJWTStrategy from "../config/passport";
+import useJWTStrategy from "../../config/passport";
 
 useJWTStrategy(passport);
 

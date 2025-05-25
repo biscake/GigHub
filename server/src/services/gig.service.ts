@@ -2,9 +2,9 @@ import { Prisma } from "@prisma/client";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { CreateGigInDatabaseInput, GetGigsFromDatabaseInput } from "../types/gig";
+import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams } from "../types/gig";
 
-export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
+export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
   try {
     const result = await prisma.gig.create({
       data: {
@@ -27,11 +27,11 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   }
 }
 
-export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
+export const deleteGigFromDatabase = async ({ id }: DeleteGigFromDatabaseParams) => {
   try {
     const result = await prisma.gig.delete({
       where: {
-        id: gigId
+        id: id
       }
     })
 
@@ -41,7 +41,7 @@ export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
   }
 }
 
-export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
+export const getGigsFromDatabase = async (params: GetGigsFromDatabaseParams) => {
   try {
     const NUMBER_OF_GIGS: number = 48;
 
@@ -87,5 +87,34 @@ export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
     return { gigs: gigsWithImgUrl, totalPages: totalPages };
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to fetch gigs from database");
+  }
+}
+
+export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParams) => {
+  try {
+    const gig = await prisma.gig.findUnique({
+      where: {
+        id: id
+      }
+    })
+
+    return { gig };
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to fetch gig from database");
+  }
+}
+
+export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdParams) => {
+  try {
+    const application = await prisma.gigApplication.create({
+      data: {
+        gigId: gigId,
+        userId: userId
+      }
+    })
+
+    return { application }
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to create gig application");
   }
 }

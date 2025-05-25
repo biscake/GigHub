@@ -1,10 +1,11 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { createGigInDatabase, deleteGigFromDatabase, getGigsFromDatabase } from '../services/gig.service';
+import { AuthorizationError } from '../errors/authorization-error';
+import { createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
-import { CreateGigInDatabaseInput } from '../types/gig';
+import { CreateGigInDatabaseParams } from '../types/gig';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -14,7 +15,7 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
     ? `gigs/${createId()}-${file.originalname}`
     : "default/default.jpg";
 
-  const gigDetails: CreateGigInDatabaseInput = {
+  const gigDetails: CreateGigInDatabaseParams = {
     ...req.body,
     price: parseFloat(req.body.price),
     authorId: parseInt(req.body.authorId, 10),
@@ -43,9 +44,9 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
-  const gigId = parseInt(req.params.gigId);
+  const id = parseInt(req.params.gigId);
 
-  const deletedGig = await deleteGigFromDatabase({ gigId });
+  const deletedGig = await deleteGigFromDatabase({ id });
 
   await deleteSingleImageFromR2({ key: deletedGig.imgKey });
 
@@ -61,4 +62,39 @@ export const getGigs = asyncHandler(async (req: Request, res: Response) => {
     gigs: result.gigs,
     totalPages: result.totalPages
   })
+})
+
+export const getGigWithId = asyncHandler(async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+
+  const result = await getGigFromDatabaseById({ id });
+
+  res.status(200).json({
+    success: true,
+    message: "Get gig successfully",
+    gig: result.gig
+  })
+})
+
+export const postGigApplication = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AuthorizationError("User not logged in");
+  }
+
+  const gigId = parseInt(req.params.id);
+  const { message } = req.body;
+  const userId = req.user.id;
+  const idempotencyKey = req.idempotencyKey;
+
+  const { application } = await createGigApplicationById({ gigId, userId, message });
+
+  const responseBody = {
+    success: true,
+    message: "Gig application successfully created",
+    application
+  };
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(201).json(responseBody);
 })
