@@ -53,7 +53,7 @@ model GigApplication {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   status    Status   @default(PENDING)
-  gig       Gig      @relation(fields: [gigId], references: [id])
+  gig       Gig      @relation(fields: [gigId], references: [id], onDelete: Cascade)
   gigId     Int
   message   String?
 }
