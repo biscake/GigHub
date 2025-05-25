@@ -26,7 +26,7 @@ router.post(
 
 router.post('/login', loginUserCredentials);
 
-router.post('/refreshtoken', refreshToken);
+router.post('/refreshtoken', idempotencyKey, refreshToken);
 
 router.post('/logout', logoutUser);
 
