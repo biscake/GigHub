@@ -8,7 +8,7 @@ import { NotFoundError } from "../../errors/not-found-error";
 import { ServiceError } from "../../errors/service-error";
 import { prisma } from "../../lib/prisma";
 
-export const isUserAuthorizedToDeleteGig = asyncHandler(async (
+export const isAuthorizedToDeleteGig = asyncHandler(async (
   req: Request,
   _res: Response,
   next: NextFunction
@@ -42,6 +42,6 @@ export const isUserAuthorizedToDeleteGig = asyncHandler(async (
       throw err;
     }
 
-    throw new ServiceError("Prisma", "Failed to check if user is authorized");
+    throw new ServiceError("Prisma", "Failed to get gig from database");
   }
 });

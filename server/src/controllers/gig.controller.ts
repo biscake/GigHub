@@ -1,11 +1,11 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { AuthorizationError } from '../errors/authorization-error';
 import { createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
+import { NotFoundError } from '../errors/not-found-error';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -44,7 +44,7 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
-  const id = parseInt(req.params.gigId);
+  const id = req.gigId;
 
   const deletedGig = await deleteGigFromDatabase({ id });
 
@@ -77,11 +77,8 @@ export const getGigWithId = asyncHandler(async (req: Request, res: Response) => 
 })
 
 export const postGigApplication = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new AuthorizationError("User not logged in");
-  }
+  const gigId = req.gigId;
 
-  const gigId = parseInt(req.params.id);
   const { message } = req.body;
   const userId = req.user.id;
   const idempotencyKey = req.idempotencyKey;
@@ -97,4 +94,14 @@ export const postGigApplication = asyncHandler(async (req: Request, res: Respons
   await storeResponse({ responseBody, idempotencyKey });
 
   res.status(201).json(responseBody);
+})
+
+export const getApplicationsByGigId = asyncHandler(async (req: Request, res: Response) => {
+  const gigApplications = req.gig.GigApplication;
+
+  res.status(200).json({
+    success: true,
+    message: "Get gig applications successfully",
+    gigApplications
+  });
 })
