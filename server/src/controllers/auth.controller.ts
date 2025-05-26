@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { BadRequestError } from '../errors/bad-request-error';
 import { login, logout, register, resetPassword, rotateToken } from '../services/auth.service';
 import { storeResponse } from '../services/idempotency.service';
 
