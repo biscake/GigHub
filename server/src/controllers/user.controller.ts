@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { getUserWithNormalizedProfileByUsername } from '../services/user.service';
+import { getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername } from '../services/user.service';
 
 export const getProfileByUsername = asyncHandler(async (req: Request, res: Response) => {
   const username = req.params.username;
@@ -16,5 +16,18 @@ export const getProfileByUsername = asyncHandler(async (req: Request, res: Respo
     success: true,
     message: "Get profile successfully",
     profile
+  })
+})
+
+export const getReceivedReviewsByUsername = asyncHandler(async (req: Request, res: Response) => {
+  const username = req.params.username;
+  const NUMBER_OF_REVIEWS = 5;
+
+  const user = await getUserWithReviewsByUsername({ username, NUMBER_OF_REVIEWS });
+
+  res.status(200).json({
+    success: true,
+    message: "Get received reviews successfully",
+    receivedReviews: user.receivedReviews
   })
 })
