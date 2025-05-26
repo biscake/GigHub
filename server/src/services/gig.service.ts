@@ -2,7 +2,7 @@ import { Prisma, Status } from "@prisma/client";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { AcceptGigApplicationByIdParams, AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams } from "../types/gig";
+import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams } from "../types/gig";
 
 export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
   try {
@@ -118,7 +118,7 @@ export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdP
   }
 }
 
-export const acceptGigApplicationById = async ({ applicationId }: AcceptGigApplicationByIdParams) => {
+export const acceptGigApplicationById = async ({ applicationId }: UpdateApplicationStatusByIdParams) => {
   try {
     await prisma.gigApplication.update({
       where: {
@@ -126,6 +126,21 @@ export const acceptGigApplicationById = async ({ applicationId }: AcceptGigAppli
       },
       data: {
         status: Status.ACCEPTED
+      }
+    })
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to update status of application in database");
+  }
+}
+
+export const rejectGigApplicationById = async ({ applicationId }: UpdateApplicationStatusByIdParams) => {
+  try {
+    await prisma.gigApplication.update({
+      where: {
+        id: applicationId
+      },
+      data: {
+        status: Status.REJECTED
       }
     })
   } catch (err) {

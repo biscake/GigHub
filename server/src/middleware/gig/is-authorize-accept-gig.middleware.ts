@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { BadRequestError } from "../../errors/bad-request-error";
 
-export const isAuthorizedToAcceptGig = asyncHandler(async (
+export const isOwnerOfGig = asyncHandler(async (
   req: Request,
   _res: Response,
   next: NextFunction

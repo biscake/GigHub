@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { acceptGigApplication, createGig, deleteGig, getApplicationsByGigId, getGigs, getGigWithId, postGigApplication } from '../controllers/gig.controller';
+import { acceptGigApplication, createGig, deleteGig, getApplicationsByGigId, getGigs, getGigWithId, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isAuthorizedToApplyGig } from '../middleware/gig/is-authorize-apply-gig.middleware';
 import { isAuthorizedToDeleteGig } from '../middleware/gig/is-authorize-delete-gig.middleware';
@@ -10,7 +10,7 @@ import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { uploadSingleImage } from '../middleware/upload-assets.middleware';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { createGigValidators } from '../validators/gig.validator';
-import { isAuthorizedToAcceptGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
+import { isOwnerOfGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
 
 const router = Router();
 
@@ -25,7 +25,7 @@ router.post('/create',
   createGig
 );
 
-router.delete('/:gigId/delete', isValidGigId, authenticateJWT, isAuthorizedToDeleteGig, deleteGig);
+router.delete('/:gigId/delete', idempotencyKey, isValidGigId, authenticateJWT, isAuthorizedToDeleteGig, deleteGig);
 
 router.get('/:gigId', isValidGigId, getGigWithId);
 
@@ -34,11 +34,21 @@ router.post('/:gigId/apply', idempotencyKey, isValidGigId, authenticateJWT, isAu
 router.get('/:gigId/applications', isValidGigId, authenticateJWT, isAuthorizedToGetApplications, getApplicationsByGigId);
 
 router.patch('/:gigId/applications/:applicationId/accept',
+  idempotencyKey,
   isValidGigId,
   isValidApplicationId,
   authenticateJWT,
-  isAuthorizedToAcceptGig,
+  isOwnerOfGig,
   acceptGigApplication
+);
+
+router.patch('/:gigId/applications/:applicationId/reject',
+  idempotencyKey,
+  isValidGigId,
+  isValidApplicationId,
+  authenticateJWT,
+  isOwnerOfGig,
+  rejectGigApplication
 );
 
 export default router
