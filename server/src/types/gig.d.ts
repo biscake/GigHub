@@ -30,6 +30,6 @@ export interface AcceptGigByIdParams {
   message?: string;
 }
 
-export interface AcceptGigApplicationByIdParams {
+export interface UpdateApplicationStatusByIdParams {
   applicationId: number;
 }

@@ -1,7 +1,7 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase, rejectGigApplicationById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
@@ -114,3 +114,11 @@ export const acceptGigApplication = asyncHandler(async (req: Request, res: Respo
 
   res.status(204).send();
 })
+
+export const rejectGigApplication = asyncHandler(async (req: Request, res: Response) => {
+  const applicationId = req.applicationId;
+
+  await rejectGigApplicationById({ applicationId });
+
+  res.status(204).send();
+});
