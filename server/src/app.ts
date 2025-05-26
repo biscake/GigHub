@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import { errorHandler } from './middleware/error-handler.middleware';
 import authRoute from './routes/auth.routes';
 import gigsRoute from './routes/gigs.routes';
+import usersRoute from './routes/user.routes';
 
 const app = express();
 
@@ -28,7 +29,11 @@ app.get('/health', (_req: Request, res: Response) => {
 // api route
 app.use('/api/auth', authRoute);
 
+// gig api
 app.use('/api/gigs', gigsRoute);
+
+// user api
+app.use('/api/users', usersRoute);
 
 // Use error handler
 app.use(errorHandler);

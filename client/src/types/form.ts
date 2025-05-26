@@ -24,10 +24,6 @@ export type ResetPasswordFormInputs = {
   cpassword: string;
 }
 
-export type hasPasswordField = {
-  password: string;
-}
-
 export type CreateGigFormProps = {
   apiErr: string | ValidationError[] | null;
   methods: ReturnType<typeof useForm<CreateGigFormInputs>>;

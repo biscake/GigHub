@@ -8,16 +8,20 @@ generator client {
 }
 
 model User {
-  id           Int              @id @default(autoincrement())
-  createdAt    DateTime         @default(now())
-  email        String           @unique
-  username     String           @unique
-  role         Role             @default(USER)
-  gigs         Gig[]
-  accounts     Account[]
-  RefreshToken RefreshToken[]
-  ResetToken   ResetToken?
-  applications GigApplication[]
+  id              Int              @id @default(autoincrement())
+  createdAt       DateTime         @default(now())
+  email           String           @unique
+  username        String           @unique
+  role            Role             @default(USER)
+  gigs            Gig[]
+  accounts        Account[]
+  RefreshToken    RefreshToken[]
+  ResetToken      ResetToken?
+  applications    GigApplication[]
+  profile         UserProfile?
+  userProfileId   Int?
+  givenReviews    Review[]         @relation("UserGivenReviews")
+  receivedReviews Review[]         @relation("UserReceivedReviews")
 }
 
 model Account {
@@ -28,9 +32,31 @@ model Account {
   accessToken       String?
   refreshToken      String?
   userId            Int
-  user              User    @relation(fields: [userId], references: [id])
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+model UserProfile {
+  id                    Int     @id @default(autoincrement())
+  numberOfGigsPosted    Int     @default(0)
+  numberOfGigsCompleted Int     @default(0)
+  averageRating         Float?
+  bio                   String?
+  profilePictureKey     String?
+  userId                Int     @unique
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  comment    String
+  rating     Int
+  createdAt  DateTime @default(now())
+  reviewerId Int?
+  revieweeId Int?
+  reviewer   User?    @relation("UserGivenReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewee   User?    @relation("UserReceivedReviews", fields: [revieweeId], references: [id], onDelete: SetNull)
 }
 
 model Gig {

@@ -1,6 +1,7 @@
 import { type AxiosError } from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { type ReactNode, useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { Loading } from "../components/Loading";
 import api from '../lib/api';
 import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
@@ -8,6 +9,8 @@ import type { ApiErrorResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
+
+const idempotencyKey = uuidv4();
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -21,7 +24,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (rememberMe || sessionActive) {
         try {
-          const res = await api.post('/api/auth/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
+          const res = await api.post('/api/auth/refreshtoken', { rememberMe }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Idempotency-Key': idempotencyKey
+            }
+          });
           const token = res.data.accessToken;
   
           if (token) {
