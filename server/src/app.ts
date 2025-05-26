@@ -3,7 +3,7 @@ import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { errorHandler } from './middleware/error-handler.middleware';
 import authRoute from './routes/auth.routes';
-import gigsRoute from './routes/gig.routes';
+import gigsRoute from './routes/gigs.routes';
 
 const app = express();
 
