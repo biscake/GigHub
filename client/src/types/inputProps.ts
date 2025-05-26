@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from 'react';
+import type { Area } from 'react-easy-crop';
 import type { RegisterOptions, UseFormRegister } from 'react-hook-form';
 import type { CreateGigFormInputs } from './form';
-import type { Area } from 'react-easy-crop';
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   validation?: RegisterOptions;
@@ -13,8 +13,8 @@ export type CheckBoxProp = React.InputHTMLAttributes<HTMLInputElement> & {
 }
 
 export type TextAreaProps = React.InputHTMLAttributes<HTMLTextAreaElement> & {
-  register: UseFormRegister<CreateGigFormInputs>;
-  name: keyof CreateGigFormInputs;
+  name: string;
+  validation?: RegisterOptions;
 }
 
 export type UploadFileProps = React.InputHTMLAttributes<HTMLInputElement> & {

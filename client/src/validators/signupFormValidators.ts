@@ -1,18 +1,9 @@
-import { type RegisterOptions, type UseFormWatch, type Path } from "react-hook-form";
-import { type hasPasswordField } from "../types/form";
-
-export type InputValidation = {
-  name: string;
-  type: string;
-  id: string;
-  placeholder: string;
-  autocomplete?: string;
-  validation: RegisterOptions;
-}
+import { type Path, type UseFormWatch } from "react-hook-form";
+import type { hasPasswordField, InputValidation } from "../types/validators";
 
 export const usernameValidation : InputValidation = {
   name: "username",
-  type: "username",
+  type: "text",
   id: "username", 
   placeholder: "Username",
   validation: {
@@ -36,7 +27,7 @@ export const passwordValidation : InputValidation = {
   type: 'password', 
   id: 'password',
   placeholder: 'Password',
-  autocomplete: 'on',
+  autoComplete: 'on',
   validation: {
     required: {
       value: true,
@@ -60,7 +51,7 @@ export const cpasswordValidation = <T extends hasPasswordField>(watch: UseFormWa
   type: 'password', 
   id: 'cpassword',
   placeholder: 'Confirm password',
-  autocomplete: 'on',
+  autoComplete: 'on',
   validation: {
     required: {
       value: true,

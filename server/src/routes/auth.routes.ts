@@ -7,7 +7,7 @@ import {
   resetUserPassword
 } from '../controllers/auth.controller';
 import { sendResetToken } from '../controllers/mailer.controller';
-import { hashPassword } from '../middleware/hash-password.middleware';
+import { hashPassword } from '../middleware/auth/hash-password.middleware';
 import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { validateFormDuplicates, validateFormPassword } from '../validators/auth.validator';
@@ -26,7 +26,7 @@ router.post(
 
 router.post('/login', loginUserCredentials);
 
-router.post('/refreshtoken', refreshToken);
+router.post('/refreshtoken', idempotencyKey, refreshToken);
 
 router.post('/logout', logoutUser);
 

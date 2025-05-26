@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { UploadFileProps } from "../../types/inputProps";
-import ImageCropper from "../ImageCropper";
+import ImageCropper from "./ImageCropper";
 
 const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
@@ -76,7 +76,7 @@ export const UploadFile: React.FC<UploadFileProps> = ({ register, name, id, imag
               <p>Upload or drag & drop your file</p>
             </div>
           </label>
-          <span className="text-xs text-gray-400">Only JPG, JPEG, PNG, or WEBP image files are allowed.</span>
+          <span className="text-xs text-gray-400 mt-1">Only JPG, JPEG, PNG, or WEBP image files are allowed.</span>
         </>
       : <>
           <ImageCropper image={image} setCroppedImagePixels={setCroppedImagePixels} />

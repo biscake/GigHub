@@ -63,8 +63,18 @@ export const refreshToken = asyncHandler(
   ) => {
     const refreshToken = req.cookies.refreshToken;
     const { rememberMe } = req.body;
+    const idempotencyKey = req.idempotencyKey;
 
     const { newAccessToken, newRefreshToken, user } = await rotateToken({ refreshToken });
+
+    const responseBody = {
+      success: true,
+      message: 'Access token refreshed',
+      user,
+      accessToken: newAccessToken,
+    }
+
+    await storeResponse({ responseBody, idempotencyKey });
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
@@ -73,12 +83,7 @@ export const refreshToken = asyncHandler(
       ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
 
-    res.status(200).json({
-      success: true,
-      message: 'Access token refreshed',
-      user,
-      accessToken: newAccessToken,
-    });
+    res.status(200).json(responseBody);
   }
 )
 

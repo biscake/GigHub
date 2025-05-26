@@ -20,8 +20,3 @@ export interface JwtPayload {
   iat: number;
   jti: string;
 }
-
-export type RefreshTokenResponse = {
-  accessToken: string;
-  refreshToken: string;
-};

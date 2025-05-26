@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { type AuthContextType } from "../types/auth";
 import api from "./api";
 
@@ -32,7 +33,15 @@ export const setupInterceptors = (auth: AuthContextType) => {
         originalRequest._retry = true;
         
         try {
-          const res = await api.post('/api/auth/refreshtoken', { rememberMe }, { headers: { 'Content-Type': 'application/json' } });
+          const idempotencyKey = uuidv4();
+          console.log(idempotencyKey);
+
+          const res = await api.post('/api/auth/refreshtoken', { rememberMe }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Idempotency-Key': idempotencyKey
+            }
+          });
   
           originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
 
