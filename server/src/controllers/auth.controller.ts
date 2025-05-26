@@ -7,14 +7,10 @@ import { storeResponse } from '../services/idempotency.service';
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 export const registerUser = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
+  async (req: Request, res: Response) => {
     const { username, email } = req.body;
     const pwHash = req.pwHash;
     const idempotencyKey = req.idempotencyKey;
-
-    if (!pwHash) {
-      throw new BadRequestError("Password hash missing");
-    }
 
     const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
 
@@ -94,23 +90,22 @@ export const refreshToken = asyncHandler(
 export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken;
   await logout({ token });
-  res.clearCookie('refreshToken').json({ success: true, message: 'Cookie cleared' });
+  res.clearCookie('refreshToken').status(204).end();
 })
 
-export const resetUserPassword = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
-    const { resetToken } = req.body;
-    const pwHash = req.pwHash;
+export const resetUserPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { resetToken } = req.body;
+  const pwHash = req.pwHash;
+  const idempotencyKey = req.idempotencyKey;
 
-    if (!pwHash) {
-      throw new BadRequestError("Password Hash missing");
-    }
+  await resetPassword({ resetToken, pwHash });
 
-    await resetPassword({ resetToken, pwHash });
+  const responseBody = {
+    success: true,
+    message: 'Password successfully reset'
+  }
 
-    res.status(200).json({
-      success: true,
-      message: 'Password successfully reset'
-    });
-  },
-);
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
+});
