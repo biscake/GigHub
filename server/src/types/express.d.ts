@@ -6,7 +6,7 @@ declare module 'express-serve-static-core' {
     pwHash: string;
     user: User;
     idempotencyKey: string;
-    gigId: number;
     gig: Gig & { GigApplication?: GigApplication[] }; 
+    applicationId: number;
   }
 }

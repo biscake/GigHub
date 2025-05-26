@@ -16,7 +16,8 @@ export interface GetGigsFromDatabaseParams {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
-  page?: number
+  page?: number;
+  NUMBER_OF_GIGS: number;
 }
 
 export interface GetGigFromDatabaseByIdParams {
@@ -27,4 +28,8 @@ export interface AcceptGigByIdParams {
   gigId: number;
   userId: number;
   message?: string;
+}
+
+export interface AcceptGigApplicationByIdParams {
+  applicationId: number;
 }

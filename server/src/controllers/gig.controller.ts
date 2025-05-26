@@ -1,11 +1,10 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
-import { NotFoundError } from '../errors/not-found-error';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -44,9 +43,9 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
-  const id = req.gigId;
+  const gig = req.gig;
 
-  const deletedGig = await deleteGigFromDatabase({ id });
+  const deletedGig = await deleteGigFromDatabase({ id: gig.id });
 
   await deleteSingleImageFromR2({ key: deletedGig.imgKey });
 
@@ -54,36 +53,38 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const getGigs = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getGigsFromDatabase(req.query);
+  const NUMBER_OF_GIGS = 48;
+
+  const result = await getGigsFromDatabase({ ...req.query, NUMBER_OF_GIGS });
+
+  const totalPages = Math.ceil(result.totalCount / NUMBER_OF_GIGS);
 
   res.status(200).json({
     success: true,
     message: "Get gigs successfully",
     gigs: result.gigs,
-    totalPages: result.totalPages
+    totalPages: totalPages
   })
 })
 
 export const getGigWithId = asyncHandler(async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
-
-  const result = await getGigFromDatabaseById({ id });
+  const gig = req.gig;
 
   res.status(200).json({
     success: true,
     message: "Get gig successfully",
-    gig: result.gig
+    gig: gig
   })
 })
 
 export const postGigApplication = asyncHandler(async (req: Request, res: Response) => {
-  const gigId = req.gigId;
+  const gig = req.gig;
 
   const { message } = req.body;
   const userId = req.user.id;
   const idempotencyKey = req.idempotencyKey;
 
-  const { application } = await createGigApplicationById({ gigId, userId, message });
+  const application = await createGigApplicationById({ gigId: gig.id, userId, message });
 
   const responseBody = {
     success: true,
@@ -104,4 +105,12 @@ export const getApplicationsByGigId = asyncHandler(async (req: Request, res: Res
     message: "Get gig applications successfully",
     gigApplications
   });
+})
+
+export const acceptGigApplication = asyncHandler(async (req: Request, res: Response) => {
+  const applicationId = req.applicationId;
+
+  await acceptGigApplicationById({ applicationId });
+
+  res.status(204).send();
 })
