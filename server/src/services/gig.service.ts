@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Status } from "@prisma/client";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { CreateGigInDatabaseInput, GetGigsFromDatabaseInput } from "../types/gig";
+import { AcceptGigApplicationByIdParams, AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams } from "../types/gig";
 
-export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
+export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
   try {
     const result = await prisma.gig.create({
       data: {
@@ -27,11 +27,11 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseInput) => {
   }
 }
 
-export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
+export const deleteGigFromDatabase = async ({ id }: DeleteGigFromDatabaseParams) => {
   try {
     const result = await prisma.gig.delete({
       where: {
-        id: gigId
+        id: id
       }
     })
 
@@ -41,11 +41,9 @@ export const deleteGigFromDatabase = async ({ gigId }: { gigId: number; }) => {
   }
 }
 
-export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
+export const getGigsFromDatabase = async (params: GetGigsFromDatabaseParams) => {
   try {
-    const NUMBER_OF_GIGS: number = 48;
-
-    const { category, minPrice, maxPrice, search, page = 1 } = params;
+    const { category, minPrice, maxPrice, search, page = 1, NUMBER_OF_GIGS } = params;
 
     const filters = {
       ...(category && { category }),
@@ -76,16 +74,61 @@ export const getGigsFromDatabase = async (params: GetGigsFromDatabaseInput) => {
       where: filters,
     });
 
-    const totalPages = Math.ceil(totalGigs / NUMBER_OF_GIGS);
-
     const gigsWithImgUrl = result.map(gig => ({
       ...gig,
       imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`,
       price: gig.price.toFixed(2),
     }))
 
-    return { gigs: gigsWithImgUrl, totalPages: totalPages };
+    return { gigs: gigsWithImgUrl, totalCount: totalGigs };
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to fetch gigs from database");
+  }
+}
+
+export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParams) => {
+  try {
+    const gig = await prisma.gig.findUnique({
+      where: {
+        id: id
+      },
+      include: {
+        GigApplication: true
+      }
+    })
+
+    return gig;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to fetch gig from database");
+  }
+}
+
+export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdParams) => {
+  try {
+    const application = await prisma.gigApplication.create({
+      data: {
+        gigId: gigId,
+        userId: userId
+      }
+    })
+
+    return application;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to create gig application");
+  }
+}
+
+export const acceptGigApplicationById = async ({ applicationId }: AcceptGigApplicationByIdParams) => {
+  try {
+    await prisma.gigApplication.update({
+      where: {
+        id: applicationId
+      },
+      data: {
+        status: Status.ACCEPTED
+      }
+    })
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to update status of application in database");
   }
 }
