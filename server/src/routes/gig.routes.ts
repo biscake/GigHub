@@ -25,7 +25,7 @@ router.post('/create',
   createGig
 );
 
-router.delete('/:gigId/delete', isValidGigId, authenticateJWT, isAuthorizedToDeleteGig, deleteGig);
+router.delete('/:gigId/delete', idempotencyKey, isValidGigId, authenticateJWT, isAuthorizedToDeleteGig, deleteGig);
 
 router.get('/:gigId', isValidGigId, getGigWithId);
 
@@ -34,6 +34,7 @@ router.post('/:gigId/apply', idempotencyKey, isValidGigId, authenticateJWT, isAu
 router.get('/:gigId/applications', isValidGigId, authenticateJWT, isAuthorizedToGetApplications, getApplicationsByGigId);
 
 router.patch('/:gigId/applications/:applicationId/accept',
+  idempotencyKey,
   isValidGigId,
   isValidApplicationId,
   authenticateJWT,
@@ -42,6 +43,7 @@ router.patch('/:gigId/applications/:applicationId/accept',
 );
 
 router.patch('/:gigId/applications/:applicationId/reject',
+  idempotencyKey,
   isValidGigId,
   isValidApplicationId,
   authenticateJWT,

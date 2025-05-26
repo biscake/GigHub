@@ -44,12 +44,20 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
 
 export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
   const gig = req.gig;
+  const idempotencyKey = req.idempotencyKey;
 
   const deletedGig = await deleteGigFromDatabase({ id: gig.id });
 
   await deleteSingleImageFromR2({ key: deletedGig.imgKey });
 
-  res.status(204).send();
+  const responseBody = {
+    success: true,
+    message: "Gig successfully deleted"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
 })
 
 export const getGigs = asyncHandler(async (req: Request, res: Response) => {
@@ -109,16 +117,32 @@ export const getApplicationsByGigId = asyncHandler(async (req: Request, res: Res
 
 export const acceptGigApplication = asyncHandler(async (req: Request, res: Response) => {
   const applicationId = req.applicationId;
+  const idempotencyKey = req.idempotencyKey;
 
   await acceptGigApplicationById({ applicationId });
 
-  res.status(204).send();
+  const responseBody = {
+    success: true,
+    message: "Gig application accepted"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
 })
 
 export const rejectGigApplication = asyncHandler(async (req: Request, res: Response) => {
   const applicationId = req.applicationId;
+  const idempotencyKey = req.idempotencyKey;
 
   await rejectGigApplicationById({ applicationId });
 
-  res.status(204).send();
+  const responseBody = {
+    success: true,
+    message: "Gig application rejected"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
 });
