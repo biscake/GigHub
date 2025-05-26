@@ -1,18 +1,20 @@
-import { Card } from "./Card"
-import api from '../lib/api';
-import { useEffect, useState } from "react";
-import { Spinner } from "./Spinner";
 import type { AxiosError } from 'axios';
+import { useEffect, useState } from "react";
+import api from '../lib/api';
 import type { ApiErrorResponse } from '../types/api';
 import type { Gig } from "../types/gig";
-import { SearchBar } from "./SearchBar";
+import { Card } from "./GigCard/Card";
+import GigModal from "./GigModal/GigModal";
 import { PageSelector } from "./PageSelector";
+import { SearchBar } from "./SearchBar";
+import { Spinner } from "./Spinner";
 
 export const Dashboard = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
   const [gigs, setGigs] = useState<Gig[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
   // SetFilters to be done
   const [filters, setFilters] = useState({
     category: '',
@@ -84,15 +86,15 @@ export const Dashboard = () => {
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto no-scrollbar">
-            {gigs && gigs.map(gig => <Card key={gig.id} {...gig} />)}
+            {gigs && gigs.map(gig => <Card key={gig.id} {...gig} onClick={() => setSelectedGig(gig)} />)}
           </div>
         </>
       )}
+      <GigModal gig={selectedGig} setSelectedGig={setSelectedGig} />
       <PageSelector 
         currentPage={ filters.page } 
         totalPages={ totalPages } 
         handlePageChange={ handlePageChange }
-
       />
     </div>
   )

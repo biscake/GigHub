@@ -1,4 +1,4 @@
-import type { GigImageProp } from "../types/gig"
+import type { GigImageProp } from "../../types/gig"
 
 export const GigImage = ({ imgUrl } : GigImageProp) => {
   return (
