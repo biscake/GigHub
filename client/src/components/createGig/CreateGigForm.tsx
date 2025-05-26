@@ -1,6 +1,7 @@
 import { FormProvider } from 'react-hook-form';
 import type { CreateGigFormProps } from '../../types/form';
-import { FormInput } from './FormInput';
+import { descriptionValidator, priceValidation, titleValidation } from '../../validators/createGigValidators';
+import { FormInput } from '../forms/FormInput';
 import { Textarea } from './Textarea';
 import { UploadFile } from './UploadFile';
 
@@ -22,21 +23,9 @@ const CreateGigForm: React.FC<CreateGigFormProps> = ({ apiErr, methods, image, s
         />
 
         <div className='p-5 flex flex-col gap-5'>
-          <FormInput
-            name="title"
-            id="title"
-            type="text"
-            placeholder="Title"
-          />
-          <FormInput
-            name='price'
-            id="price"
-            type="number"
-            placeholder="Price"
-            min={0}
-            step={0.5}
-          />
-          <Textarea register={methods.register} name="description" id="description"/>
+          <FormInput {...titleValidation} />
+          <FormInput {...priceValidation} />
+          <Textarea {...descriptionValidator}/>
         </div>
         
         {apiErr && (

@@ -7,7 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type SignupFormInputs } from '../../types/form';
-import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../utils/validators';
+import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../validators/signupFormValidators';
 import { FormInput } from './FormInput';
 
 const SignupForm = () => {
@@ -49,6 +49,7 @@ const SignupForm = () => {
       const errorMessage = error.response?.data?.message;
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
+      setIdempotencyKey(null);
     }
   }
 
