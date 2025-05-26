@@ -89,7 +89,7 @@ export const refreshToken = asyncHandler(
 export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   const token = req.cookies.refreshToken;
   await logout({ token });
-  res.clearCookie('refreshToken').json({ success: true, message: 'Cookie cleared' });
+  res.clearCookie('refreshToken').status(204).end();
 })
 
 export const resetUserPassword = asyncHandler(
