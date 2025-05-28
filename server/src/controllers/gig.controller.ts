@@ -48,7 +48,9 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
 
   const deletedGig = await deleteGigFromDatabase({ id: gig.id });
 
-  await deleteSingleImageFromR2({ key: deletedGig.imgKey });
+  if (deletedGig.imgKey !== "default/default.jpg") {
+    await deleteSingleImageFromR2({ key: deletedGig.imgKey });
+  }
 
   const responseBody = {
     success: true,
