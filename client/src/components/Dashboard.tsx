@@ -1,14 +1,14 @@
-import { Card } from "./Card"
-import api from '../lib/api';
-import { useEffect, useState } from "react";
-import { Spinner } from "./Spinner";
 import type { AxiosError } from 'axios';
+import { useEffect, useState } from "react";
+import api from '../lib/api';
 import type { ApiErrorResponse } from '../types/api';
 import type { Gig } from "../types/gig";
-import { SearchBar } from "./SearchBar";
+import { Card } from "./Card";
 import { PageSelector } from "./PageSelector";
+import { SearchBar } from "./SearchBar";
+import { Spinner } from "./Spinner";
 
-export const Dashboard = () => {
+const Dashboard = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
   const [gigs, setGigs] = useState<Gig[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,8 +92,9 @@ export const Dashboard = () => {
         currentPage={ filters.page } 
         totalPages={ totalPages } 
         handlePageChange={ handlePageChange }
-
       />
     </div>
   )
 }
+
+export default Dashboard;
