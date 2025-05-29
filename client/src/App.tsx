@@ -1,11 +1,11 @@
 import { Route, Routes } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
+import LoginForm from "./components/forms/LoginForm";
+import ResetPasswordForm from "./components/forms/ResetPasswordForm";
+import ResetRequestForm from "./components/forms/ResetRequestForm";
+import SignupForm from "./components/forms/SignupForm";
 import AccountsLayout from "./layouts/AccountsLayout";
 import AppLayout from "./layouts/AppLayout";
-import LoginPage from "./pages/accounts/LoginPage";
-import ResetPasswordPage from "./pages/accounts/ResetPasswordPage";
-import ResetRequestPage from "./pages/accounts/ResetRequestPage";
-import SignupPage from "./pages/accounts/SignupPage";
 import "./styles/App.css";
 
 const App = () => {
@@ -16,10 +16,10 @@ const App = () => {
       </Route>
 
       <Route path="accounts" element={<AccountsLayout />}>
-        <Route path="login" element={<LoginPage />} />
-        <Route path="signup" element={<SignupPage />} />
-        <Route path="request-reset" element={<ResetRequestPage />} />
-        <Route path="reset-password" element={<ResetPasswordPage />} />
+        <Route path="login" element={<LoginForm />} />
+        <Route path="signup" element={<SignupForm />} />
+        <Route path="request-reset" element={<ResetRequestForm />} />
+        <Route path="reset-password" element={<ResetPasswordForm />} />
       </Route>
 
     </Routes>
