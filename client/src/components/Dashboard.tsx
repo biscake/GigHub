@@ -8,7 +8,7 @@ import type { Gig } from "../types/gig";
 import { SearchBar } from "./SearchBar";
 import { PageSelector } from "./PageSelector";
 
-export const Dashboard = () => {
+const Dashboard = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
   const [gigs, setGigs] = useState<Gig[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,3 +97,5 @@ export const Dashboard = () => {
     </div>
   )
 }
+
+export default Dashboard;
