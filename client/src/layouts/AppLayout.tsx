@@ -1,15 +1,13 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
-const GigsLayout = () => {
+const AppLayout = () => {
   return (
-    <>
+    <div style={{ backgroundImage: "url('/Home.png')" }} className="bg-cover">
       <Sidebar />
-      <Navbar />
       <Outlet />
-    </>
+    </div>
   );
 };
 
-export default GigsLayout;
+export default AppLayout;

@@ -55,7 +55,7 @@ const SignupForm = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="bg-cover flex items-center justify-center min-h-screen px-4" style={{ backgroundImage: "url('/Login.png')" }}>
+      <div className="flex items-center justify-center min-h-screen px-4">
         <form 
           method='post' 
           noValidate
@@ -80,7 +80,7 @@ const SignupForm = () => {
           )}
           <button 
             type='submit'
-            className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none mt-5"
+            className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none mt-5 cursor-pointer"
           >
             Register
           </button>

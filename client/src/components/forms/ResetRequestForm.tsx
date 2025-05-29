@@ -29,7 +29,7 @@ const ResetRequestForm = () => {
   }
 
   return (
-    <div style={{ backgroundImage: "url('/Login.png')" }} className="bg-cover text-white">
+    <div className="text-white">
       {success ? (
         <div className="flex items-center justify-center min-h-screen px-4">
           <div className="w-full max-w-sm flex flex-col gap-5 text-center text-xl border border-gray-200 shadow-lg rounded-2xl px-8 py-10 backdrop-blur-sm">
@@ -58,7 +58,7 @@ const ResetRequestForm = () => {
               {apiErr && <p className="text-sm text-rose-400">{apiErr}</p>}
               <button
                 type='submit'
-                className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
+                className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none cursor-pointer"
               >
                 Reset Password
               </button>
