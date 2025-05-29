@@ -12,3 +12,8 @@ export type Gig = {
 export type GigImageProp = {
   imgUrl: string;
 }
+
+export type GigsResponse = {
+  gigs: Gig[];
+  totalPages: number;
+}
