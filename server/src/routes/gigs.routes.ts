@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { acceptGigApplication, createGig, deleteGig, getApplicationsByGigId, getGigs, getGigWithId, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
+import { isOwnerOfGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
 import { isAuthorizedToApplyGig } from '../middleware/gig/is-authorize-apply-gig.middleware';
 import { isAuthorizedToDeleteGig } from '../middleware/gig/is-authorize-delete-gig.middleware';
 import { isAuthorizedToGetApplications } from '../middleware/gig/is-authorize-get-applications.middleware';
@@ -10,7 +11,6 @@ import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { uploadSingleImage } from '../middleware/upload-assets.middleware';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { createGigValidators } from '../validators/gig.validator';
-import { isOwnerOfGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
 
 const router = Router();
 
@@ -33,7 +33,7 @@ router.post('/:gigId/apply', idempotencyKey, isValidGigId, authenticateJWT, isAu
 
 router.get('/:gigId/applications', isValidGigId, authenticateJWT, isAuthorizedToGetApplications, getApplicationsByGigId);
 
-router.patch('/:gigId/applications/:applicationId/accept',
+router.put('/:gigId/applications/:applicationId/accept',
   idempotencyKey,
   isValidGigId,
   isValidApplicationId,
@@ -42,7 +42,7 @@ router.patch('/:gigId/applications/:applicationId/accept',
   acceptGigApplication
 );
 
-router.patch('/:gigId/applications/:applicationId/reject',
+router.put('/:gigId/applications/:applicationId/reject',
   idempotencyKey,
   isValidGigId,
   isValidApplicationId,
