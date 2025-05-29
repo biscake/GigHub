@@ -1,55 +1,27 @@
-import { Card } from "./Card"
-import api from '../lib/api';
-import { useEffect, useState } from "react";
-import { Spinner } from "./Spinner";
-import type { AxiosError } from 'axios';
-import type { ApiErrorResponse } from '../types/api';
-import type { Gig } from "../types/gig";
-import { SearchBar } from "./SearchBar";
+import { useMemo, useState } from "react";
+import { useGetApi } from "../hooks/useGetApi";
+import type { GigsResponse } from "../types/gig";
+import { Card } from "./Card";
 import { PageSelector } from "./PageSelector";
+import { SearchBar } from "./SearchBar";
+import { Spinner } from "./Spinner";
 
 const Dashboard = () => {
-  const [apiErr, setApiErr] = useState<string | null>(null);
-  const [gigs, setGigs] = useState<Gig[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [totalPages, setTotalPages] = useState(1);
-  // SetFilters to be done
   const [filters, setFilters] = useState({
     category: '',
     search: '',
     page: 1,
   })
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setApiErr(null);
-      try {
-        const res = await api.get('/api/gigs', {
-          params: {
-            category: filters.category,
-            search: filters.search,
-            page: filters.page
-          }
-        });
-
-        setTotalPages(res.data.totalPages);
-        console.log(res.data.totalPages)
-        console.log(res.data.gigs)
-        setGigs(res.data.gigs);
-      } catch (err) {
-
-        const error = err as AxiosError<ApiErrorResponse>;
-
-        const errorMessage = error.response?.data?.message;
-
-        setApiErr(errorMessage || "Something went wrong. Please try again");
-      } finally {
-        setLoading(false);
-      }
+  const apiOptions = useMemo(() => ({
+    params: {
+      category: filters.category,
+      search: filters.search,
+      page: filters.page
     }
-    fetchData();
-  }, [filters.category, filters.search, filters.page]);
+  }), [filters.category, filters.search, filters.page]);
+
+  const { data, error, loading } = useGetApi<GigsResponse>('/api/gigs', apiOptions)
 
   const handleSearchChange = (value: string) => {
     setFilters(prev => ({
@@ -72,27 +44,28 @@ const Dashboard = () => {
       <SearchBar placeholder="Search All Gigs" handleSearch={handleSearchChange} />
       {loading ? <Spinner /> : (
         <>
-          {apiErr && (
+          {error && (
             <p className="text-sm text-rose-400">
-              {Array.isArray(apiErr)
-                ? apiErr.map((err, i) => (
-                  <span key={i}>
-                    {err.msg}
-                  </span>
-                ))
-                : apiErr}
+              {error}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto no-scrollbar">
-            {gigs && gigs.map(gig => <Card key={gig.id} {...gig} />)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto no-scrollbar flex-1">
+            {data?.gigs && data.gigs.length > 0 ? (
+              data.gigs.map(gig => <Card key={gig.id} {...gig} />)
+            ) : (
+              !error && (
+                <div className="col-span-full text-center text-gray-400">
+                  <p>No gigs found</p>
+                </div>
+              )
+            )}
           </div>
         </>
       )}
       <PageSelector 
         currentPage={ filters.page } 
-        totalPages={ totalPages } 
+        totalPages={ data?.totalPages ?? 1} 
         handlePageChange={ handlePageChange }
-
       />
     </div>
   )
