@@ -65,7 +65,7 @@ const ResetPasswordForm = () => {
             type='submit'
             className="text-xl border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none"
           >
-            Register
+            Reset
           </button>
           <div className="text-sm">
             <span>Already have an account? </span>
