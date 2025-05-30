@@ -8,7 +8,7 @@ import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationPanel from "./ApplicationPanel";
 
 const ReceivedApplicationsPanel = () => {
-  const { data, loading, error } = useGetApi<SentApplicationResponse>('/api/gigs/applications/sent');
+  const { data, loading, error } = useGetApi<SentApplicationResponse>('/api/gigs/applications/received');
 
   return (
     <ApplicationPanel title="Received" error={error} loading={loading}>
