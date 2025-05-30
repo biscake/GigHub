@@ -3,11 +3,13 @@ import Sidebar from "../components/Sidebar/Sidebar";
 
 const AppLayout = () => {
   return (
-    <div style={{ backgroundImage: "url('/Home.png')" }} className="bg-cover w-screen h-screen bg-center">
-      <Sidebar />
-      <Outlet />
+    <div className="flex w-screen h-screen bg-center text-[#72554a] p-4 bg-[#faefe5]">
+      <div className="rounded-3xl flex flex-1 gap-[2px] bg-[#faefe5] overflow-hidden">
+        <Sidebar />
+        <Outlet />
+      </div>
     </div>
   );
 };
-
+//rounded-2xl bg-red-300 border-2 border-black flex flex-1 gap-[2px]
 export default AppLayout;

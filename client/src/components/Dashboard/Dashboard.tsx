@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react";
-import { useGetApi } from "../hooks/useGetApi";
-import type { GigsResponse } from "../types/gig";
-import { Card } from "./Card";
-import { PageSelector } from "./PageSelector";
+import { useGetApi } from "../../hooks/useGetApi";
+import type { GigFilters, GigsResponse } from "../../types/gig";
+import { PageSelector } from "../PageSelector";
 import { SearchBar } from "./SearchBar";
-import { Spinner } from "./Spinner";
+import DashboardGigs from "./DashboardGigs";
 
 const Dashboard = () => {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<GigFilters>({
     category: '',
     search: '',
     page: 1,
@@ -40,28 +39,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="w-full h-full md:ml-[20vw] md:w-[80vw] flex flex-col items-center justify-between h-screen text-white">
+    <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full">
       <SearchBar placeholder="Search All Gigs" handleSearch={handleSearchChange} />
-      {loading ? <Spinner /> : (
-        <>
-          {error && (
-            <p className="text-sm text-rose-400">
-              {error}
-            </p>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 overflow-y-auto no-scrollbar flex-1">
-            {data?.gigs && data.gigs.length > 0 ? (
-              data.gigs.map(gig => <Card key={gig.id} {...gig} />)
-            ) : (
-              !error && (
-                <div className="col-span-full text-center text-gray-400">
-                  <p>No gigs found</p>
-                </div>
-              )
-            )}
-          </div>
-        </>
-      )}
+      <DashboardGigs gigs={data?.gigs} loading={loading} error={error} />
       <PageSelector 
         currentPage={ filters.page } 
         totalPages={ data?.totalPages ?? 1} 

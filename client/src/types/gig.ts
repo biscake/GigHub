@@ -17,3 +17,15 @@ export type GigsResponse = {
   gigs: Gig[];
   totalPages: number;
 }
+
+export type GigFilters = {
+  category: string;
+  search: string;
+  page: number;
+} 
+
+export type DashboardGigsProps = {
+  gigs: Gig[] | undefined;
+  loading: boolean;
+  error: string | null;
+}
