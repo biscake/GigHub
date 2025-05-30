@@ -8,20 +8,21 @@ generator client {
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
-  createdAt       DateTime         @default(now())
-  email           String           @unique
-  username        String           @unique
-  role            Role             @default(USER)
-  gigs            Gig[]
-  accounts        Account[]
-  RefreshToken    RefreshToken[]
-  ResetToken      ResetToken?
-  applications    GigApplication[]
-  profile         UserProfile?
-  userProfileId   Int?
-  givenReviews    Review[]         @relation("UserGivenReviews")
-  receivedReviews Review[]         @relation("UserReceivedReviews")
+  id               Int               @id @default(autoincrement())
+  createdAt        DateTime          @default(now())
+  email            String            @unique
+  username         String            @unique
+  role             Role              @default(USER)
+  gigs             Gig[]
+  accounts         Account[]
+  RefreshToken     RefreshToken[]
+  ResetToken       ResetToken?
+  applications     GigApplication[]
+  profile          UserProfile?
+  userProfileId    Int?
+  givenReviews     Review[]          @relation("UserGivenReviews")
+  receivedReviews  Review[]          @relation("UserReceivedReviews")
+  applicationStats ApplicationStats?
 }
 
 model Account {
@@ -83,6 +84,14 @@ model GigApplication {
   gigId     Int
   message   String?
 }
+
+  model ApplicationStats {
+    id       Int  @id @default(autoincrement())
+    sent     Int  @default(0)
+    received Int  @default(0)
+    userId   Int  @unique
+    user     User @relation(fields: [userId], references: [id])
+  }
 
 model RefreshToken {
   id        Int      @id @default(autoincrement())

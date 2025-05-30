@@ -1,10 +1,12 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase, rejectGigApplicationById } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getApplicationStatByUserId, getGigFromDatabaseById, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
+import { NotFoundError } from '../errors/not-found-error';
+import { BadRequestError } from '../errors/bad-request-error';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -107,14 +109,69 @@ export const postGigApplication = asyncHandler(async (req: Request, res: Respons
   res.status(201).json(responseBody);
 })
 
-export const getApplicationsByGigId = asyncHandler(async (req: Request, res: Response) => {
-  const gigApplications = req.gig.GigApplication;
+export const getUserSentApplications = asyncHandler(async (req: Request, res: Response) => {
+  const COUNT = 8;
+  const { id } = req.user;
+  const page = parseInt(req.query.page as string) || 1;
+
+  if (!page) {
+    throw new BadRequestError("Invalid page");
+  }
+
+  const applications = await getSentApplicationsByUserId({ userId: id, page, COUNT });
+  const stats = await getApplicationStatByUserId({ userId: id });
+
+  if (!stats) {
+    throw new NotFoundError("User's application stats not found");
+  }
+
+  const totalPages = stats.sent === 0 ? 1 : Math.ceil(stats.sent / COUNT);
 
   res.status(200).json({
     success: true,
     message: "Get gig applications successfully",
-    gigApplications
+    applications,
+    pageSize: COUNT,
+    totalPages,
+    page,
+    total: stats.sent
   });
+})
+
+export const getUserReceivedApplications = asyncHandler(async (req: Request, res: Response) => {
+  const COUNT = 8;
+  const { id } = req.user;
+  const page = parseInt(req.query.page as string) || 1;
+
+  const applications = await getReceivedApplicationsByUserId({ userId: id, page, COUNT });
+  const stats = await getApplicationStatByUserId({ userId: id });
+
+  if (!stats) {
+    throw new NotFoundError("User's application stats not found");
+  }
+
+  const totalPages = stats.received === 0 ? 1 : Math.ceil(stats.received / COUNT);
+
+  res.status(200).json({
+    success: true,
+    message: "Get gig applications successfully",
+    applications,
+    pageSize: COUNT,
+    totalPages,
+    page,
+    total: stats.received
+  });
+})
+
+export const getUserApplicationStats = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const stats = await getApplicationStatByUserId({ userId: id });
+
+  res.status(200).json({
+    success: true,
+    message: "Get applications stats successfully",
+    stats
+  })
 })
 
 export const acceptGigApplication = asyncHandler(async (req: Request, res: Response) => {
