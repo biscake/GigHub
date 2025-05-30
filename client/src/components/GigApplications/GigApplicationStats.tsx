@@ -6,12 +6,12 @@ const GigApplicationStats = ({ className = "" }: { className?: string; }) => {
   const { data } = useGetApi<ApplicationStatsResponse>('/api/gigs/applications/stats');
 
   return (
-    <div className={`flex flex-row w-full font-mono font-bold ${className}`}>
+    <div className={`flex flex-row justify-center sm:justify-start w-full gap-5 ${className}`}>
       <ApplicationCount count={data?.stats.received}>
-        Received Applications:
+        Incoming:
       </ApplicationCount>
       <ApplicationCount count={data?.stats.sent}>
-        Sent Applications:
+        Outgoing:
       </ApplicationCount>
     </div>
   )
@@ -19,7 +19,7 @@ const GigApplicationStats = ({ className = "" }: { className?: string; }) => {
 
 const ApplicationCount = ({ children, count }: { children: ReactNode; count?: number}) => {
   return (
-    <div className="w-1/2 flex justify-center items-center text-white text-[1.5rem]">
+    <div className="flex justify-center items-center text-md sm:text-xl">
       {children}
       <span>&nbsp;{count ?? "--"}</span>
     </div>

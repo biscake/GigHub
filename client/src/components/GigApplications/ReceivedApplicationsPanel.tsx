@@ -1,12 +1,199 @@
-import { TabPanel } from "@headlessui/react";
+import { TabPanel, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
+import { useGetApi } from "../../hooks/useGetApi";
+import type { ApplicationListItemProps, GigApplication, SentApplicationResponse } from "../../types/application";
+import { Spinner } from "../Spinner";
+import type { User } from "../../types/auth";
+import { timeAgo } from "../../utils/timeAgo";
+import ApplicationListButton from "./ApplicationListButton";
+import ApplicationListContent from "./ApplicationListContent";
+import { Link } from "react-router-dom";
+import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
+import ApplicationPanel from "./ApplicationPanel";
+
+// model GigApplication {
+//   id        Int      @id @default(autoincrement())
+//   createdAt DateTime @default(now())
+//   userId    Int
+//   user      User     @relation(fields: [userId], references: [id])
+//   status    Status   @default(PENDING)
+//   gig       Gig      @relation(fields: [gigId], references: [id], onDelete: Cascade)
+//   gigId     Int
+//   message   String?
+// }
+
+const user: User[] = [
+  { username: "user1", id: 1 },
+  { username: "user2", id: 2 },
+  { username: "user3", id: 3 }
+]
+
+const Applications: SentApplicationResponse = {
+  applications: [
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 1,
+        imgUrl: "test.com",
+        title: "Gig 1 Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1Gig 1",
+        price: 148.00,
+        description: "Description for gig 1",
+        author: user[1],
+        category: "",
+      },
+      message: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi, autem, minus vero, ipsum voluptatem quae ducimus ratione nemo amet reprehenderit culpa nesciunt nobis explicabo corrupti illo fugit animi alias expedita."
+    },
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 2,
+        imgUrl: "testasdf.com",
+        title: "Gig 2",
+        price: 18.00,
+        description: "Description for gig 2",
+        author: user[2],
+        category: "",
+      },
+      message: "Message from user 1 to 3"
+    },
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 1,
+        imgUrl: "test.com",
+        title: "Gig 1",
+        price: 148.00,
+        description: "Description for gig 1",
+        author: user[1],
+        category: "",
+      },
+      message: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi, autem, minus vero, ipsum voluptatem quae ducimus ratione nemo amet reprehenderit culpa nesciunt nobis explicabo corrupti illo fugit animi alias expedita."
+    },
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 1,
+        imgUrl: "test.com",
+        title: "Gig 1",
+        price: 148.00,
+        description: "Description for gig 1",
+        author: user[1],
+        category: "",
+      },
+      message: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi, autem, minus vero, ipsum voluptatem quae ducimus ratione nemo amet reprehenderit culpa nesciunt nobis explicabo corrupti illo fugit animi alias expedita."
+    },
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 1,
+        imgUrl: "test.com",
+        title: "Gig 1",
+        price: 148.00,
+        description: "Description for gig 1",
+        author: user[1],
+        category: "",
+      },
+      message: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi, autem, minus vero, ipsum voluptatem quae ducimus ratione nemo amet reprehenderit culpa nesciunt nobis explicabo corrupti illo fugit animi alias expedita."
+    },
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 1,
+        imgUrl: "test.com",
+        title: "Gig 1",
+        price: 148.00,
+        description: "Description for gig 1",
+        author: user[1],
+        category: "",
+      },
+      message: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi, autem, minus vero, ipsum voluptatem quae ducimus ratione nemo amet reprehenderit culpa nesciunt nobis explicabo corrupti illo fugit animi alias expedita."
+    },
+    {
+      id: 1,
+      createdAt: new Date(),
+      user: user[0],
+      status: "PENDING",
+      gig: {
+        id: 1,
+        imgUrl: "test.com",
+        title: "Gig 1",
+        price: 148.00,
+        description: "Description for gig 1",
+        author: user[1],
+        category: "",
+      },
+      message: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi, autem, minus vero, ipsum voluptatem quae ducimus ratione nemo amet reprehenderit culpa nesciunt nobis explicabo corrupti illo fugit animi alias expedita."
+    },
+
+  ]
+}
 
 const ReceivedApplicationsPanel = () => {
-  //api call to get all of user's posted gig, then for each posted gig, use a disclosure to list applications
+  // const { data, loading, error } = useGetApi<SentApplicationResponse>('/api/gigs/applications/sent');
+
+  const error = undefined, loading = undefined;
+  const data = Applications;
+
+  if (error) {
+    return (
+      <p className="text-s text-rose-400 self-center my-auto">
+        {error}
+      </p>
+    )
+  }
+
+  if (loading) {
+    return <Spinner />
+  }
 
   return (
-    <TabPanel>
+    <ApplicationPanel title="Received">
+      {data && data?.applications.length > 0
+        ? data.applications.map((app, i) => <ApplicationListItem key={i} application={app} />)
+        : <span>No Applications Found</span>
+      }
+    </ApplicationPanel>
+  )
+}
 
-    </TabPanel>
+const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, key }) => {
+  return (
+    <li key={key}>
+      <ApplicationDisclosureContainer title={application.gig.title}>
+        <ApplicationListContent title="Message">
+              {application.message}
+        </ApplicationListContent>
+        <ApplicationListContent title="Applicant">
+          <Link to={`/${application.user.username}`}>
+            {application.user.username}
+          </Link>
+        </ApplicationListContent>
+        <span>Applied {timeAgo(application.createdAt)}</span>
+        <div className="flex items-center">
+          <div className="ml-auto flex gap-3">
+            <ApplicationListButton className="bg-[#dac8c0]">Decline</ApplicationListButton>
+            <ApplicationListButton className="bg-[#b38b82]">Accept</ApplicationListButton>
+          </div>
+        </div>
+      </ApplicationDisclosureContainer>
+    </li>
   )
 }
 

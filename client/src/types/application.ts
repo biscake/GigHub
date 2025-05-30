@@ -27,5 +27,5 @@ export type ApplicationListItemProps = {
 }
 
 export type SentApplicationResponse = {
-  application: GigApplication[];
+  applications: GigApplication[];
 }

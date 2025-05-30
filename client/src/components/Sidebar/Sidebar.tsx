@@ -24,9 +24,11 @@ const Sidebar = () => {
           <SidebarNavLink to="/">
             Home
           </SidebarNavLink>
-          <SidebarNavLink to="applications">
-            Applications
-          </SidebarNavLink>
+          {user &&
+            <SidebarNavLink to="applications">
+              Applications
+            </SidebarNavLink>
+          }
           <div className="text-2xl">
             Search (TODO)
           </div>
@@ -39,7 +41,7 @@ const Sidebar = () => {
               Create Gig
             </Button>
           }
-          <CreateGigFormModal isCreateGigModalOpen={isCreateGigModalOpen} setIsCreateGigModalOpen={setIsCreateGigModalOpen} />
+          {user && <CreateGigFormModal isCreateGigModalOpen={isCreateGigModalOpen} setIsCreateGigModalOpen={setIsCreateGigModalOpen} />}
         </div>
         {user ? (
           <div className="space-x-4 flex flex-col gap-5 items-start">
