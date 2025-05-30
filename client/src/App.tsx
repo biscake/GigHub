@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import Dashboard from "./components/Dashboard";
+import Dashboard from "./components/Dashboard/Dashboard";
 import LoginForm from "./components/forms/LoginForm";
 import ResetPasswordForm from "./components/forms/ResetPasswordForm";
 import ResetRequestForm from "./components/forms/ResetRequestForm";
