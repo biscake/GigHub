@@ -21,8 +21,12 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
             passwordHash: pwHash,
           },
         },
-        profile: {},
-        applicationStats: {},
+        profile: {
+          create: {}
+        },
+        applicationStats: {
+          create: {}
+        },
       },
       include: {
         profile: true,
