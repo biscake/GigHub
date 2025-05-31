@@ -7,10 +7,10 @@ const GigApplicationStats = ({ className = "" }: { className?: string; }) => {
 
   return (
     <div className={`flex flex-row justify-center sm:justify-start w-full gap-5 ${className}`}>
-      <ApplicationCount count={data?.stats.received}>
+      <ApplicationCount count={data?.stats?.received}>
         Incoming:
       </ApplicationCount>
-      <ApplicationCount count={data?.stats.sent}>
+      <ApplicationCount count={data?.stats?.sent}>
         Outgoing:
       </ApplicationCount>
     </div>
