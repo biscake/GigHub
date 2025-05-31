@@ -6,7 +6,7 @@ import ResetRequestForm from "./components/forms/ResetRequestForm";
 import SignupForm from "./components/forms/SignupForm";
 import AccountsLayout from "./layouts/AccountsLayout";
 import AppLayout from "./layouts/AppLayout";
-import { UserProfile } from "./components/User/UserProfile";
+import UserProfile from "./components/User/UserProfile";
 import "./styles/App.css";
 
 const App = () => {
