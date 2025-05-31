@@ -122,7 +122,7 @@ export const getUserSentApplications = asyncHandler(async (req: Request, res: Re
   const stats = await getApplicationStatByUserId({ userId: id });
 
   if (!stats) {
-    throw new NotFoundError("User's application stats not found");
+    throw new NotFoundError("User's application stats");
   }
 
   const totalPages = stats.sent === 0 ? 1 : Math.ceil(stats.sent / COUNT);
@@ -147,7 +147,7 @@ export const getUserReceivedApplications = asyncHandler(async (req: Request, res
   const stats = await getApplicationStatByUserId({ userId: id });
 
   if (!stats) {
-    throw new NotFoundError("User's application stats not found");
+    throw new NotFoundError("User's application stats");
   }
 
   const totalPages = stats.received === 0 ? 1 : Math.ceil(stats.received / COUNT);
