@@ -35,6 +35,14 @@
     width: 0;
     height: 0;
   }
+
+  .bg-main {
+    background: #fef8f2;
+  }
+
+  .border-main {
+    border-color: #ebe0d5;
+  }
 }
 
 @utility link-hover {

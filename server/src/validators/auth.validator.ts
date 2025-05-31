@@ -1,7 +1,7 @@
 import { body } from 'express-validator';
-import { ConflictError } from '../errors/conflict-error';
-import ValidationError from '../errors/validation-error';
+import { ServiceError } from '../errors/service-error';
 import { prisma } from '../lib/prisma';
+import { ConflictError } from '../errors/conflict-error';
 
 export const validateFormPassword = [
   body('password')
@@ -37,13 +37,21 @@ export const validateFormDuplicates = [
     .isLength({ min: 4 })
     .withMessage('Username must be at least 4 characters')
     .custom(async (value: string) => {
-      const user = await prisma.user.findUnique({
-        where: {
-          username: value,
-        },
-      });
+      try {
+        const user = await prisma.user.findUnique({
+          where: {
+            username: value,
+          },
+        });
 
-      if (user) throw new Error('Username is already taken');
+        if (user) throw new ConflictError('Username is already taken');
+      } catch (err) {
+        if (err instanceof ConflictError) {
+          throw err;
+        }
+
+        throw new ServiceError("Prisma", "Failed to query user in database");
+      }
     })
     .escape(),
 
@@ -55,13 +63,21 @@ export const validateFormDuplicates = [
     .matches(/^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/)
     .withMessage('Invalid email format')
     .custom(async (value: string) => {
-      const user = await prisma.user.findUnique({
-        where: {
-          email: value,
-        },
-      });
+      try {
+        const user = await prisma.user.findUnique({
+          where: {
+            email: value,
+          },
+        });
 
-      if (user) throw new Error('Email is already in use');
+        if (user) throw new ConflictError('Email is already in use');
+      } catch (err) {
+        if (err instanceof ConflictError) {
+          throw err;
+        }
+
+        throw new ServiceError("Prisma", "Failed to query user in database");
+      }
     })
     .escape(),
 ];

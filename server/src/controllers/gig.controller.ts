@@ -1,7 +1,8 @@
 import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteGigFromDatabase, getGigFromDatabaseById, getGigsFromDatabase, rejectGigApplicationById } from '../services/gig.service';
+import { BadRequestError } from '../errors/bad-request-error';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getApplicationStatByUserId, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
@@ -107,18 +108,105 @@ export const postGigApplication = asyncHandler(async (req: Request, res: Respons
   res.status(201).json(responseBody);
 })
 
-export const getApplicationsByGigId = asyncHandler(async (req: Request, res: Response) => {
-  const gigApplications = req.gig.GigApplication;
+export const getUserSentApplications = asyncHandler(async (req: Request, res: Response) => {
+  const COUNT = 8;
+  const { id } = req.user;
+  const page = parseInt(req.query.page as string) || 1;
+
+  if (!page) {
+    throw new BadRequestError("Invalid page");
+  }
+
+  const applications = await getSentApplicationsByUserId({ userId: id, page, COUNT });
+  const sanitizedApplications = applications.map(({ user, gig, ...rest }) => ({
+    ...rest,
+    user: {
+      username: user.username
+    },
+    gig: {
+      ...gig,
+      author: { username: gig.author.username }
+    }
+  }));
+
+  const responseBody = {
+    success: true,
+    message: "Get gig applications successfully",
+    applications: sanitizedApplications,
+    pageSize: COUNT,
+    page,
+    totalPages: 1,
+    total: 0
+  }
+
+  if (applications.length > 0) {
+    const stats = applications[0].user.applicationStats;
+
+    const totalPages = stats?.sent === 0 || !stats
+      ? 1
+      : Math.ceil((stats.sent ?? 1) / COUNT);
+    
+    responseBody.totalPages = totalPages;
+    responseBody.total = stats?.sent ?? 0;
+  }
+
+  res.status(200).json(responseBody);
+})
+
+export const getUserReceivedApplications = asyncHandler(async (req: Request, res: Response) => {
+  const COUNT = 8;
+  const { id } = req.user;
+  const page = parseInt(req.query.page as string) || 1;
+
+  const applications = await getReceivedApplicationsByUserId({ userId: id, page, COUNT });
+  const sanitizedApplications = applications.map(({ user, gig, ...rest }) => ({
+    ...rest,
+    user: {
+      username: user.username
+    },
+    gig: {
+      ...gig,
+      author: { username: gig.author.username }
+    }
+  }));
+
+  const responseBody = {
+    success: true,
+    message: "Get gig applications successfully",
+    applications: sanitizedApplications,
+    pageSize: COUNT,
+    page,
+    totalPages: 1,
+    total: 0
+  }
+
+  if (applications.length > 0) {
+    const stats = applications[0].user.applicationStats;
+
+    const totalPages = stats?.received === 0 || !stats
+      ? 1
+      : Math.ceil((stats.received ?? 1) / COUNT);
+    
+    responseBody.totalPages = totalPages;
+    responseBody.total = stats?.received ?? 0;
+  }
+  
+  res.status(200).json(responseBody);
+})
+
+export const getUserApplicationStats = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const stats = await getApplicationStatByUserId({ userId: id });
 
   res.status(200).json({
     success: true,
-    message: "Get gig applications successfully",
-    gigApplications
-  });
+    message: "Get applications stats successfully",
+    stats
+  })
 })
 
 export const acceptGigApplication = asyncHandler(async (req: Request, res: Response) => {
-  const applicationId = req.applicationId;
+  const applicationId = req.application.id;
   const idempotencyKey = req.idempotencyKey;
 
   await acceptGigApplicationById({ applicationId });
@@ -134,7 +222,7 @@ export const acceptGigApplication = asyncHandler(async (req: Request, res: Respo
 })
 
 export const rejectGigApplication = asyncHandler(async (req: Request, res: Response) => {
-  const applicationId = req.applicationId;
+  const applicationId = req.application.id;
   const idempotencyKey = req.idempotencyKey;
 
   await rejectGigApplicationById({ applicationId });
@@ -148,3 +236,19 @@ export const rejectGigApplication = asyncHandler(async (req: Request, res: Respo
 
   res.status(200).json(responseBody);
 });
+
+export const deleteApplication = asyncHandler(async (req: Request, res: Response) => {
+  const application = req.application;
+  const idempotencyKey = req.idempotencyKey;
+
+  await deleteApplicationByApplicationId({ applicationId: application.id });
+
+  const responseBody = {
+    success: true,
+    message: "Gig successfully deleted"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
+})

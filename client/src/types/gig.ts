@@ -1,12 +1,14 @@
+import type { User } from "./auth";
+
 export type Gig = {
   id: number;
   imgUrl: string;
   title: string;
   price: number;
   description: string;
-  author: string;
+  author: User;
   category: string | undefined;
-  totalPages: number;
+  totalPages?: number;
 }
 
 export type GigImageProp = {
