@@ -38,3 +38,7 @@ export type GigModalProp = {
 export type ApplyGigFormData = {
   message?: string;
 }
+
+export type GigCardProp = Gig & {
+  onClick: () => void;
+}
