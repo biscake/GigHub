@@ -3,7 +3,7 @@ import { useGetApi } from "../../hooks/useGetApi";
 import type { UserProfileResponse } from "../../types/profile";
 import { Spinner } from "../Spinner";
 
-export const UserProfile = () => {
+const UserProfile = () => {
   const username = useParams().username;
 
   const { data, error, loading } = useGetApi<UserProfileResponse>(`/api/users/${username}/profile`);
@@ -29,3 +29,5 @@ export const UserProfile = () => {
     </div>
   )
 }
+
+export default UserProfile;
