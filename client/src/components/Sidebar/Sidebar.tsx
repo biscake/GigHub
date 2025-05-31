@@ -45,7 +45,9 @@ const Sidebar = () => {
         </div>
         {user ? (
           <div className="space-x-4 flex flex-col gap-5 items-start">
-            <p className="text-2xl">{user.username}</p>
+            <SidebarNavLink to={`/${user.username}/profile`}>
+              {user.username}
+            </SidebarNavLink>
             <button onClick={logout} className="text-2xl hover:link-hover">Log out</button>
           </div>
         ) : (
