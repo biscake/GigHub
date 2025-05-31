@@ -7,6 +7,7 @@ import SignupForm from "./components/forms/SignupForm";
 import AccountsLayout from "./layouts/AccountsLayout";
 import AppLayout from "./layouts/AppLayout";
 import UserProfile from "./components/User/UserProfile";
+import GigApplicationPage from "./pages/GigApplicationPage";
 import "./styles/App.css";
 
 const App = () => {
@@ -14,6 +15,7 @@ const App = () => {
     <Routes>
       <Route path='/' element={<AppLayout />}>
         <Route index element={<Dashboard />} />
+        <Route path='applications' element={<GigApplicationPage />} />
       </Route>
 
       <Route path="accounts" element={<AccountsLayout />}>

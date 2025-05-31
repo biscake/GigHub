@@ -21,7 +21,17 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
             passwordHash: pwHash,
           },
         },
+        profile: {
+          create: {}
+        },
+        applicationStats: {
+          create: {}
+        },
       },
+      include: {
+        profile: true,
+        applicationStats: true
+      }
     });
 
     const accessToken = issueAccessToken(user);

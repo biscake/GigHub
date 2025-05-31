@@ -1,16 +1,18 @@
+import type { User } from "./auth";
+
 export type Gig = {
   id: number;
   imgUrl: string;
   title: string;
   price: number;
   description: string;
-  author: string;
+  author: User;
   category: string | undefined;
-  totalPages: number;
+  totalPages?: number;
 }
 
 export type GigImageProp = {
-  imgUrl: string;
+  imgUrl: string | undefined;
 }
 
 export type GigsResponse = {
@@ -28,4 +30,24 @@ export type DashboardGigsProps = {
   gigs: Gig[] | undefined;
   loading: boolean;
   error: string | null;
+  onClick: (x: Gig) => void;
+}
+
+export type GigModalProp = {
+  gig: Gig | null;
+  setSelectedGig: React.Dispatch<React.SetStateAction<Gig | null>>;
+}
+
+export type ApplyGigModalProp = {
+  gig: Gig | null;
+  applyModal: boolean;
+  setApplyModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export type ApplyGigFormData = {
+  message?: string;
+}
+
+export type GigCardProp = Gig & {
+  onClick: () => void;
 }
