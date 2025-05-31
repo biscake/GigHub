@@ -10,7 +10,7 @@ export type Gig = {
 }
 
 export type GigImageProp = {
-  imgUrl: string;
+  imgUrl: string | undefined;
 }
 
 export type GigsResponse = {
@@ -28,4 +28,18 @@ export type DashboardGigsProps = {
   gigs: Gig[] | undefined;
   loading: boolean;
   error: string | null;
+  onClick: (x: Gig) => void;
+}
+
+export type GigModalProp = {
+  gig: Gig | null;
+  setSelectedGig: React.Dispatch<React.SetStateAction<Gig | null>>;
+}
+
+export type ApplyGigFormData = {
+  message?: string;
+}
+
+export type GigCardProp = Gig & {
+  onClick: () => void;
 }
