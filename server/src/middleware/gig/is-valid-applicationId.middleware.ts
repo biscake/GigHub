@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 import { BadRequestError } from "../../errors/bad-request-error";
+import { getApplicationByApplicationId } from "../../services/gig.service";
+import { NotFoundError } from "../../errors/not-found-error";
 
 export const isValidApplicationId = asyncHandler(async (
   req: Request,
@@ -13,7 +15,13 @@ export const isValidApplicationId = asyncHandler(async (
     throw new BadRequestError("Invalid application ID");
   }
 
-  req.applicationId = applicationId;
+  const application = await getApplicationByApplicationId({ applicationId })
+
+  if (!application) {
+    throw new NotFoundError("Application not found");
+  }
+
+  req.application = application;
 
   next();
 })

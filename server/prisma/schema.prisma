@@ -85,13 +85,13 @@ model GigApplication {
   message   String?
 }
 
-  model ApplicationStats {
-    id       Int  @id @default(autoincrement())
-    sent     Int  @default(0)
-    received Int  @default(0)
-    userId   Int  @unique
-    user     User @relation(fields: [userId], references: [id])
-  }
+model ApplicationStats {
+  id       Int  @id @default(autoincrement())
+  sent     Int  @default(0)
+  received Int  @default(0)
+  userId   Int  @unique
+  user     User @relation(fields: [userId], references: [id])
+}
 
 model RefreshToken {
   id        Int      @id @default(autoincrement())

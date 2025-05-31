@@ -164,6 +164,11 @@ export const getSentApplicationsByUserId = async ({ userId, page = 1, COUNT }: {
           include: {
             applicationStats: true
           }
+        },
+        gig: {
+          include: {
+            author: true
+          }
         }
       }
     })
@@ -192,6 +197,11 @@ export const getReceivedApplicationsByUserId = async ({ userId, page = 1, COUNT 
           include: {
             applicationStats: true
           }
+        },
+        gig: {
+          include: {
+            author: true,
+          }
         }
       }
     })
@@ -201,6 +211,20 @@ export const getReceivedApplicationsByUserId = async ({ userId, page = 1, COUNT 
     throw new ServiceError("Prisma", "Failed to get user's received applications from database");
   }
 }
+
+export const getApplicationByApplicationId = async ({ applicationId }: { applicationId: number }) => {
+  try {
+    const result = await prisma.gigApplication.findUnique({
+      where: {
+        id: applicationId
+      }
+    })
+
+    return result;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to get gig application from database");
+  }
+} 
 
 export const getApplicationStatByUserId = async ({ userId }: { userId: number; }) => {
   try {
@@ -213,5 +237,17 @@ export const getApplicationStatByUserId = async ({ userId }: { userId: number; }
     return result;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to get user's application stats from database");
+  }
+}
+
+export const deleteApplicationByApplicationId = async ({ applicationId }: { applicationId: number; }) => {
+  try {
+    await prisma.gigApplication.delete({
+      where: {
+        id: applicationId
+      }
+    })
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to delete application from database");
   }
 }
