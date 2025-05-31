@@ -158,7 +158,14 @@ export const getSentApplicationsByUserId = async ({ userId, page = 1, COUNT }: {
       orderBy: {
         createdAt: 'desc'
       },
-      skip: (page - 1) * COUNT
+      skip: (page - 1) * COUNT,
+      include: {
+        user: {
+          include: {
+            applicationStats: true
+          }
+        }
+      }
     })
 
     return result;
@@ -179,7 +186,14 @@ export const getReceivedApplicationsByUserId = async ({ userId, page = 1, COUNT 
       orderBy: {
         createdAt: 'desc'
       },
-      skip: (page - 1) * COUNT
+      skip: (page - 1) * COUNT,
+      include: {
+        user: {
+          include: {
+            applicationStats: true
+          }
+        }
+      }
     })
 
     return result;

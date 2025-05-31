@@ -119,23 +119,29 @@ export const getUserSentApplications = asyncHandler(async (req: Request, res: Re
   }
 
   const applications = await getSentApplicationsByUserId({ userId: id, page, COUNT });
-  const stats = await getApplicationStatByUserId({ userId: id });
 
-  if (!stats) {
-    throw new NotFoundError("User's application stats");
-  }
-
-  const totalPages = stats.sent === 0 ? 1 : Math.ceil(stats.sent / COUNT);
-
-  res.status(200).json({
+  const responseBody = {
     success: true,
     message: "Get gig applications successfully",
     applications,
     pageSize: COUNT,
-    totalPages,
     page,
-    total: stats.sent
-  });
+    totalPages: 1,
+    total: 0
+  }
+
+  if (applications.length > 0) {
+    const stats = applications[0].user.applicationStats;
+
+    const totalPages = stats?.sent === 0 || !stats
+      ? 1
+      : Math.ceil((stats.sent ?? 1) / COUNT);
+    
+    responseBody.totalPages = totalPages;
+    responseBody.total = stats?.sent ?? 0;
+  }
+
+  res.status(200).json(responseBody);
 })
 
 export const getUserReceivedApplications = asyncHandler(async (req: Request, res: Response) => {
@@ -144,23 +150,29 @@ export const getUserReceivedApplications = asyncHandler(async (req: Request, res
   const page = parseInt(req.query.page as string) || 1;
 
   const applications = await getReceivedApplicationsByUserId({ userId: id, page, COUNT });
-  const stats = await getApplicationStatByUserId({ userId: id });
 
-  if (!stats) {
-    throw new NotFoundError("User's application stats");
-  }
-
-  const totalPages = stats.received === 0 ? 1 : Math.ceil(stats.received / COUNT);
-
-  res.status(200).json({
+  const responseBody = {
     success: true,
     message: "Get gig applications successfully",
     applications,
     pageSize: COUNT,
-    totalPages,
     page,
-    total: stats.received
-  });
+    totalPages: 1,
+    total: 0
+  }
+
+  if (applications.length > 0) {
+    const stats = applications[0].user.applicationStats;
+
+    const totalPages = stats?.received === 0 || !stats
+      ? 1
+      : Math.ceil((stats.received ?? 1) / COUNT);
+    
+    responseBody.totalPages = totalPages;
+    responseBody.total = stats?.received ?? 0;
+  }
+
+  res.status(200).json(responseBody);
 })
 
 export const getUserApplicationStats = asyncHandler(async (req: Request, res: Response) => {
