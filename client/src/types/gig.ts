@@ -38,6 +38,12 @@ export type GigModalProp = {
   setSelectedGig: React.Dispatch<React.SetStateAction<Gig | null>>;
 }
 
+export type ApplyGigModalProp = {
+  gig: Gig | null;
+  applyModal: boolean;
+  setApplyModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 export type ApplyGigFormData = {
   message?: string;
 }
