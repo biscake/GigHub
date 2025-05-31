@@ -19,7 +19,6 @@ model User {
   ResetToken      ResetToken?
   applications    GigApplication[]
   profile         UserProfile?
-  userProfileId   Int?
   givenReviews    Review[]         @relation("UserGivenReviews")
   receivedReviews Review[]         @relation("UserReceivedReviews")
 }
