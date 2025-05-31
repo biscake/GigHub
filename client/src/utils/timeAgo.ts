@@ -1,6 +1,10 @@
 export const timeAgo = (date: Date): string => {
+  const offSetMs = new Date().getTimezoneOffset() * 1000 * 60;
+
   const now = new Date();
-  const diffMs = now.getTime() - (new Date(date)).getTime();
+  const to = new Date(new Date(date).getTime() + offSetMs);
+
+  const diffMs = now.getTime() - to.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);

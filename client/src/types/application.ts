@@ -1,3 +1,4 @@
+import type { ReactNode, SetStateAction } from "react";
 import type { User } from "./auth";
 import type { Gig } from "./gig";
 
@@ -24,6 +25,7 @@ type Status = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
 export type ApplicationListItemProps = {
   application: GigApplication;
   key: number;
+  refetch: () => Promise<void>;
 }
 
 export type GetApplicationResponse = {
@@ -32,4 +34,27 @@ export type GetApplicationResponse = {
   page: number;
   totalPages: number;
   total: number;
+}
+
+export type ApplicationPanelProps = {
+  children: ReactNode;
+  title: string;
+  loading: boolean;
+  error: string | null;
+}
+
+export type AppTabProps = {
+  children: ReactNode;
+  className?: string;
+  setPage: React.Dispatch<SetStateAction<number>>;
+}
+
+export type ReceivedApplicationsPanelProps = {
+  page: number;
+  setTotalPages: React.Dispatch<SetStateAction<number>>;
+}
+
+export type SentApplicationsPanelProps = {
+  page: number;
+  setTotalPages: React.Dispatch<SetStateAction<number>>;
 }

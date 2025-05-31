@@ -1,31 +1,43 @@
+import { memo, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useGetApi } from "../../hooks/useGetApi";
-import type { ApplicationListItemProps, GetApplicationResponse } from "../../types/application";
+import type { ApplicationListItemProps, GetApplicationResponse, ReceivedApplicationsPanelProps } from "../../types/application";
 import { timeAgo } from "../../utils/timeAgo";
 import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationListButton from "./ApplicationListButton";
 import ApplicationListContent from "./ApplicationListContent";
 import ApplicationPanel from "./ApplicationPanel";
 
-const ReceivedApplicationsPanel = () => {
-  const { data, loading, error } = useGetApi<GetApplicationResponse>('/api/gigs/applications/received');
+const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
+  const opts = useMemo(() => ({
+    params: {
+      page
+    }
+  }), [page]);
+
+  const { data, loading, error } = useGetApi<GetApplicationResponse>('/api/gigs/applications/received', opts);
+
+  useEffect(() => {
+    if (!data) return;
+    setTotalPages(data.totalPages);
+  }, [setTotalPages, data]);
 
   return (
     <ApplicationPanel title="Received" error={error} loading={loading}>
-      {data && data?.applications.length > 0
+      {data && data.applications && data.applications.length > 0
         ? data.applications.map((app, i) => <ApplicationListItem key={i} application={app} />)
         : <span>No Applications Found</span>
       }
     </ApplicationPanel>
   )
-}
+})
 
-const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, key }) => {
+const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application }) => {
   return (
-    <li key={key}>
+    <li>
       <ApplicationDisclosureContainer title={application.gig.title}>
         <ApplicationListContent title="Message">
-              {application.message}
+          {application.message}
         </ApplicationListContent>
         <ApplicationListContent title="Applicant">
           <Link to={`/${application.user.username}`}>
