@@ -28,6 +28,7 @@ export type DashboardGigsProps = {
   gigs: Gig[] | undefined;
   loading: boolean;
   error: string | null;
+  onClick: (x: Gig) => void;
 }
 
 export type GigModalProp = {
