@@ -8,7 +8,7 @@ import api from '../../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import type { CreateGigFormInputs } from '../../types/form';
 import type { ApplyGigFormData, GigModalProp } from '../../types/gig';
-import { GigImage } from '../GigCard/GigImage';
+import { GigImage } from '../GigImage';
 
 const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig }) => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
