@@ -1,5 +1,5 @@
 import { useGetApi } from "../../hooks/useGetApi";
-import type { ApplicationListItemProps, SentApplicationResponse } from "../../types/application";
+import type { ApplicationListItemProps, GetApplicationResponse } from "../../types/application";
 import { timeAgo } from "../../utils/timeAgo";
 import ApplicationListButton from "./ApplicationListButton";
 import ApplicationListContent from "./ApplicationListContent";
@@ -7,7 +7,7 @@ import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationPanel from "./ApplicationPanel";
 
 const SentApplicationsPanel = () => {
-  const { data, loading, error } = useGetApi<SentApplicationResponse>('/api/gigs/applications/sent');
+  const { data, loading, error } = useGetApi<GetApplicationResponse>('/api/gigs/applications/sent');
 
   return (
     <ApplicationPanel title="Sent" error={error} loading={loading}>

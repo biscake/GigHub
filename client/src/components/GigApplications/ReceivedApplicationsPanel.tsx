@@ -1,14 +1,14 @@
+import { Link } from "react-router-dom";
 import { useGetApi } from "../../hooks/useGetApi";
-import type { ApplicationListItemProps, SentApplicationResponse } from "../../types/application";
+import type { ApplicationListItemProps, GetApplicationResponse } from "../../types/application";
 import { timeAgo } from "../../utils/timeAgo";
+import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationListButton from "./ApplicationListButton";
 import ApplicationListContent from "./ApplicationListContent";
-import { Link } from "react-router-dom";
-import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationPanel from "./ApplicationPanel";
 
 const ReceivedApplicationsPanel = () => {
-  const { data, loading, error } = useGetApi<SentApplicationResponse>('/api/gigs/applications/received');
+  const { data, loading, error } = useGetApi<GetApplicationResponse>('/api/gigs/applications/received');
 
   return (
     <ApplicationPanel title="Received" error={error} loading={loading}>

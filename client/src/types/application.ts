@@ -26,6 +26,10 @@ export type ApplicationListItemProps = {
   key: number;
 }
 
-export type SentApplicationResponse = {
+export type GetApplicationResponse = {
   applications: GigApplication[];
+  pageSize: number;
+  page: number;
+  totalPages: number;
+  total: number;
 }
