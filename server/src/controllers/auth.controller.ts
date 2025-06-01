@@ -24,7 +24,7 @@ export const registerUser = asyncHandler(
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       secure: true,
       maxAge: TWO_WEEKS_MS
     });
@@ -41,7 +41,7 @@ export const loginUserCredentials = asyncHandler(
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       secure: true,
       ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
@@ -77,7 +77,7 @@ export const refreshToken = asyncHandler(
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       secure: true,
       ...(rememberMe ? { maxAge: TWO_WEEKS_MS } : {})
     });
