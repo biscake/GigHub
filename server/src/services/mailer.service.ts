@@ -50,8 +50,8 @@ export const resetRequest = async ({ email }: resetRequestInput) => {
       html: `
         <p>You requested a password reset.</p>
         <p>Click the link below to reset your password. This link will expire in 15 minutes.</p>
-        <a href="${process.env.FRONTEND_URL}/reset-password?token=${resetToken}">
-          ${process.env.FRONTEND_URL}/reset-password?token=${resetToken}
+        <a href="${process.env.FRONTEND_URL}/account/reset-password?token=${resetToken}">
+          ${process.env.FRONTEND_URL}/account/reset-password?token=${resetToken}
         </a>
       `
     });

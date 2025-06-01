@@ -18,7 +18,7 @@ const ResetPasswordForm = () => {
 
   const submitCredential: SubmitHandler<ResetPasswordFormInputs> = async (data) => {
     try {
-      await api.post('/api/reset-password', { ...data, resetToken }, { headers: { 'Content-Type': 'application/json' } });
+      await api.post('/api/auth/reset-password', { ...data, resetToken }, { headers: { 'Content-Type': 'application/json' } });
 
       navigate('/login');
     } catch (err) {
