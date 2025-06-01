@@ -1,8 +1,6 @@
 export const timeAgo = (date: Date): string => {
-  const offSetMs = new Date().getTimezoneOffset() * 1000 * 60;
-
   const now = new Date();
-  const to = new Date(new Date(date).getTime() + offSetMs);
+  const to = new Date(date);
 
   const diffMs = now.getTime() - to.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
