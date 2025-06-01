@@ -30,10 +30,11 @@ router.post('/refreshtoken', idempotencyKey, refreshToken);
 
 router.post('/logout', logoutUser);
 
-router.post('/request-reset', sendResetToken);
+router.post('/request-reset', idempotencyKey, sendResetToken);
 
 router.post(
   '/reset-password',
+  idempotencyKey,
   validateFormPassword,
   validateRequest,
   hashPassword,

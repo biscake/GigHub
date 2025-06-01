@@ -6,16 +6,28 @@ import api from '../../lib/api';
 import type { ApiErrorResponse } from '../../types/api';
 import { type ResetRequestFormInputs } from '../../types/form';
 import { FormInput } from './FormInput';
+import { v4 as uuidv4 } from 'uuid';
 
 const ResetRequestForm = () => {
   const [apiErr, setApiErr] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
 
   const methods = useForm<ResetRequestFormInputs>();
 
   const submitCredential: SubmitHandler<ResetRequestFormInputs> = async (data) => {
     try {
-      await api.post('/api/auth/request-reset', data, { headers: { 'Content-Type': 'application/json' } });
+      const key = idempotencyKey ?? uuidv4();
+      if (!idempotencyKey) {
+        setIdempotencyKey(key);
+      }
+
+      await api.post('/api/auth/request-reset', data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': key
+        }
+      });
 
       setSuccess(true);
     } catch (err) {
