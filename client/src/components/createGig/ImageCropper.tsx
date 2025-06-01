@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Area, Point } from "react-easy-crop";
 import Cropper from "react-easy-crop";
-import type { ImageCropperProps } from "../types/imageCropper";
+import type { ImageCropperProps } from "../../types/imageCropper";
 
 const ImageCropper: React.FC<ImageCropperProps> = ({ image, setCroppedImagePixels }) => {
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });

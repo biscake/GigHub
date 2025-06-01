@@ -15,7 +15,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
     }
   }), [page]);
 
-  const { data, loading, error } = useGetApi<GetApplicationResponse>('/api/gigs/applications/received', opts);
+  const { data, loading, error, refetch } = useGetApi<GetApplicationResponse>('/api/gigs/applications/received', opts);
 
   useEffect(() => {
     if (!data) return;
@@ -25,7 +25,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
   return (
     <ApplicationPanel title="Received" error={error} loading={loading}>
       {data && data.applications && data.applications.length > 0
-        ? data.applications.map((app, i) => <ApplicationListItem key={i} application={app} />)
+        ? data.applications.map((app, i) => <ApplicationListItem key={i} application={app} refetch={refetch} />)
         : <span>No Applications Found</span>
       }
     </ApplicationPanel>
