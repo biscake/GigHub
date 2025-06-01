@@ -2,13 +2,13 @@ import { type AxiosError } from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { type ReactNode, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Loading } from "../components/Loading";
 import api from '../lib/api';
 import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
 import type { ApiErrorResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
+import { Loading } from '../components/Loading';
 
 const idempotencyKey = uuidv4();
 
@@ -108,12 +108,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  if (loading) {
-    return <Loading />
-  }
-
   return (
     <AuthContext.Provider value={{ accessToken, user, login, logout, setAccessToken }}>
+      {loading && <Loading />}
       { children }
     </AuthContext.Provider>
   )

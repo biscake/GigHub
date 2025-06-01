@@ -4,7 +4,11 @@ import { Spinner } from "../Spinner";
 
 const DashboardGigs: React.FC<DashboardGigsProps> = ({ gigs, loading, error, onClick }) => {
   if (loading) {
-    return <Spinner />
+    return (
+      <div className="w-[1rem]">
+        <Spinner />
+      </div>
+    )
   }
 
   if (error) {
