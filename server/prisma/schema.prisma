@@ -1,0 +1,132 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               Int               @id @default(autoincrement())
+  createdAt        DateTime          @default(now())
+  email            String            @unique
+  username         String            @unique
+  role             Role              @default(USER)
+  gigs             Gig[]
+  accounts         Account[]
+  RefreshToken     RefreshToken[]
+  ResetToken       ResetToken?
+  applications     GigApplication[]
+  profile          UserProfile?
+  userProfileId    Int?
+  givenReviews     Review[]          @relation("UserGivenReviews")
+  receivedReviews  Review[]          @relation("UserReceivedReviews")
+  applicationStats ApplicationStats?
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  provider          String
+  providerAccountId String
+  passwordHash      String?
+  accessToken       String?
+  refreshToken      String?
+  userId            Int
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model UserProfile {
+  id                    Int     @id @default(autoincrement())
+  numberOfGigsPosted    Int     @default(0)
+  numberOfGigsCompleted Int     @default(0)
+  averageRating         Float?
+  bio                   String?
+  profilePictureKey     String?
+  userId                Int     @unique
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  comment    String
+  rating     Int
+  createdAt  DateTime @default(now())
+  reviewerId Int?
+  revieweeId Int?
+  reviewer   User?    @relation("UserGivenReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewee   User?    @relation("UserReceivedReviews", fields: [revieweeId], references: [id], onDelete: SetNull)
+}
+
+model Gig {
+  id             Int              @id @default(autoincrement())
+  imgKey         String
+  title          String
+  price          Decimal          @db.Decimal(10, 2)
+  description    String
+  category       String?
+  published      Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  authorId       Int
+  author         User             @relation(fields: [authorId], references: [id])
+  GigApplication GigApplication[]
+}
+
+model GigApplication {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  status    Status   @default(PENDING)
+  gig       Gig      @relation(fields: [gigId], references: [id], onDelete: Cascade)
+  gigId     Int
+  message   String?
+}
+
+model ApplicationStats {
+  id       Int  @id @default(autoincrement())
+  sent     Int  @default(0)
+  received Int  @default(0)
+  userId   Int  @unique
+  user     User @relation(fields: [userId], references: [id])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model ResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model IdempotencyKey {
+  id           String   @id
+  responseBody Json?
+  createdAt    DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}

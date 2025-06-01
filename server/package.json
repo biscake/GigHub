@@ -6,37 +6,56 @@
   "author": "",
   "type": "commonjs",
   "main": "index.js",
+  "engines": {
+    "node": ">= 12.0.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.ts",
+    "test": "npx vitest",
+    "dev": "nodemon --watch src --ext ts,json --exec \"ts-node --files\" src/server.ts",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "posttest": "npm run lint",
+    "test:cron": "ts-node scripts/test-cron.ts"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "connect-pg-simple": "^10.0.0",
+    "@aws-sdk/client-s3": "^3.812.0",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@prisma/client": "^6.8.2",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
-    "express-session": "^1.18.1",
     "express-validator": "^7.2.0",
-    "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.9",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.0",
+    "node-cron": "^4.0.5",
+    "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
-    "pg": "^8.13.1"
+    "passport-jwt": "^4.0.1"
   },
   "devDependencies": {
-    "@types/express": "^5.0.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.15.18",
+    "@types/nodemailer": "^6.4.17",
+    "@types/passport": "^1.0.17",
+    "@types/passport-jwt": "^4.0.1",
     "gts": "^6.0.2",
+    "nodemon": "^3.1.10",
+    "prettier-plugin-prisma": "^5.0.0",
+    "prisma": "^6.8.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3",
+    "vitest-mock-extended": "^3.1.0"
   }
 }
