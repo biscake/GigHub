@@ -16,7 +16,7 @@ model User {
   gigs             Gig[]
   accounts         Account[]
   RefreshToken     RefreshToken[]
-  ResetToken       ResetToken?
+  ResetToken       ResetToken[]
   applications     GigApplication[]
   profile          UserProfile?
   userProfileId    Int?
@@ -109,7 +109,7 @@ model ResetToken {
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
-  userId    Int      @unique
+  userId    Int      
   user      User     @relation(fields: [userId], references: [id])
 }
 
