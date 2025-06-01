@@ -34,8 +34,8 @@ const Sidebar = () => {
           </div>
           {user && location.pathname === '/' &&
             <Button
-              className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-semibold text-white text-xl
-                focus:not-data-focus:outline-none data-focus:outline data-focus:outline-white data-hover:bg-gray-600 data-open:bg-gray-700 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-md py-1.5 font-semibold text-2xl
+                focus:not-data-focus:outline-none cursor-pointer hover:bg-gray-200"
               onClick={openCreateGigModal}
             >
               Create Gig
