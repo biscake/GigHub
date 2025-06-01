@@ -10,6 +10,7 @@ export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export type CheckBoxProp = React.InputHTMLAttributes<HTMLInputElement> & {
   text: string;
+  name: string;
 }
 
 export type TextAreaProps = React.InputHTMLAttributes<HTMLTextAreaElement> & {
