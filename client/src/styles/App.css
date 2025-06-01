@@ -43,6 +43,10 @@
   .border-main {
     border-color: #ebe0d5;
   }
+
+  .text-main {
+    color: #72554a;
+  }
 }
 
 @utility link-hover {

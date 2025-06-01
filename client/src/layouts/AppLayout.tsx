@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar/Sidebar";
 
 const AppLayout = () => {
   return (
-    <div className="flex w-screen h-screen bg-center text-[#72554a] p-4 bg-[#faefe5]">
+    <div className="flex w-screen h-screen bg-center text-main p-4 bg-[#faefe5]">
       <div className="rounded-3xl flex flex-1 gap-[2px] bg-[#faefe5] overflow-hidden">
         <Sidebar />
         <Outlet />

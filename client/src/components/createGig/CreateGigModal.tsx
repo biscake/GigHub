@@ -125,8 +125,8 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
                 sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
             >
               <div className="sm:flex-col sm:items-start">
-                <div className="text-center sm:mt-0 bg-gray-200 w-full py-2">
-                  <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
+                <div className="text-center sm:mt-0 bg-[#f8efe5] w-full py-2">
+                  <DialogTitle as="h3" className="text-base font-semibold text-[#72554a]">
                       Create Gig
                   </DialogTitle>
                 </div>

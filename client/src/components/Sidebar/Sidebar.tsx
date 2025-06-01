@@ -1,24 +1,20 @@
-import { Button } from "@headlessui/react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import CreateGigFormModal from "../createGig/CreateGigModal";
 import SidebarNavLink from "./SidebarNavLink";
+import CreateGigSidebarButton from "../createGig/CreateGigSidebarButton";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const [isCreateGigModalOpen, setIsCreateGigModalOpen] = useState<boolean>(false);
   const location = useLocation();
 
-  function openCreateGigModal() {
-    setIsCreateGigModalOpen(true);
-  }
-
   return (
     <aside className="w-[15vw] min-w-[350px] hidden md:block text-[1rem] font-mono font-bold border-r border-white/50 bg-[#fff8f2]">
       <div className="h-full flex flex-col justify-between gap-5 p-5">
         <div className="flex flex-col gap-5">
-          <Link to="/" className="text-4xl hover:link-hover">
+          <Link to="/" className="text-5xl hover:link-hover">
             GigHub
           </Link>
           <SidebarNavLink to="/">
@@ -29,17 +25,8 @@ const Sidebar = () => {
               Applications
             </SidebarNavLink>
           }
-          <div className="text-2xl">
-            Search (TODO)
-          </div>
           {user && location.pathname === '/' &&
-            <Button
-              className="inline-flex items-center gap-2 rounded-md py-1.5 font-semibold text-2xl
-                focus:not-data-focus:outline-none cursor-pointer hover:bg-gray-200"
-              onClick={openCreateGigModal}
-            >
-              Create Gig
-            </Button>
+            <CreateGigSidebarButton onClick={() => setIsCreateGigModalOpen(true)}/>
           }
           {user && <CreateGigFormModal isCreateGigModalOpen={isCreateGigModalOpen} setIsCreateGigModalOpen={setIsCreateGigModalOpen} />}
         </div>

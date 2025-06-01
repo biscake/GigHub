@@ -1,13 +1,9 @@
+import { Spinner } from "./Spinner"
+
 export const Loading = () => {
   return (
-    <div className="w-inherit h-screen bg-black">
-      <div className="w-auto h-full flex justify-center items-center">
-        <img 
-          src="/GigHub.png"
-          alt="Gighub"
-          className="h-[30vh]"
-        />
-      </div>
+    <div className="w-full h-full fixed top-0 left-0 bg-[#f8efe5] z-200">
+      <Spinner />
     </div>
   )
 }

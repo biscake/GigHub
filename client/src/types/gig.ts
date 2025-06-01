@@ -51,3 +51,7 @@ export type ApplyGigFormData = {
 export type GigCardProp = Gig & {
   onClick: () => void;
 }
+
+export type CreateGigSidebarButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+}
