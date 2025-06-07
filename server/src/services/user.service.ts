@@ -2,7 +2,7 @@ import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams } from "../types/user";
+import { getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -32,7 +32,7 @@ export const getUserWithNormalizedProfileByUsername = async ({ username }: getUs
       throw err;
     }
 
-    throw new ServiceError("Prisma", "Failed to create gig in database");
+    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }
 
@@ -72,6 +72,24 @@ export const getUserWithReviewsByUsername = async ({ username, NUMBER_OF_REVIEWS
       throw err;
     }
 
-    throw new ServiceError("Prisma", "Failed to create gig in database");
+    throw new ServiceError("Prisma", "Failed to get user from database");
+  }
+}
+
+export const updateUserByUsername = async (params: updateUserByProfileParams) => {
+  const { userId, bio, profilePictureKey } = params;
+
+  try {
+    await prisma.userProfile.update({
+      where: {
+        userId: userId
+      },
+      data: {
+        bio: bio,
+        profilePictureKey: profilePictureKey
+      }
+    })
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to update user profile in database");
   }
 }
