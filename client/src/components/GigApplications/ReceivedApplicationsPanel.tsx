@@ -1,7 +1,6 @@
 import type { AxiosError } from "axios";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { v4 as uuidv4 } from 'uuid';
 import { useGetApi } from "../../hooks/useGetApi";
 import api from "../../lib/api";
 import type { ApiErrorResponse } from "../../types/api";
@@ -14,7 +13,6 @@ import ApplicationPanel from "./ApplicationPanel";
 import { useIdempotencyKey } from "../../hooks/useIdempotencyKey";
 
 const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
-  const [apiErr, setApiErr] = useState<string | null>(null);
   const idempotencyKey = useIdempotencyKey();
 
   const opts = useMemo(() => ({
@@ -41,10 +39,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
       refetch();
     } catch (err) {
       const error = err as AxiosError<ApiErrorResponse>;
-
-      const errorMessage = error.response?.data?.message;
-
-      setApiErr(errorMessage || "Something went wrong. Please try again");
+      console.log(error);
     } finally {
       idempotencyKey.clear();
     }
@@ -61,10 +56,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
       refetch();
     } catch (err) {
       const error = err as AxiosError<ApiErrorResponse>;
-
-      const errorMessage = error.response?.data?.message;
-
-      setApiErr(errorMessage || "Something went wrong. Please try again");
+      console.log(error);
     } finally {
       idempotencyKey.clear();
     }
@@ -102,7 +94,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
         <span>Applied {timeAgo(application.createdAt)}</span>
         <div className="flex items-center">
           <div className="ml-auto flex gap-3">
-            <ApplicationListButton className="bg-[#dac8c0]" onClick={handleReject}>Decline</ApplicationListButton>
+            <ApplicationListButton className="bg-[#dac8c0]" onClick={() => handleReject}>Decline</ApplicationListButton>
             <ApplicationListButton className="bg-[#b38b82]" onClick={handleAccept}>Accept</ApplicationListButton>
           </div>
         </div>

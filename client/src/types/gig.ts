@@ -36,6 +36,7 @@ export type DashboardGigsProps = {
 export type GigModalProp = {
   gig: Gig | null;
   setSelectedGig: React.Dispatch<React.SetStateAction<Gig | null>>;
+  isViewMode?: boolean;
 }
 
 export type ApplyGigModalProp = {

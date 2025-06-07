@@ -4,7 +4,7 @@ import type { GigModalProp } from '../../types/gig';
 import { GigImage } from '../GigImage';
 import ApplyGigModal from './ApplyGigModal';
 
-const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig }) => {
+const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = false }) => {
   const [applyModal, setApplyModal] = useState<boolean>(false);
 
   return (
@@ -38,13 +38,14 @@ const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig }) => {
                 <div className="w-full flex flex-row justify-between items-center rounded-xl bg-gray-50 px-4 py-3">
                   <p className="text-center">${gig?.price}</p>
                   <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">
-                    <button
-                      type="button"
-                      onClick={() => setApplyModal(true)}
-                      className="cursor-pointer inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
-                    >
-                      Apply
-                    </button>
+                    {!isViewMode &&
+                      <button
+                        type="button"
+                        onClick={() => setApplyModal(true)}
+                        className="cursor-pointer inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
+                      >
+                        Apply
+                      </button>}
                     <button
                       type="button"
                       onClick={() => setSelectedGig(null)}
