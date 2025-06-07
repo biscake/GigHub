@@ -34,7 +34,6 @@ const ResetPasswordForm = () => {
 
       navigate('/login');
     } catch (err) {
-      console.error(err)
       const error = err as AxiosError<ApiErrorResponse>;
 
       const validationErrors = error.response?.data?.errors;

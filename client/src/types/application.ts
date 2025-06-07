@@ -26,6 +26,8 @@ export type ApplicationListItemProps = {
   application: GigApplication;
   key: number;
   refetch: () => Promise<void>;
+  handleAccept: () => void;
+  handleReject: () => void;
 }
 
 export type GetApplicationResponse = {
