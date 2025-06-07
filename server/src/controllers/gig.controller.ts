@@ -125,6 +125,7 @@ export const getUserSentApplications = asyncHandler(async (req: Request, res: Re
     },
     gig: {
       ...gig,
+      imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`,
       author: { username: gig.author.username }
     }
   }));
@@ -166,6 +167,7 @@ export const getUserReceivedApplications = asyncHandler(async (req: Request, res
     },
     gig: {
       ...gig,
+      imgUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`,
       author: { username: gig.author.username }
     }
   }));
