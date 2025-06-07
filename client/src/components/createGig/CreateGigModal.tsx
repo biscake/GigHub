@@ -3,7 +3,6 @@ import type { AxiosError } from 'axios';
 import { useState } from 'react';
 import type { Area } from 'react-easy-crop';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
@@ -13,13 +12,15 @@ import blobUrlToFile from '../../utils/blobToImage';
 import getCroppedImg from '../../utils/cropImage';
 import CreateGigForm from './CreateGigForm';
 import WarningModal from './WarningModal';
+import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
+import { callDashboardRefetch } from '../../utils/dashboardRefetch';
 
 const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpen, setIsCreateGigModalOpen }) => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [croppedImagePixels, setCroppedImagePixels] = useState<Area | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const idempotencyKey = useIdempotencyKey();
   const [showCloseWarning, setShowCloseWarning] = useState<boolean>(false);
 
   const methods = useForm<CreateGigFormInputs>({ mode: 'onChange' });
@@ -55,12 +56,6 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
         throw new Error("User not logged in");
       }
 
-      const key = idempotencyKey ?? uuidv4();
-
-      if (!idempotencyKey) {
-        setIdempotencyKey(key);
-      }
-
       setIsSubmitting(true);
 
       const formData = new FormData();
@@ -79,7 +74,7 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
       await api.post('/api/gigs/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Idempotency-Key': key
+          'Idempotency-Key': idempotencyKey.get()
         }
       });
 
@@ -94,19 +89,25 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
     } finally {
-      setIdempotencyKey(null);
-      setIsSubmitting(false);
+      handleClose();
+      setTimeout(() => callDashboardRefetch(), 500);
     }
   }
 
   const handleClose = () => {
     setApiErr(null);
-    setImage(null);
     setCroppedImagePixels(null);
     setIsSubmitting(false);
-    setIdempotencyKey(null);
+    idempotencyKey.clear();
     setShowCloseWarning(false);
     setIsCreateGigModalOpen(false);
+    
+    const timeout = setTimeout(() => {
+      methods.reset();
+      setImage(null);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
   }
 
   return (
