@@ -1,5 +1,5 @@
-import { NextFunction, Router, Request, Response } from 'express';
-import { acceptGigApplication, createGig, deleteApplication, deleteGig, getGigs, getGigWithId, getUserApplicationStats, getUserReceivedApplications, getUserSentApplications, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
+import { Router } from 'express';
+import { acceptGigApplication, createGig, deleteApplication, deleteGig, editApplication, getGigs, getGigWithId, getUserApplicationStats, getUserReceivedApplications, getUserSentApplications, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isOwnerOfGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
 import { isAuthorizedToApplyGig } from '../middleware/gig/is-authorize-apply-gig.middleware';
@@ -10,7 +10,7 @@ import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { uploadSingleImage } from '../middleware/upload-assets.middleware';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { createGigValidators } from '../validators/gig.validator';
-import { isAuthorizedToDeleteApplication } from '../middleware/gig/is-authorize-delete-application.middleware';
+import { isAuthorizedToModifyApplication } from '../middleware/gig/is-authorize-modify-application.middleware';
 
 const router = Router();
 
@@ -37,7 +37,9 @@ router.get('/applications/received', authenticateJWT, getUserReceivedApplication
 
 router.get('/applications/stats', authenticateJWT, getUserApplicationStats);
 
-router.delete('/applications/:applicationId', idempotencyKey, authenticateJWT, isValidApplicationId, isAuthorizedToDeleteApplication, deleteApplication);
+router.delete('/applications/:applicationId', idempotencyKey, authenticateJWT, isValidApplicationId, isAuthorizedToModifyApplication, deleteApplication);
+
+router.put('/applications/:applicationId/edit', idempotencyKey, authenticateJWT, isValidApplicationId, isAuthorizedToModifyApplication, editApplication);
 
 router.put('/:gigId/applications/:applicationId/accept',
   idempotencyKey,
