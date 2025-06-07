@@ -2,7 +2,8 @@ import { Prisma, Status } from "@prisma/client";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams } from "../types/gig";
+import { AcceptGigByIdParams, createGigApplicationByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams } from "../types/gig";
+import { AppError } from "../errors/app-error";
 
 export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
   try {
@@ -103,14 +104,36 @@ export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParam
   }
 }
 
-export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdParams) => {
+export const createGigApplicationById = async ({ gigId, userId, message, gigAuthorId }: createGigApplicationByIdParams) => {
   try {
     const application = await prisma.gigApplication.create({
       data: {
-        gigId: gigId,
-        userId: userId
-      }
+        gigId,
+        userId,
+        message
+      },
     })
+
+    console.log(userId,"user");
+    console.log(gigAuthorId, "author");
+    await prisma.$transaction([
+      prisma.applicationStats.update({
+        where: { userId },
+        data: {
+          sent: {
+            increment: 1
+          }
+        }
+      }),
+      prisma.applicationStats.update({
+        where: { userId: gigAuthorId },
+        data: {
+          received: {
+            increment: 1
+          }
+        }
+      })
+    ])
 
     return application;
   } catch (err) {
@@ -153,6 +176,7 @@ export const getSentApplicationsByUserId = async ({ userId, page = 1, COUNT }: {
     const result = await prisma.gigApplication.findMany({
       where: {
         userId,
+        status: Status.PENDING
       },
       take: COUNT,
       orderBy: {
@@ -184,8 +208,9 @@ export const getReceivedApplicationsByUserId = async ({ userId, page = 1, COUNT 
     const result = await prisma.gigApplication.findMany({
       where: {
         gig: {
-          authorId: userId
-        }
+          authorId: userId,
+        },
+        status: Status.PENDING
       },
       take: COUNT,
       orderBy: {
@@ -193,14 +218,15 @@ export const getReceivedApplicationsByUserId = async ({ userId, page = 1, COUNT 
       },
       skip: (page - 1) * COUNT,
       include: {
-        user: {
-          include: {
-            applicationStats: true
-          }
-        },
+        user: true,
         gig: {
           include: {
-            author: true,
+            author: {
+              select: {
+                username: true,
+                applicationStats: true
+              }
+            },
           }
         }
       }
@@ -264,5 +290,57 @@ export const updateApplicationMessageById = async ({ message, applicationId }: {
     })
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to update application message in database");
+  }
+}
+
+export const decrementApplicationStats = async ({ applicationId }: { applicationId: number }) => {
+  try {
+    const application = await prisma.gigApplication.findUnique({
+      where: { id: applicationId },
+      include: {
+        user: {
+          select: {
+            id: true
+          }
+        },
+        gig: {
+          select: {
+            authorId: true,
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      throw new BadRequestError("Application not found");
+    }
+
+    const senderId = application.user.id;
+    const receiverId = application.gig.authorId;
+
+    await prisma.$transaction([
+      prisma.applicationStats.update({
+        where: { userId: senderId },
+        data: {
+          sent: {
+            decrement: 1
+          }
+        }
+      }),
+      prisma.applicationStats.update({
+        where: { userId: receiverId },
+        data: {
+          received: {
+            decrement: 1
+          }
+        }
+      })
+    ]);
+  } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+
+    throw new ServiceError("Prisma", "Failed to update application stats");
   }
 }

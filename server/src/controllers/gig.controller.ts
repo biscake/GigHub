@@ -2,7 +2,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getApplicationStatByUserId, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, decrementApplicationStats, deleteApplicationByApplicationId, deleteGigFromDatabase, getApplicationStatByUserId, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
@@ -95,7 +95,7 @@ export const postGigApplication = asyncHandler(async (req: Request, res: Respons
   const userId = req.user.id;
   const idempotencyKey = req.idempotencyKey;
 
-  const application = await createGigApplicationById({ gigId: gig.id, userId, message });
+  const application = await createGigApplicationById({ gigId: gig.id, userId, message, gigAuthorId: gig.authorId });
 
   const responseBody = {
     success: true,
@@ -183,7 +183,7 @@ export const getUserReceivedApplications = asyncHandler(async (req: Request, res
   }
 
   if (applications.length > 0) {
-    const stats = applications[0].user.applicationStats;
+    const stats = applications[0].gig.author.applicationStats;
 
     const totalPages = stats?.received === 0 || !stats
       ? 1
@@ -212,6 +212,7 @@ export const acceptGigApplication = asyncHandler(async (req: Request, res: Respo
   const idempotencyKey = req.idempotencyKey;
 
   await acceptGigApplicationById({ applicationId });
+  await decrementApplicationStats({ applicationId });
 
   const responseBody = {
     success: true,
@@ -228,6 +229,7 @@ export const rejectGigApplication = asyncHandler(async (req: Request, res: Respo
   const idempotencyKey = req.idempotencyKey;
 
   await rejectGigApplicationById({ applicationId });
+  await decrementApplicationStats({ applicationId });
 
   const responseBody = {
     success: true,
@@ -240,10 +242,11 @@ export const rejectGigApplication = asyncHandler(async (req: Request, res: Respo
 });
 
 export const deleteApplication = asyncHandler(async (req: Request, res: Response) => {
-  const application = req.application;
+  const applicationId = req.application.id;
   const idempotencyKey = req.idempotencyKey;
 
-  await deleteApplicationByApplicationId({ applicationId: application.id });
+  await deleteApplicationByApplicationId({ applicationId });
+  await decrementApplicationStats({ applicationId });
 
   const responseBody = {
     success: true,
