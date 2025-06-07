@@ -251,3 +251,18 @@ export const deleteApplicationByApplicationId = async ({ applicationId }: { appl
     throw new ServiceError("Prisma", "Failed to delete application from database");
   }
 }
+
+export const updateApplicationMessageById = async ({ message, applicationId }: { message: string; applicationId: number }) => {
+  try {
+    await prisma.gigApplication.update({
+      where: {
+        id: applicationId,
+      },
+      data: {
+        message
+      }
+    })
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to update application message in database");
+  }
+}

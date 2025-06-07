@@ -2,7 +2,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getApplicationStatByUserId, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getApplicationStatByUserId, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
@@ -248,6 +248,23 @@ export const deleteApplication = asyncHandler(async (req: Request, res: Response
   const responseBody = {
     success: true,
     message: "Gig successfully deleted"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
+})
+
+export const editApplication = asyncHandler(async (req: Request, res: Response) => {
+  const message = req.body.message;
+  const idempotencyKey = req.idempotencyKey;
+  const applicationId = req.application.id;
+
+  await updateApplicationMessageById({ message, applicationId });
+
+  const responseBody = {
+    success: true,
+    message: "Gig message updated successfully"
   }
 
   await storeResponse({ responseBody, idempotencyKey });
