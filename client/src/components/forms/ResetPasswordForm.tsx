@@ -7,11 +7,11 @@ import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type ResetPasswordFormInputs } from '../../types/form';
 import { cpasswordValidation, passwordValidation } from '../../validators/signupFormValidators';
 import { FormInput } from './FormInput';
-import { v4 as uuidv4 } from 'uuid';
+import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
 
 const ResetPasswordForm = () => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const idempotencyKey = useIdempotencyKey();
 
   const methods = useForm<ResetPasswordFormInputs>({ mode: 'onChange' });
   const [searchParams] = useSearchParams();
@@ -20,15 +20,10 @@ const ResetPasswordForm = () => {
 
   const submitCredential: SubmitHandler<ResetPasswordFormInputs> = async (data) => {
     try {
-      const key = idempotencyKey ?? uuidv4();
-      if (!idempotencyKey) {
-        setIdempotencyKey(key);
-      }
-
       await api.post('/api/auth/reset-password', { ...data, resetToken }, {
         headers: {
           'Content-Type': 'application/json',
-          'Idempotency-Key': key
+          'Idempotency-Key': idempotencyKey.get()
         }
       });
 
@@ -41,8 +36,9 @@ const ResetPasswordForm = () => {
       const errorMessage = error.response?.data?.message;
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
+    } finally {
+      idempotencyKey.clear();
     }
-
   }
 
   const inputStyle : string = "w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none";

@@ -1,20 +1,21 @@
+import type { AxiosError } from "axios";
 import { memo, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { v4 as uuidv4 } from 'uuid';
 import { useGetApi } from "../../hooks/useGetApi";
+import api from "../../lib/api";
+import type { ApiErrorResponse } from "../../types/api";
 import type { ApplicationListItemProps, GetApplicationResponse, ReceivedApplicationsPanelProps } from "../../types/application";
 import { timeAgo } from "../../utils/timeAgo";
 import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationListButton from "./ApplicationListButton";
 import ApplicationListContent from "./ApplicationListContent";
 import ApplicationPanel from "./ApplicationPanel";
-import { v4 as uuidv4 } from 'uuid';
-import api from "../../lib/api";
-import type { ApiErrorResponse } from "../../types/api";
-import type { AxiosError } from "axios";
+import { useIdempotencyKey } from "../../hooks/useIdempotencyKey";
 
 const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
   const [apiErr, setApiErr] = useState<string | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const idempotencyKey = useIdempotencyKey();
 
   const opts = useMemo(() => ({
     params: {
@@ -31,16 +32,13 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
 
   const acceptGig = async (gigId: number, applicationId: number) => {
     try {
-      const key = idempotencyKey ?? uuidv4();
-      if (!idempotencyKey) {
-        setIdempotencyKey(key);
-      }
-
       await api.put(`/api/gigs/${gigId}/applications/${applicationId}/accept`, {}, {
         headers: {
-          'Idempotency-Key': key
+          'Idempotency-Key': idempotencyKey.get()
         }
       });
+
+      refetch();
     } catch (err) {
       const error = err as AxiosError<ApiErrorResponse>;
 
@@ -48,23 +46,19 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
 
       setApiErr(errorMessage || "Something went wrong. Please try again");
     } finally {
-      setIdempotencyKey(null);
-      refetch();
+      idempotencyKey.clear();
     }
   }
 
   const rejectGig = async (gigId: number, applicationId: number) => {
     try {
-      const key = idempotencyKey ?? uuidv4();
-      if (!idempotencyKey) {
-        setIdempotencyKey(key);
-      }
-
       await api.put(`/api/gigs/${gigId}/applications/${applicationId}/reject`, {}, {
         headers: {
-          'Idempotency-Key': key
+          'Idempotency-Key': idempotencyKey.get()
         }
       });
+
+      refetch();
     } catch (err) {
       const error = err as AxiosError<ApiErrorResponse>;
 
@@ -72,8 +66,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
 
       setApiErr(errorMessage || "Something went wrong. Please try again");
     } finally {
-      setIdempotencyKey(null);
-      refetch();
+      idempotencyKey.clear();
     }
   }
 
@@ -84,7 +77,6 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
           <ApplicationListItem
             key={i}
             application={app}
-            refetch={refetch}
             handleAccept={() => acceptGig(app.gig.id, app.id)}
             handleReject={() => rejectGig(app.gig.id, app.id)}
           />  

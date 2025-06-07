@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useGetApi } from "../../hooks/useGetApi";
 import type { ApplicationListItemProps, GetApplicationResponse, SentApplicationsPanelProps } from "../../types/application";
 import { timeAgo } from "../../utils/timeAgo";
@@ -10,6 +10,8 @@ import api from "../../lib/api";
 import { v4 as uuidv4 } from "uuid";
 
 const SentApplicationsPanel: React.FC<SentApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+
   const opts = useMemo(() => ({
     params: {
       page
@@ -23,17 +25,24 @@ const SentApplicationsPanel: React.FC<SentApplicationsPanelProps> = memo(({ page
     setTotalPages(data.totalPages);
   }, [setTotalPages, data]);
 
+
+  const handleCancelApplication = () => {
+    try {
+
+    }
+  }
+
   return (
     <ApplicationPanel title="Sent" error={error} loading={loading}>
       {data && data.applications && data?.applications.length > 0
-        ? data.applications.map((app, i) => <ApplicationListItem key={i} application={app} refetch={refetch} />)
+        ? data.applications.map((app, i) => <ApplicationListItem key={i} application={app} />)
         : <span>No Applications Found</span>
       }
     </ApplicationPanel>
   )
 })
 
-const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, refetch }) => {
+const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, handleCancelApplication, handleEdit, handleViewGig }) => {
   const handleCancel = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     const idempotencyKey = uuidv4();
@@ -44,7 +53,6 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
           "Idempotency-Key": idempotencyKey
         }
       });
-      refetch();
     } catch (err) {
       console.error(err);
     }

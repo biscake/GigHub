@@ -2,16 +2,16 @@ import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from "uuid";
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import type { ApiErrorResponse, ValidationError } from '../../types/api';
 import { type SignupFormInputs } from '../../types/form';
 import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../validators/signupFormValidators';
 import { FormInput } from './FormInput';
+import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
 
 const SignupForm = () => {
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const idempotencyKey = useIdempotencyKey();
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
 
   const methods = useForm<SignupFormInputs>({ mode: 'onChange' });
@@ -26,22 +26,16 @@ const SignupForm = () => {
 
   const submitCredential: SubmitHandler<SignupFormInputs> = async (data) => {
     try {
-      const key = idempotencyKey ?? uuidv4();
-      if (!idempotencyKey) {
-        setIdempotencyKey(key);
-      }
-
       await api.post('/api/auth/register', data, {
         headers: {
           'Content-Type': 'application/json',
-          'Idempotency-Key': key
+          'Idempotency-Key': idempotencyKey.get()
         }
       });
 
       await login({ username: data.username , password: data.password, rememberMe: true });
       navigate('/');
     } catch (err) {
-      console.error(err)
       const error = err as AxiosError<ApiErrorResponse>;
 
       const validationErrors = error.response?.data?.errors;
@@ -49,7 +43,8 @@ const SignupForm = () => {
       const errorMessage = error.response?.data?.message;
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
-      setIdempotencyKey(null);
+    } finally {
+      idempotencyKey.clear();
     }
   }
 
