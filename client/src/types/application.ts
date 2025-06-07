@@ -27,7 +27,7 @@ export type ApplicationListItemProps = {
   key: number;
   handleAccept?: () => void;
   handleReject?: () => void;
-  handleEditMessage?: (message: string) => void;
+  handleEditMessage?: (message: string, applicationId: number) => void;
   handleViewGig?: () => void;
   handleCancelApplication?: () => void;
 }

@@ -48,13 +48,15 @@ const SentApplicationsPanel: React.FC<SentApplicationsPanelProps> = memo(({ page
     }
   }
 
-  const handleEditMessage = async (message: string) => {
+  const handleEditMessage = async (message: string, applicationId: number) => {
     try {
-      await api.put(`/api/gigs/applications/edit`, { message }, {
+      await api.put(`/api/gigs/applications/${applicationId}/edit`, { message }, {
         headers: {
           'Idempotency-Key': idempotencyKey.get()
         }
       });
+
+      refetch();
     } catch (err) {
       const error = err as AxiosError<ApiErrorResponse>;
       console.log(error);
@@ -94,7 +96,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
 
   const handleSubmitEdit = () => {
     if (!handleEditMessage) throw new Error("handleEditMessage not passed as prop");
-    handleEditMessage(message);
+    handleEditMessage(message, application.id);
     setIsEditing(false);
   }
 
