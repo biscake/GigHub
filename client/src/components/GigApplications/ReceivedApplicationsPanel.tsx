@@ -49,6 +49,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
       setApiErr(errorMessage || "Something went wrong. Please try again");
     } finally {
       setIdempotencyKey(null);
+      refetch();
     }
   }
 
@@ -72,6 +73,7 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
       setApiErr(errorMessage || "Something went wrong. Please try again");
     } finally {
       setIdempotencyKey(null);
+      refetch();
     }
   }
 
