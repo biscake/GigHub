@@ -94,7 +94,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
         <span>Applied {timeAgo(application.createdAt)}</span>
         <div className="flex items-center">
           <div className="ml-auto flex gap-3">
-            <ApplicationListButton className="bg-[#dac8c0]" onClick={() => handleReject}>Decline</ApplicationListButton>
+            <ApplicationListButton className="bg-[#dac8c0]" onClick={handleReject}>Decline</ApplicationListButton>
             <ApplicationListButton className="bg-[#b38b82]" onClick={handleAccept}>Accept</ApplicationListButton>
           </div>
         </div>
