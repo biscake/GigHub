@@ -1,15 +1,29 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { GigModalProp } from '../../types/gig';
 import { GigImage } from '../GigImage';
 import ApplyGigModal from './ApplyGigModal';
 
 const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = false }) => {
-  const [applyModal, setApplyModal] = useState<boolean>(false);
+  const [applyModal, setApplyModal] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (gig) {
+      setIsOpen(true);
+    }
+  }, [gig]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    const timeout = setTimeout(() => setSelectedGig(null), 500);
+
+    return () => clearTimeout(timeout);
+  }
 
   return (
     <>
-      <Dialog open={gig !== null} onClose={() => setSelectedGig(null)} className="relative z-50">
+      <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"

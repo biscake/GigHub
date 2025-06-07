@@ -34,7 +34,6 @@ export const setupInterceptors = (auth: AuthContextType) => {
         
         try {
           const idempotencyKey = uuidv4();
-          console.log(idempotencyKey);
 
           const res = await api.post('/api/auth/refreshtoken', { rememberMe }, {
             headers: {

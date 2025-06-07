@@ -13,6 +13,7 @@ import getCroppedImg from '../../utils/cropImage';
 import CreateGigForm from './CreateGigForm';
 import WarningModal from './WarningModal';
 import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
+import { callDashboardRefetch } from '../../utils/dashboardRefetch';
 
 const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpen, setIsCreateGigModalOpen }) => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
@@ -88,19 +89,25 @@ const CreateGigFormModal: React.FC<CreateGigModalProps> = ({ isCreateGigModalOpe
 
       setApiErr(validationErrors || errorMessage || "Something went wrong. Please try again");
     } finally {
-      idempotencyKey.clear();
-      setIsSubmitting(false);
+      handleClose();
+      setTimeout(() => callDashboardRefetch(), 500);
     }
   }
 
   const handleClose = () => {
     setApiErr(null);
-    setImage(null);
     setCroppedImagePixels(null);
     setIsSubmitting(false);
     idempotencyKey.clear();
     setShowCloseWarning(false);
     setIsCreateGigModalOpen(false);
+    
+    const timeout = setTimeout(() => {
+      methods.reset();
+      setImage(null);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
   }
 
   return (
