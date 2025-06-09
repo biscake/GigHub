@@ -9,6 +9,7 @@ import AppLayout from "./layouts/AppLayout";
 import UserProfile from "./components/User/UserProfile";
 import GigApplicationPage from "./pages/GigApplicationPage";
 import "./styles/App.css";
+import WebSocketComponent from "./components/WebSocket";
 
 const App = () => {
   return (
@@ -29,6 +30,7 @@ const App = () => {
         <Route path="profile" element={<UserProfile />} />
       </Route>
 
+      <Route path="socket" element={<WebSocketComponent />} />
     </Routes>
   )
 }
