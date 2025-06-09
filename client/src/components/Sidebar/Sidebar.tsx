@@ -21,7 +21,7 @@ const Sidebar = () => {
             Home
           </SidebarNavLink>
           {user &&
-            <SidebarNavLink to="applications">
+            <SidebarNavLink to="/applications">
               Applications
             </SidebarNavLink>
           }

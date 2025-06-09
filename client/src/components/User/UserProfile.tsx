@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom"
 import { useGetApi } from "../../hooks/useGetApi";
 import type { UserProfileResponse } from "../../types/profile";
 import { Spinner } from "../Spinner";
+import ProfileCard from "./ProfileCard";
 
 const UserProfile = () => {
   const username = useParams().username;
@@ -15,17 +16,9 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full">
-      {error && (
-        <p>{error}</p>
-      )}
-      {profile && (
-        <div className="flex flex-col justify-center gap-5 h-full w-full text-center text-4xl">
-          <p>{profile.username}</p>
-          <p>{profile.numberOfGigsCompleted}</p>
-          <p>{profile.numberOfGigsPosted}</p>
-        </div>
-      )}
+    <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full p-5">
+      <ProfileCard profile={profile} />
+      {error && <p>{error}</p>}
     </div>
   )
 }
