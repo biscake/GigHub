@@ -1,17 +1,9 @@
 import jwt from 'jsonwebtoken';
-import { Request } from 'express';
 import { keys } from '../../config/keys';
 import { getUserById } from '../../services/user.service';
 import { JwtPayload } from '../../types/jwt-payload';
 
-export const authenticateWS = async (req: Request) => {
-  const params = new URLSearchParams(req.url?.split('?')[1]);
-  const accessToken = params.get('token');
-
-  if (!accessToken) {
-    return null;
-  }
-
+export const authenticateWS = async (accessToken: string) => {
   let decoded: JwtPayload;
 
   try {

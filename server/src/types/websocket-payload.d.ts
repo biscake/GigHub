@@ -2,6 +2,7 @@ export interface ChatMessagePayload {
   type: 'Chat';
   to: number;
   ciphertext: string;
+  deviceId: string;
 }
 
 export interface ReadReceiptPayload {

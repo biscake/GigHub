@@ -2,13 +2,14 @@ import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { GetSenderIdByMessageIdParams, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
 
-export const storeCiphertextInDb = async ({ ciphertext, senderId, receipientId }: StoreCiphertextInDbParams) => {
+export const storeCiphertextInDb = async ({ ciphertext, senderId, receipientId, deviceId }: StoreCiphertextInDbParams) => {
   try {
     await prisma.chatMessage.create({
       data: {
         ciphertext,
         senderId,
-        receipientId
+        receipientId,
+        deviceId
       }
     })
   } catch {
