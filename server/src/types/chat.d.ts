@@ -2,6 +2,7 @@ export interface StoreCiphertextInDbParams {
   ciphertext: string;
   senderId: number;
   receipientId: number;
+  deviceId: string;
 }
 
 export interface MarkMessageIdArrayAsReadParams {

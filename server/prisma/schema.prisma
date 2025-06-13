@@ -23,8 +23,9 @@ model User {
   givenReviews     Review[]          @relation("UserGivenReviews")
   receivedReviews  Review[]          @relation("UserReceivedReviews")
   applicationStats ApplicationStats?
-  receivedMessage  ChatMessage[]         @relation("receivedMessage")
-  sentMessage      ChatMessage[]         @relation("sentMessage")
+  receivedMessage  ChatMessage[]     @relation("receivedMessage")
+  sentMessage      ChatMessage[]     @relation("sentMessage")
+  deviceId         Device[]
 }
 
 model Account {
@@ -127,9 +128,23 @@ model ChatMessage {
   receipientId Int
   sender       User      @relation("sentMessage", fields: [senderId], references: [id])
   senderId     Int
+  deviceId     String
   sentAt       DateTime  @default(now())
   readAt       DateTime?
   ciphertext   String
+}
+
+model Device {
+  id                  Int      @id @default(autoincrement())
+  deviceId            String   @unique
+  encryptedPrivateKey String
+  salt                String
+  iv                  String
+  publicKey           String
+  user                User     @relation(fields: [userId], references: [id])
+  userId              Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 enum Role {
