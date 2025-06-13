@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/error-handler.middleware';
 import authRoute from './routes/auth.routes';
 import gigsRoute from './routes/gigs.routes';
 import usersRoute from './routes/user.routes';
+import keysRoute from './routes/keys.routes';
 import { setupWebSocket } from './websocket';
 import expressWs from 'express-ws';
 
@@ -40,6 +41,8 @@ app.use('/api/gigs', gigsRoute);
 
 // user api
 app.use('/api/users', usersRoute);
+
+app.use('/api/keys', keysRoute);
 
 // Use error handler
 app.use(errorHandler);
