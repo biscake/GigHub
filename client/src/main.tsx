@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthProvider.tsx'
 import App from './App.tsx'
-import { E2EEProvider } from './context/e2eeProvider.tsx'
+import { E2EEProvider } from './context/E2EEProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
