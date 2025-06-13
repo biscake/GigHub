@@ -1,8 +1,7 @@
 import type { ProfileCardProp } from "../../types/profile";
 import ProfileImage from "./ProfileImage";
-import { NavLink } from "react-router-dom";
 
-const ProfileCard: React.FC<ProfileCardProp> = ({ profile }) => {
+const ProfileCard: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
   return (
     <>
       {profile && (
@@ -10,12 +9,12 @@ const ProfileCard: React.FC<ProfileCardProp> = ({ profile }) => {
           <div className="w-full flex flex-row justify-between item-center p-5">
             <ProfileImage profilePictureKey={profile.profilePictureKey} username={profile.username} />
             <div className="flex flex-col items-center justify-center">
-              <NavLink
-                to={`/${profile.username}/edit`}
+              <button
+                onClick={() => setIsEdit(true)}
                 className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto cursor-pointer"
               >
                 edit
-              </NavLink>
+              </button>
             </div>
           </div>
           <div className="text-3xl">

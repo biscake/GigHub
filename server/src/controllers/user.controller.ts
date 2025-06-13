@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
 import { storeResponse } from '../services/idempotency.service';
+import { createId } from '@paralleldrive/cuid2';
+import { uploadSingleImageToR2 } from '../services/r2.service';
 
 export const getProfileByUsername = asyncHandler(async (req: Request, res: Response) => {
   const username = req.params.username;
@@ -21,12 +23,27 @@ export const getProfileByUsername = asyncHandler(async (req: Request, res: Respo
 })
 
 export const editUserProfile = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user.id;
-  const bio = req.body.bio;
-  const profilePictureKey = req.body.profilePictureKey;
+  const file = req.file;
   const idempotencyKey = req.idempotencyKey;
 
-  await updateUserByUsername({ userId, bio, profilePictureKey});
+  const key = file
+    ? `gigs/${createId()}-${file.originalname}`
+    : "default/Default_pfp.svg";
+
+  const profileDetails = {
+    ...req.body,
+    profilePictureKey: key
+  }
+
+  await updateUserByUsername(profileDetails);
+
+  if (file) {
+    await uploadSingleImageToR2({
+      fileBuffer: file.buffer,
+      key: key,
+      contentType: file.mimetype
+    })
+  }
 
   const responseBody = {
     success: true,

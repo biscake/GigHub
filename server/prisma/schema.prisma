@@ -44,7 +44,7 @@ model UserProfile {
   numberOfGigsCompleted Int     @default(0)
   averageRating         Float?
   bio                   String?
-  profilePictureKey     String?
+  profilePictureKey     String  @default("default/Default_pfp.svg")
   userId                Int     @unique
   user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

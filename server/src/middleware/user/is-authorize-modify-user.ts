@@ -9,9 +9,10 @@ export const isAuthorizedToModifyUser = asyncHandler(async (
   next: NextFunction
 ) => {
   const user = req.user;
-  const application = req.application;
+  const profileName = req.body.profileName;
 
-  if (user.id !== application.userId && user.role !== Role.ADMIN) {
+
+  if (user.username !== profileName && user.role !== Role.ADMIN) {
     throw new AuthorizationError("Not authorized to modify this user");
   }
 

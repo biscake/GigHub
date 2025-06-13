@@ -9,7 +9,6 @@ import AppLayout from "./layouts/AppLayout";
 import UserProfile from "./components/User/UserProfile";
 import GigApplicationPage from "./pages/GigApplicationPage";
 import "./styles/App.css";
-import EditProfileForm from "./components/User/EditProfileForm";
 
 const App = () => {
   return (
@@ -28,7 +27,6 @@ const App = () => {
 
       <Route path=":username" element={<AppLayout />}>
         <Route path="profile" element={<UserProfile />} />
-        <Route path="edit" element={<EditProfileForm />} />
       </Route>
 
     </Routes>

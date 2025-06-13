@@ -8,7 +8,7 @@ export interface GetUserWithReviewsByUsernameParams {
 }
 
 export interface updateUserByProfileParams {
-  userId: number;
+  profileName: string;
   bio: string | null;
-  profilePictureKey: string | null;
+  profilePictureKey: string;
 }

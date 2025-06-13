@@ -3,13 +3,19 @@ import { useGetApi } from "../../hooks/useGetApi";
 import type { UserProfileResponse } from "../../types/profile";
 import { Spinner } from "../Spinner";
 import ProfileCard from "./ProfileCard";
+import { useState } from "react";
+import EditProfileForm from "./EditProfileForm";
 
 const UserProfile = () => {
   const username = useParams().username;
 
-  const { data, error, loading } = useGetApi<UserProfileResponse>(`/api/users/${username}/profile`);
+  const [isEdit, setIsEdit] = useState<boolean>(false);
 
-  const profile = data && data.profile;
+  const { data, error, loading } = useGetApi<UserProfileResponse>(`/api/users/${username}/profile`)
+
+  if (!data) {
+    return <>{error && <p>{error}</p>}</>
+  }
 
   if (loading) {
     return <Spinner />
@@ -17,8 +23,9 @@ const UserProfile = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full p-5">
-      <ProfileCard profile={profile} />
-      {error && <p>{error}</p>}
+      {isEdit ? <EditProfileForm profile={data.profile} setIsEdit={setIsEdit} />
+              : <ProfileCard profile={data.profile} setIsEdit={setIsEdit} /> }
+      
     </div>
   )
 }

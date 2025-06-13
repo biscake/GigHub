@@ -1,3 +1,4 @@
+import { profile } from "console";
 import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
@@ -17,16 +18,23 @@ export const getUserWithNormalizedProfileByUsername = async ({ username }: getUs
       throw new NotFoundError("User does not exist");
     }
 
+    const profile = user?.profile ?? {
+      bio: null,
+      averageRating: null,
+      numberOfGigsCompleted: 0,
+      numberOfGigsPosted: 0,
+      profilePictureKey: "default/Default_pfp.svg"
+    }
+
+    const profilePictureUrl = `${process.env.R2_PUBLIC_ENDPOINT}/${profile.profilePictureKey}`;
+
     return {
       ...user,
-      profile: user?.profile ?? {
-        bio: null,
-        averageRating: null,
-        numberOfGigsCompleted: 0,
-        numberOfGigsPosted: 0,
-        profilePictureKey: null
+      profile: {
+        ...profile,
+        profilePictureKey: profilePictureUrl
       }
-    };
+    }
   } catch (err) {
     if (err instanceof AppError) {
       throw err;
@@ -77,12 +85,13 @@ export const getUserWithReviewsByUsername = async ({ username, NUMBER_OF_REVIEWS
 }
 
 export const updateUserByUsername = async (params: updateUserByProfileParams) => {
-  const { userId, bio, profilePictureKey } = params;
+  const { profileName, bio, profilePictureKey } = params;
 
+  const user = await getUserWithNormalizedProfileByUsername({ username: profileName });
   try {
     await prisma.userProfile.update({
       where: {
-        userId: userId
+        userId: user.id
       },
       data: {
         bio: bio,
