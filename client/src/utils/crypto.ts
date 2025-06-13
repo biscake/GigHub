@@ -1,8 +1,11 @@
-import type { EncryptedE2eeKey } from "../types/crypto";
+import { v4 as uuidv4 } from "uuid";
+import type { DeviceIdAndSecret, EncryptedE2EEKey } from "../types/crypto";
+import { base64ToUint8, Uint8ToBase64 } from "./utils";
 
-// use pbkdf2 to derive a key from user's password
-const deriveKeyFromPassword = async (salt: Uint8Array, password: string): Promise<CryptoKey> => {
+// use pbkdf2 to derive a key from user's password + device secret
+export const derivePBKDF2Key = async (password: string, keySalt: Uint8Array): Promise<CryptoKey> => {
   const textEncoder = new TextEncoder();
+
   const passwordBuffer = textEncoder.encode(password);
   const importedKey = await crypto.subtle.importKey("raw", passwordBuffer, "PBKDF2", false, ["deriveKey"]);
 
@@ -10,7 +13,7 @@ const deriveKeyFromPassword = async (salt: Uint8Array, password: string): Promis
     {
       name: "PBKDF2",
       hash: "SHA-256",
-      salt: salt,
+      salt: keySalt,
       iterations: 100000
     },
     importedKey,
@@ -22,15 +25,41 @@ const deriveKeyFromPassword = async (salt: Uint8Array, password: string): Promis
   return derivedKey;
 }
 
-const generateSalt = () => {
+// wrap derived key using wrapping key
+export const wrapDerivedKey = async (derivedKey: CryptoKey, wrappingKey: CryptoKey): Promise<ArrayBuffer> => {
+  const wrappedKey = await crypto.subtle.wrapKey(
+    "raw",
+    derivedKey,
+    wrappingKey,
+    {
+      name: "AES-KW",
+    }
+  );
+
+  return wrappedKey;
+}
+
+// unwrap derived key using wrapping key
+export const unwrapDerivedKey = async (wrappedDerivedKey: ArrayBuffer, wrappingKey: CryptoKey): Promise<CryptoKey> => {
+  return crypto.subtle.unwrapKey(
+    "raw",
+    wrappedDerivedKey,
+    wrappingKey,
+    { name: "AES-KW" },
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+  
+export const generateSalt = () => {
   return crypto.getRandomValues(new Uint8Array(16));
 }
 
 // encrypt e2ee private key with derived key from user's password
-export const encryptE2eePrivateKey = async (password: string, privateKey: JsonWebKey): Promise<EncryptedE2eeKey> => {
-  const salt = generateSalt();
-  const derivedKey = await deriveKeyFromPassword(salt, password);
+export const encryptJwk = async (privateKey: JsonWebKey, encryptionKey: CryptoKey): Promise<EncryptedE2EEKey> => {
   const iv = crypto.getRandomValues(new Uint8Array(12));
+  
   const privateKeyBuffer = new TextEncoder().encode(JSON.stringify(privateKey));
 
   const encryptedKey = await crypto.subtle.encrypt(
@@ -38,50 +67,136 @@ export const encryptE2eePrivateKey = async (password: string, privateKey: JsonWe
       name: "AES-GCM",
       iv
     },
-    derivedKey,
+    encryptionKey,
     privateKeyBuffer
   );
 
-  return { salt, iv, encryptedKey };
+  return { iv, encryptedPrivateKey: encryptedKey };
+}
+
+// import EDCH jwk
+export const importEDCHJwk = async (jwk: JsonWebKey) => {
+  const isPublicKey = jwk.d === undefined;
+  
+  if (!jwk.key_ops) {
+    jwk.key_ops = isPublicKey ? [] : ["deriveKey"];
+  }
+
+  const importedKey = await crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    {
+      name: "ECDH",
+      namedCurve: "P-521",
+    },
+    true,
+    isPublicKey ? [] : ["deriveKey"]
+  );
+
+  return importedKey;
 }
 
 // decrypt e2ee private key with user's password and stored hash and iv
-export const decryptE2eePrivateKey = async (salt: Uint8Array, iv: Uint8Array, encryptedKey: ArrayBuffer, password: string): Promise<JsonWebKey> => {
-  const derivedKey = await deriveKeyFromPassword(salt, password);
-
+export const decryptJwk = async (encryptedPrivateKey: ArrayBuffer, decryptionKey: CryptoKey, iv: Uint8Array): Promise<CryptoKey> => {
   const decryptedKey = await crypto.subtle.decrypt(
     {
       name: "AES-GCM",
-      iv: iv
+      iv
     },
-    derivedKey,
-    encryptedKey
+    decryptionKey,
+    encryptedPrivateKey
   )
 
   const decoder = new TextDecoder();
 
-  const decrypted = decoder.decode(decryptedKey);
+  const jwk = JSON.parse(decoder.decode(decryptedKey));
 
-  return JSON.parse(decrypted);
+  return importEDCHJwk(jwk);
 }
 
-export const generateKeyPair = async () => {
+// generate elliptic curve diffie hellman key pair
+export const generateEDCHKeyPair = async () => {
   const keyPair = await crypto.subtle.generateKey(
     {
-      name: "RSA-OAEP",
-      modulusLength: 4096,
-      publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-      hash: "SHA-256"
+      name: "ECDH",
+      namedCurve: "P-521"
     },
     true,
-    ["encrypt", "decrypt"]
+    ["deriveKey"]
   );
 
   const publicKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
   const privateKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+  publicKeyJwk.key_ops = [];
+  privateKeyJwk.key_ops = ["deriveKey"];
 
   return {
     publicKey: publicKeyJwk,
     privateKey: privateKeyJwk
   };
 };
+
+// device secret key that is used to wrap derived PBKDF2 key
+const generateDeviceSecret = async (): Promise<CryptoKey> => {
+  const deviceSecret = await crypto.subtle.generateKey(
+    { name: "AES-KW", length: 256 },
+    false,
+    ["wrapKey", "unwrapKey"]
+  );
+
+  return deviceSecret;
+}
+
+export const generateDeviceIdAndSecret = async (): Promise<DeviceIdAndSecret> => {
+  return { deviceId: uuidv4(), deviceSecret: await generateDeviceSecret() };
+}
+
+// use user's private key and recipient's public key to derive a shared key between user and recipient
+export const deriveEDCHSharedKey = async (privateKey: CryptoKey, publicKey: CryptoKey): Promise<CryptoKey> => {
+  return crypto.subtle.deriveKey(
+    {
+      name: "ECDH",
+      public: publicKey
+    },
+    privateKey,
+    {
+      name: "AES-GCM",
+      length: 256
+    },
+    true,
+    ["encrypt", "decrypt"]
+  )
+}
+
+// encrypt message using a CryptoKey
+export const encryptMessage = async (message: string, sharedKey: CryptoKey): Promise<string> => {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const messageBuffer = new TextEncoder().encode(message);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    sharedKey,
+    messageBuffer
+  )
+
+  const concatenated = new Uint8Array(iv.byteLength + ciphertext.byteLength);
+  concatenated.set(iv, 0)
+  concatenated.set(new Uint8Array(ciphertext), iv.byteLength);
+
+  // convert uint8 to base64
+  return Uint8ToBase64(concatenated);
+}
+
+// decrypt message using a CryptoKey
+export const decryptMessage = async (encryptedMessage: string, sharedKey: CryptoKey): Promise<string> => {
+  const encryptedBytes = base64ToUint8(encryptedMessage); 
+  const iv = encryptedBytes.slice(0, 12);
+  const ciphertext = encryptedBytes.slice(12);
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    sharedKey,
+    ciphertext
+  )
+
+  return new TextDecoder().decode(decrypted);
+}
