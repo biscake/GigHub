@@ -10,7 +10,6 @@ export interface MarkMessageIdArrayAsReadParams {
   receipientId: number;
 }
 
-
 export interface GetSenderIdByMessageIdParams {
   messageIds: string[];
 }
