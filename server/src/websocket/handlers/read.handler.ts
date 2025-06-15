@@ -8,11 +8,11 @@ export const handleRead = async (receipientId: number, payload: ReadReceiptPaylo
   const messages = await getMessagesByMessageIdArray({ messageIds: payload.messageIds });
 
   //If sender is online, send a message to sender to update read receipt
-  messages.forEach(msg => clients.sendByUserId(msg.senderId, {
-    type: 'read-receipt',
-    payload: {
-      messageId: msg.id,
-      readAt: new Date()
-    }
-  }))
+  // messages.forEach(msg => clients.sendByUserId(msg.senderId, {
+  //   type: 'read-receipt',
+  //   payload: {
+  //     messageId: msg.id,
+  //     readAt: new Date()
+  //   }
+  // }))
 }
