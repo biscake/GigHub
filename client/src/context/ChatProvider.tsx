@@ -1,11 +1,12 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import api from "../lib/api";
-import type { GetPublicKeysResponse, GetSinglePublicKeyResponse } from "../types/api";
+import type { GetPublicKeysResponse } from "../types/api";
 import type { ImportedPublicKey, PublicKey } from "../types/key";
-import { deriveEDCHSharedKey, encryptMessage, importEDCHJwk } from "../utils/crypto";
+import { decryptMessage, deriveEDCHSharedKey, encryptMessage, importEDCHJwk } from "../utils/crypto";
 import { useE2EE } from "../hooks/useE2EE";
 import { ChatContext } from "./ChatContext";
+import type { AuthPayload, ChatMessagePayload, ChatReceipientPayload } from "../types/chat";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -15,12 +16,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   // connects client to websocket
   useEffect(() => {
-    if (!accessToken && !deviceId) return;
+    if (!accessToken || !deviceId) return;
 
-    socketRef.current = new WebSocket(`ws://localhost:3000/ws?token=${accessToken}&deviceId=${deviceId}`);
+    socketRef.current = new WebSocket(`ws://localhost:3000/ws`);
 
     socketRef.current.onopen = () => {
       console.log("WebSocket connected");
+
+      socketRef.current?.send(JSON.stringify({
+        type: 'Auth',
+        accessToken,
+        deviceId
+      } as AuthPayload));
     };
 
     socketRef.current.onclose = () => {
@@ -31,9 +38,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       console.error("WebSocket error:", error);
     };
 
-    socketRef.current.onmessage = (event) => {
+    socketRef.current.onmessage = async (event) => {
       const data = JSON.parse(event.data);
-      console.log("Received:", data);
+      console.log(data)
+      await decryptReceivedChatMessage(data);
     };
 
     return () => {
@@ -69,7 +77,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const deriveSharedKeys = async (publicKeys: ImportedPublicKey[]) => {
+  const deriveSharedKeys = useCallback(async (publicKeys: ImportedPublicKey[]) => {
     try {
       if (!privateKey) throw new Error("Private key not initialized");
 
@@ -82,7 +90,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to derive shared keys", err);
       throw err;
     }
-  }
+  }, [privateKey])
 
   const sendMessageToUser = async (message: string, receipientId: number) => {
     try {
@@ -95,29 +103,37 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
       sharedKeys.forEach(async key => {
         const ciphertext = await encryptMessage(message, key.sharedKey);
-
-        socket.send(JSON.stringify({
+        const payload: ChatMessagePayload = {
           type: "Chat",
           deviceId: key.deviceId,
           ciphertext,
           to: receipientId,
-          from: user.id
-        }))
+        }
+
+        socket.send(JSON.stringify(payload));
       });
     } catch (err) {
-      console.error(err);
+      console.error("Failed to send message", err);
     }
   }
 
-  const decryptMessageFromUser = async (ciphertext: string, senderId: number) => {
-    if (!user) throw new Error("User not logged in");
-    if (!socketRef.current) throw new Error("WebSocket not connected");
+  const decryptReceivedChatMessage = useCallback(async (data: ChatReceipientPayload) => {
+    try {
+      const publicKeys = await getPublicKeysByUserId(data.payload.from.userId, data.payload.from.deviceId);
+      const sharedKeys = await deriveSharedKeys(publicKeys);
 
-    const socket = socketRef.current
-    const publicKeys = await getPublicKeysByUserId(senderId, );
-    const sharedKeys = await deriveSharedKeys(publicKeys);
-    
-  }
+      const { ciphertext, ...rest } = data.payload;
+      const decrypted = {
+        ...rest,
+        message: await decryptMessage(ciphertext, sharedKeys[0].sharedKey)
+      }
+
+      console.log(decrypted);
+      return decrypted;
+    } catch (err) {
+      console.error("Failed to decrypt message", err);
+    }
+  }, [deriveSharedKeys])
 
   return (
     <ChatContext.Provider value={{ sendMessageToUser }}>
