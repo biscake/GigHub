@@ -1,7 +1,7 @@
-import { type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import api from "../lib/api";
-import type { GetPublicKeysResponse } from "../types/api";
+import type { GetPublicKeysResponse, GetSinglePublicKeyResponse } from "../types/api";
 import type { ImportedPublicKey, PublicKey } from "../types/key";
 import { deriveEDCHSharedKey, encryptMessage, importEDCHJwk } from "../utils/crypto";
 import { useE2EE } from "../hooks/useE2EE";
@@ -9,18 +9,52 @@ import { ChatContext } from "./ChatContext";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const { privateKey } = useE2EE();
+  const { privateKey, deviceId } = useE2EE();
+  const { accessToken } = useAuth();
+  const socketRef = useRef<WebSocket | null>(null);
 
-  const getPublicKeysByUserId = async (userId: number): Promise<ImportedPublicKey[] | undefined> => {
+  // connects client to websocket
+  useEffect(() => {
+    if (!accessToken && !deviceId) return;
+
+    socketRef.current = new WebSocket(`ws://localhost:3000/ws?token=${accessToken}&deviceId=${deviceId}`);
+
+    socketRef.current.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+    socketRef.current.onclose = () => {
+      console.log("WebSocket disconnected");
+    };
+
+    socketRef.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    socketRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Received:", data);
+    };
+
+    return () => {
+      socketRef.current?.close();
+    };
+  }, [accessToken, deviceId])
+
+  const getPublicKeysByUserId = async (userId: number, deviceId?: string): Promise<ImportedPublicKey[]> => {
     try {
-      const res = await api.get<GetPublicKeysResponse>(`/api/keys/public/${userId}`);
+      const res = await api.get<GetPublicKeysResponse>(`/api/keys/public/${userId}`, {
+        params: {
+          deviceId: deviceId
+        } 
+      });
 
       const publicKeys: PublicKey[] = res.data.publicKeys;
       
       const importedKey = await Promise.all(
         publicKeys.map(async key => {
           const importedKey: ImportedPublicKey = {
-            deviceId: key.deviceId,
+            ...key,
             publicKey: await importEDCHJwk(key.publicKey)
 
           }
@@ -31,6 +65,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       return importedKey;
     } catch (err) {
       console.error("Failed to get public keys", err);
+      return [];
     }
   }
 
@@ -43,24 +78,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       );
 
       return sharedKeys;
-    } catch {
-      console.log("Failed to derive shared keys");
+    } catch (err) {
+      console.error("Failed to derive shared keys", err);
+      throw err;
     }
   }
 
-  const sendMessageToUser = async (message: string, receipientId: number, socket: WebSocket) => {
+  const sendMessageToUser = async (message: string, receipientId: number) => {
     try {
       if (!user) throw new Error("User not logged in");
+      if (!socketRef.current) throw new Error("WebSocket not connected");
 
+      const socket = socketRef.current
       const publicKeys = await getPublicKeysByUserId(receipientId);
-      if (!publicKeys) {
-        throw new Error("Failed to get public keys");
-      }
-
       const sharedKeys = await deriveSharedKeys(publicKeys);
-      if (!sharedKeys) {
-        throw new Error("Failed to dervice shared keys");
-      }
 
       sharedKeys.forEach(async key => {
         const ciphertext = await encryptMessage(message, key.sharedKey);
@@ -76,6 +107,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  const decryptMessageFromUser = async (ciphertext: string, senderId: number) => {
+    if (!user) throw new Error("User not logged in");
+    if (!socketRef.current) throw new Error("WebSocket not connected");
+
+    const socket = socketRef.current
+    const publicKeys = await getPublicKeysByUserId(senderId, );
+    const sharedKeys = await deriveSharedKeys(publicKeys);
+    
   }
 
   return (
