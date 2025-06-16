@@ -102,3 +102,15 @@ export const updateUserByUsername = async (params: updateUserByProfileParams) =>
     throw new ServiceError("Prisma", "Failed to update user profile in database");
   }
 }
+
+export const getUserById = async ({ id }: GetUserByIdParams) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    return user;
+  } catch {
+    throw new ServiceError("Primsa", "Failed to get user from database");
+  }
+}
