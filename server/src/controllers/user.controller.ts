@@ -27,7 +27,7 @@ export const editUserProfile = asyncHandler(async (req: Request, res: Response) 
   const idempotencyKey = req.idempotencyKey;
 
   const key = file
-    ? `gigs/${createId()}-${file.originalname}`
+    ? `profiles/${createId()}-${file.originalname}`
     : "default/Default_pfp.svg";
 
   const profileDetails = {
