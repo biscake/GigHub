@@ -42,7 +42,7 @@ const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = fa
                     {gig?.title}
                   </DialogTitle>
                 </div>
-                <div className="w-full flex flex-col justify-center gap-1">
+                <div className="w-full flex flex-col justify-center gap-1 rounded-xl">
                   <GigImage imgUrl={gig?.imgUrl} />
                   <p className="text-sm md:text-base bg-gray-100 p-3 rounded-xl">
                     {gig?.description}
@@ -62,7 +62,7 @@ const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = fa
                       </button>}
                     <button
                       type="button"
-                      onClick={() => setSelectedGig(null)}
+                      onClick={handleClose}
                       className="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-
                         900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     >
