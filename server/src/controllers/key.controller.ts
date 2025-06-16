@@ -26,8 +26,9 @@ export const postNewDevice = asyncHandler(async (req: Request, res: Response) =>
 
 export const getPublicKey = asyncHandler(async (req: Request, res: Response) => {
   const userId = parseInt(req.params.userId);
+  const deviceId = req.query.deviceId as string | undefined;
 
-  const publicKeys = await getPublicKeysByUserId({ userId });
+  const publicKeys = await getPublicKeysByUserId({ userId, deviceId });
 
   res.status(200).json({
     success: true,
