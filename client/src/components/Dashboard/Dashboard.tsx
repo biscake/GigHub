@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGetApi } from "../../hooks/useGetApi";
-import type { Gig, GigFilters, GigsResponse } from "../../types/gig";
+import type { Gig, GigFilters } from "../../types/gig";
 import { PageSelector } from "../PageSelector";
 import { SearchBar } from "./SearchBar";
 import DashboardGigs from "./DashboardGigs";
 import GigModal from "../GigModal/GigModal";
 import { clearDashboardRefetch, setDashboardRefetch } from "../../utils/dashboardRefetch";
+import type { GigsResponse } from "../../types/api";
 
 const Dashboard = () => {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);

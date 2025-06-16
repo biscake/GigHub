@@ -11,10 +11,6 @@ export type Profile = {
   username: string;
 }
 
-export type UserProfileResponse = {
-  profile: Profile;
-}
-
 export type ProfileCardProp = {
   profile: Profile;
   setIsEdit: (x: boolean) => void;
@@ -38,3 +34,4 @@ export type UploadProfileProps = React.InputHTMLAttributes<HTMLInputElement> & {
   setImage: React.Dispatch<React.SetStateAction<string | null>>;
   setCroppedImagePixels: React.Dispatch<React.SetStateAction<Area | null>>;
 }
+

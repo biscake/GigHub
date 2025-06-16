@@ -7,10 +7,6 @@ export type ApplicationStats = {
   sent: number;
 }
 
-export type ApplicationStatsResponse = {
-  stats: ApplicationStats;
-}
-
 export type GigApplication = {
   id: number;
   createdAt: Date;
@@ -30,14 +26,6 @@ export type ApplicationListItemProps = {
   handleEditMessage?: (message: string, applicationId: number) => void;
   handleViewGig?: () => void;
   handleCancelApplication?: () => void;
-}
-
-export type GetApplicationResponse = {
-  applications: GigApplication[];
-  pageSize: number;
-  page: number;
-  totalPages: number;
-  total: number;
 }
 
 export type ApplicationPanelProps = {
