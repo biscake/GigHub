@@ -6,4 +6,5 @@ export type PublicKey = {
 export type ImportedPublicKey = {
   publicKey: CryptoKey;
   deviceId: string;
+  userId: number;
 }

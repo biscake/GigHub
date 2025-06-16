@@ -6,7 +6,7 @@ import type { ImportedPublicKey, PublicKey } from "../types/key";
 import { decryptMessage, deriveEDCHSharedKey, encryptMessage, importEDCHJwk } from "../utils/crypto";
 import { useE2EE } from "../hooks/useE2EE";
 import { ChatContext } from "./ChatContext";
-import type { AuthPayload, ChatMessagePayload, ChatReceipientPayload } from "../types/chat";
+import type { AuthPayload, ChatMessage, ChatMessagePayload, ChatOnMessagePayload } from "../types/chat";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -40,7 +40,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
     socketRef.current.onmessage = async (event) => {
       const data = JSON.parse(event.data);
-      console.log(data)
       await decryptReceivedChatMessage(data);
     };
 
@@ -53,7 +52,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await api.get<GetPublicKeysResponse>(`/api/keys/public/${userId}`, {
         params: {
-          deviceId: deviceId
+          ...(deviceId && { deviceId })
         } 
       });
 
@@ -62,9 +61,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const importedKey = await Promise.all(
         publicKeys.map(async key => {
           const importedKey: ImportedPublicKey = {
-            ...key,
-            publicKey: await importEDCHJwk(key.publicKey)
-
+            deviceId: key.deviceId,
+            publicKey: await importEDCHJwk(key.publicKey),
+            userId
           }
           return importedKey;
         })
@@ -82,7 +81,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       if (!privateKey) throw new Error("Private key not initialized");
 
       const sharedKeys = await Promise.all(
-        publicKeys.map(async entry => ({ deviceId: entry.deviceId, sharedKey: await deriveEDCHSharedKey(privateKey, entry.publicKey) }))
+        publicKeys.map(async entry => ({ deviceId: entry.deviceId, sharedKey: await deriveEDCHSharedKey(privateKey, entry.publicKey), userId: entry.userId }))
       );
 
       return sharedKeys;
@@ -98,31 +97,38 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       if (!socketRef.current) throw new Error("WebSocket not connected");
 
       const socket = socketRef.current
-      const publicKeys = await getPublicKeysByUserId(receipientId);
-      const sharedKeys = await deriveSharedKeys(publicKeys);
-
-      sharedKeys.forEach(async key => {
+      const receipientPublicKeys = await getPublicKeysByUserId(receipientId);
+      const senderPublicKeys = await getPublicKeysByUserId(user.id);
+      const sharedKeys = await deriveSharedKeys([...receipientPublicKeys, ...senderPublicKeys]);
+      const messages = await Promise.all(sharedKeys.map(async key => {
         const ciphertext = await encryptMessage(message, key.sharedKey);
-        const payload: ChatMessagePayload = {
-          type: "Chat",
-          deviceId: key.deviceId,
+        const chatMessage: ChatMessage = {
           ciphertext,
-          to: receipientId,
+          deviceId: key.deviceId,
+          receipientId: key.userId
         }
 
-        socket.send(JSON.stringify(payload));
-      });
+        return chatMessage;
+      }));
+
+      const payload: ChatMessagePayload = {
+        type: 'Chat',
+        to: receipientId,
+        messages
+      }
+
+      socket.send(JSON.stringify(payload));
     } catch (err) {
       console.error("Failed to send message", err);
     }
   }
 
-  const decryptReceivedChatMessage = useCallback(async (data: ChatReceipientPayload) => {
+  const decryptReceivedChatMessage = useCallback(async (data: ChatOnMessagePayload) => {
     try {
-      const publicKeys = await getPublicKeysByUserId(data.payload.from.userId, data.payload.from.deviceId);
+      const publicKeys = await getPublicKeysByUserId(data.from.userId, data.from.deviceId);
       const sharedKeys = await deriveSharedKeys(publicKeys);
 
-      const { ciphertext, ...rest } = data.payload;
+      const { ciphertext, ...rest } = data;
       const decrypted = {
         ...rest,
         message: await decryptMessage(ciphertext, sharedKeys[0].sharedKey)
