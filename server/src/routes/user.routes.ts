@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { editUserProfile, getProfileByUsername, getReceivedReviewsByUsername } from '../controllers/user.controller';
+import { editUserProfile, getProfileByUsername, getReceivedReviewsByUsername, getUsernameByUserId } from '../controllers/user.controller';
 import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isAuthorizedToModifyUser } from '../middleware/user/is-authorize-modify-user';
@@ -18,5 +18,7 @@ router.put('/:username/profile/edit',
   isAuthorizedToModifyUser,
   editUserProfile
 )
+
+router.get('/:userId', getUsernameByUserId)
 
 export default router;

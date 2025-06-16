@@ -1,12 +1,10 @@
-import type { User } from "./auth";
-
 export type Gig = {
   id: number;
   imgUrl: string;
   title: string;
   price: number;
   description: string;
-  author: User;
+  authorId: number;
   category: string | undefined;
   totalPages?: number;
 }
@@ -55,4 +53,8 @@ export type GigCardProp = Gig & {
 
 export type CreateGigSidebarButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
+}
+
+export type GetGigAuthorResponse = {
+  username: string;
 }
