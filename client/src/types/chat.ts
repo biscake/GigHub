@@ -1,38 +1,36 @@
+export interface ChatMessage {
+  ciphertext: string;
+  deviceId: string;
+  receipientId: number;
+}
+
 export interface ChatMessagePayload {
   type: 'Chat';
   to: number;
-  ciphertext: string;
-  deviceId: string;
+  messages: ChatMessage[];
 }
-
-export interface ReadReceiptPayload {
-  type: 'Read';
-  messageIds: string[];
-}
-
-export type WebsocketPayload = ChatMessagePayload | ReadReceiptPayload;
 
 interface UserIdWithDeviceId {
   userId: number;
   deviceId: string;
 }
 
-interface ChatReceipientMessage {
+export interface ChatReceipientPayload {
+  type: 'Chat';
   from: UserIdWithDeviceId;
   ciphertext: string;
   timestamp: Date;
 }
 
-export interface ChatReceipientPayload {
-  type: 'Chat';
-  payload: ChatReceipientMessage;
+export interface ChatSenderPayload extends ChatReceipientPayload {
+  to: number;
 }
 
-export interface ChatMessagePayload {
-  type: 'Chat';
-  to: number;
-  ciphertext: string;
-  deviceId: string;
+export type ChatOnMessagePayload = ChatReceipientPayload | ChatSenderPayload;
+
+export interface ReadReceiptPayload {
+  type: 'Read';
+  messageIds: string[];
 }
 
 export interface AuthPayload {
@@ -40,3 +38,5 @@ export interface AuthPayload {
   accessToken: string;
   deviceId: string;
 }
+
+export type WebsocketPayload = ChatMessagePayload | ReadReceiptPayload | AuthPayload;
