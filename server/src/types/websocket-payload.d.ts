@@ -1,8 +1,13 @@
+interface ChatMessage {
+  ciphertext: string;
+  deviceId: string;
+  receipientId: number;
+}
+
 export interface ChatMessagePayload {
   type: 'Chat';
   to: number;
-  ciphertext: string;
-  deviceId: string;
+  messages: ChatMessage[];
 }
 
 interface UserIdWithDeviceId {
@@ -10,15 +15,15 @@ interface UserIdWithDeviceId {
   deviceId: string;
 }
 
-interface ChatReceipientMessage {
+export interface ChatReceipientPayload {
+  type: 'Chat';
   from: UserIdWithDeviceId;
   ciphertext: string;
   timestamp: Date;
 }
 
-export interface ChatReceipientPayload {
-  type: 'Chat';
-  payload: ChatReceipientMessage;
+export interface ChatSenderPayload extends ChatReceipientPayload {
+  to: number;
 }
 
 export interface ReadReceiptPayload {

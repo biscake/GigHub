@@ -13,13 +13,15 @@ export const setupWebSocket = (app: Application) => {
     ws.on('message', (data) => {
       const payload = JSON.parse(data.toString()) as WebsocketPayload;
       const userId = ws.userId;
+      const deviceId = ws.deviceId;
+      console.log(payload)
 
       switch (payload.type) {
         case 'Auth':
           return handleAuth(payload.accessToken, payload.deviceId, ws, clients);
         case 'Chat':
-          if (!userId) return;
-          return handleChat(userId, payload, clients);
+          if (!userId || !deviceId) return;
+          return handleChat(userId, deviceId, payload, clients);
         
         case 'Read':
           if (!userId) return;

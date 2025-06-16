@@ -1,8 +1,9 @@
+import { ChatMessage } from "./websocket-payload";
+
 export interface StoreCiphertextInDbParams {
-  ciphertext: string;
   senderId: number;
   receipientId: number;
-  deviceId: string;
+  payloadMessages: ChatMessage[];
 }
 
 export interface MarkMessageIdArrayAsReadParams {

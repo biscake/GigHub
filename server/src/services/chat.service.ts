@@ -2,17 +2,22 @@ import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { GetSenderIdByMessageIdParams, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
 
-export const storeCiphertextInDb = async ({ ciphertext, senderId, receipientId, deviceId }: StoreCiphertextInDbParams) => {
+export const storeCiphertextInDb = async ({ senderId, receipientId, payloadMessages }: StoreCiphertextInDbParams) => {
   try {
     await prisma.chatMessage.create({
       data: {
-        ciphertext,
         senderId,
         receipientId,
-        deviceId
+        messages: {
+          create: payloadMessages.map(msg => ({
+            deviceId: msg.deviceId,
+            ciphertext: msg.ciphertext
+          }))
+        }
       }
     })
-  } catch {
+  } catch (err) {
+    throw err;
     throw new ServiceError("Prisma", "Failed to store message in database");
   }
 }
