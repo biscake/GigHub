@@ -98,8 +98,15 @@ const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
             />
             <textarea {...methods.register("bio")} name="bio" id="bio"></textarea>
             <button
+              className="w-full justify-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-black shadow-xs hover:bg-gray-400 sm:ml-3 sm:w-auto cursor-pointer"
+              onClick={() => setIsEdit(false)}
+            >
+              Cancel
+            </button>
+            <button
               className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto cursor-pointer"
               type="submit"
+              onClick={() => setIsEdit(false)}
             >
               Submit
             </button>
