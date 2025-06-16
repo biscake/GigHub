@@ -42,10 +42,13 @@ export const storeNewDeviceByUserId = async ({ encryptedPrivateKey, iv, salt, pu
   }
 }
 
-export const getPublicKeysByUserId = async ({ userId }: GetPublicKeysByUserIdParams) => {
+export const getPublicKeysByUserId = async ({ userId, deviceId }: GetPublicKeysByUserIdParams) => {
   try {
     const result = await prisma.device.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(deviceId && { deviceId })
+      },
       select: {
         publicKey: true,
         deviceId: true

@@ -13,4 +13,5 @@ export interface StoreNewDeviceByUserIdParams {
 
 export interface GetPublicKeysByUserIdParams {
   userId: number;
+  deviceId?: string;
 }
