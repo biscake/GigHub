@@ -123,15 +123,22 @@ model IdempotencyKey {
 }
 
 model ChatMessage {
-  id           String    @id @default(uuid())
-  receipient   User      @relation("receivedMessage", fields: [receipientId], references: [id])
+  id           String              @id @default(uuid())
+  receipient   User                @relation("receivedMessage", fields: [receipientId], references: [id])
   receipientId Int
-  sender       User      @relation("sentMessage", fields: [senderId], references: [id])
+  sender       User                @relation("sentMessage", fields: [senderId], references: [id])
   senderId     Int
-  deviceId     String
-  sentAt       DateTime  @default(now())
+  sentAt       DateTime            @default(now())
   readAt       DateTime?
-  ciphertext   String
+  messages     ChatMessageDevice[]
+}
+
+model ChatMessageDevice {
+  id         String      @id @default(uuid())
+  messageId  String
+  message    ChatMessage @relation(fields: [messageId], references: [id])
+  deviceId   String
+  ciphertext String
 }
 
 model Device {
