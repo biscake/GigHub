@@ -5,8 +5,14 @@ import { errorHandler } from './middleware/error-handler.middleware';
 import authRoute from './routes/auth.routes';
 import gigsRoute from './routes/gigs.routes';
 import usersRoute from './routes/user.routes';
+import { setupWebSocket } from './websocket';
+import expressWs from 'express-ws';
 
 const app = express();
+expressWs(app);
+
+// websocket
+setupWebSocket(app);
 
 // enable cors
 app.use(cors({

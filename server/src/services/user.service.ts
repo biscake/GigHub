@@ -2,7 +2,7 @@ import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams } from "../types/user";
+import { GetUserByIdParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams } from "../types/user";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -73,5 +73,17 @@ export const getUserWithReviewsByUsername = async ({ username, NUMBER_OF_REVIEWS
     }
 
     throw new ServiceError("Prisma", "Failed to create gig in database");
+  }
+}
+
+export const getUserById = async ({ id }: GetUserByIdParams) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    return user;
+  } catch {
+    throw new ServiceError("Primsa", "Failed to get user from database");
   }
 }

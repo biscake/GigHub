@@ -23,6 +23,8 @@ model User {
   givenReviews     Review[]          @relation("UserGivenReviews")
   receivedReviews  Review[]          @relation("UserReceivedReviews")
   applicationStats ApplicationStats?
+  receivedMessage  ChatMessage[]         @relation("receivedMessage")
+  sentMessage      ChatMessage[]         @relation("sentMessage")
 }
 
 model Account {
@@ -109,7 +111,7 @@ model ResetToken {
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
-  userId    Int      
+  userId    Int
   user      User     @relation(fields: [userId], references: [id])
 }
 
@@ -117,6 +119,17 @@ model IdempotencyKey {
   id           String   @id
   responseBody Json?
   createdAt    DateTime @default(now())
+}
+
+model ChatMessage {
+  id           String    @id @default(uuid())
+  receipient   User      @relation("receivedMessage", fields: [receipientId], references: [id])
+  receipientId Int
+  sender       User      @relation("sentMessage", fields: [senderId], references: [id])
+  senderId     Int
+  sentAt       DateTime  @default(now())
+  readAt       DateTime?
+  ciphertext   String
 }
 
 enum Role {
