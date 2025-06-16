@@ -7,6 +7,8 @@ export interface GetUserWithReviewsByUsernameParams {
   NUMBER_OF_REVIEWS: number;
 }
 
-export interface GetUserByIdParams {
-  id: number;
+export interface updateUserByProfileParams {
+  profileName: string;
+  bio: string | null;
+  profilePictureKey: string;
 }

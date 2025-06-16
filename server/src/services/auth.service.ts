@@ -22,7 +22,13 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
           },
         },
         profile: {
-          create: {}
+          create: {
+            bio: null,
+            averageRating: null,
+            numberOfGigsCompleted: 0,
+            numberOfGigsPosted: 0,
+            profilePictureKey: "default/Default_pfp.svg"
+          }
         },
         applicationStats: {
           create: {}
@@ -36,9 +42,9 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
 
     const accessToken = issueAccessToken(user);
     const refreshToken = issueRefreshToken();
-    
+
     return { accessToken, refreshToken, user };
-  } catch(err) {
+  } catch (err) {
     throw new ServiceError("Prisma", "Failed to create user");
   }
 }
@@ -136,13 +142,13 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
         }
       })
     ])
-    
+
     return { newAccessToken, newRefreshToken, user: storedToken.user };
   } catch (err) {
     if (err instanceof BadRequestError) {
       throw err;
     }
-    
+
     throw new ServiceError("RotateTokenService", "Failed to rotate token");
   }
 }
@@ -165,7 +171,7 @@ export const resetPassword = async ({ resetToken, pwHash }: resetPasswordInput) 
     const tokenRecord = await prisma.resetToken.findUnique({
       where: { token: resetToken }
     })
-    
+
     if (!tokenRecord || tokenRecord.expiresAt < new Date()) {
       throw new BadRequestError('Invalid reset token');
     }
