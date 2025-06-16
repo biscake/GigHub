@@ -15,11 +15,6 @@ export type GigImageProp = {
   imgUrl: string | undefined;
 }
 
-export type GigsResponse = {
-  gigs: Gig[];
-  totalPages: number;
-}
-
 export type GigFilters = {
   category: string;
   search: string;
