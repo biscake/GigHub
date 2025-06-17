@@ -8,7 +8,7 @@ export const storeCiphertextInDb = async ({ senderId, receipientId, payloadMessa
       data: {
         senderId,
         receipientId,
-        messages: {
+        devices: {
           create: payloadMessages.map(msg => ({
             deviceId: msg.deviceId,
             ciphertext: msg.ciphertext
@@ -17,7 +17,6 @@ export const storeCiphertextInDb = async ({ senderId, receipientId, payloadMessa
       }
     })
   } catch (err) {
-    throw err;
     throw new ServiceError("Prisma", "Failed to store message in database");
   }
 }
