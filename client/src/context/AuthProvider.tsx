@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import api from '../lib/api';
 import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
-import type { ApiErrorResponse } from '../types/api';
+import type { ApiErrorResponse, PostLoginResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: LoginFormInputs) => {
     try {
-      const res = await api.post('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
+      const res = await api.post<PostLoginResponse>('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
       
       const token = res.data.accessToken; 
 

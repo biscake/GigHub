@@ -1,4 +1,5 @@
 import type { ApplicationStats, GigApplication } from "./application";
+import type { User } from "./auth";
 import type { Gig } from "./gig";
 import type { PublicKey } from "./key";
 import type { Profile } from "./profile";
@@ -39,4 +40,9 @@ export interface GigsResponse extends ApiResponse {
 
 export interface UserProfileResponse extends ApiResponse {
   profile: Profile;
+}
+
+export interface PostLoginResponse extends ApiResponse {
+  user: User;
+  accessToken: string;
 }
