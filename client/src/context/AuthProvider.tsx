@@ -9,7 +9,7 @@ import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
 import { Loading } from '../components/Loading';
-import { deleteEncryptedE2eeKey } from '../lib/indexeddb';
+import { clearChatMessages, deleteEncryptedE2eeKey } from '../lib/indexeddb';
 
 const idempotencyKey = uuidv4();
 
@@ -76,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const lastLoggedInUser = localStorage.getItem("lastLoginUser");
         if (lastLoggedInUser !== userId.toString()) {
           localStorage.setItem("lastLoginUser", userId.toString());
+          clearChatMessages();
         }
       }
 
@@ -94,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       if (!user) return;
-      
+
       const res = await api.post('/api/auth/logout');
 
       await deleteEncryptedE2eeKey(user.id);
