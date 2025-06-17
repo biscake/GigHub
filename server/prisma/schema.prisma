@@ -130,16 +130,18 @@ model ChatMessage {
   senderId     Int
   sentAt       DateTime            @default(now())
   readAt       DateTime?
-  devices     ChatMessageDevice[]
+  devices      ChatMessageDevice[]
 }
 
 model ChatMessageDevice {
-  id         String      @id @default(uuid())
-  messageId  String
-  message    ChatMessage @relation(fields: [messageId], references: [id])
-  deviceId   String
-  device     Device      @relation(fields: [deviceId], references: [deviceId])
-  ciphertext String
+  id                 String      @id @default(uuid())
+  messageId          String
+  message            ChatMessage @relation(fields: [messageId], references: [id])
+  receipientDeviceId String
+  receipientDevice   Device      @relation("receipientMessage", fields: [receipientDeviceId], references: [deviceId])
+  senderDeviceId     String
+  senderDevice       Device      @relation("senderMessage", fields: [senderDeviceId], references: [deviceId])
+  ciphertext         String
 }
 
 model Device {
@@ -153,7 +155,8 @@ model Device {
   userId              Int
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  messages            ChatMessageDevice[]
+  sentMessages        ChatMessageDevice[] @relation("senderMessage")
+  receivedMessages    ChatMessageDevice[] @relation("receipientMessage")
 }
 
 enum Role {
