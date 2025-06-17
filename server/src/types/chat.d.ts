@@ -4,6 +4,7 @@ export interface StoreCiphertextInDbParams {
   senderId: number;
   receipientId: number;
   payloadMessages: ChatMessage[];
+  senderDeviceId: string;
 }
 
 export interface MarkMessageIdArrayAsReadParams {
@@ -13,4 +14,11 @@ export interface MarkMessageIdArrayAsReadParams {
 
 export interface GetSenderIdByMessageIdParams {
   messageIds: string[];
+}
+
+export interface GetChatMessagesParams {
+  deviceId: string;
+  senderId: number;
+  receipientId: number;
+  count: number;
 }

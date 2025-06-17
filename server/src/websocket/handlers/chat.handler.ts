@@ -5,7 +5,7 @@ import { Clients } from '../Clients';
 export const handleChat = async (userId: number, deviceId: string, payload: ChatMessagePayload, clients: Clients) => {
   const messages = payload.messages;
 
-  await storeCiphertextInDb({ senderId: userId, receipientId: payload.to, payloadMessages: messages });
+  await storeCiphertextInDb({ senderId: userId, senderDeviceId: deviceId, receipientId: payload.to, payloadMessages: messages });
 
   messages.forEach(msg => {
     // sync sender devices message
