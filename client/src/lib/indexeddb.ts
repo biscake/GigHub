@@ -1,3 +1,4 @@
+import type { StoredMessage } from "../types/chat";
 import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry } from "../types/crypto";
 
 const indexedDB = window.indexedDB;
@@ -10,7 +11,6 @@ function getDB(): Promise<IDBDatabase> {
       const request = indexedDB.open("gighub-db", 1);
 
       request.onerror = () => {
-        console.error("An error occurred with IndexedDB");
         reject(request.error);
       };
 
@@ -19,17 +19,19 @@ function getDB(): Promise<IDBDatabase> {
         if (!db.objectStoreNames.contains("keys")) {
           db.createObjectStore("keys", { keyPath: "userId" });
         }
+
+        if (!db.objectStoreNames.contains("chat-history")) {
+          db.createObjectStore("chat-history", { keyPath: "id" });
+        }
       };
 
       request.onsuccess = () => {
         const db = request.result;
 
         db.onclose = () => {
-          console.warn("IndexedDB connection closed");
           dbPromise = null;
         };
 
-        console.log("IndexedDB connected");
         resolve(db);
       };
     });
@@ -40,10 +42,10 @@ function getDB(): Promise<IDBDatabase> {
 
 export const updateEncryptedE2eeKey = async (userId: number, key: EncryptedE2EEKeyWithSalt): Promise<void> => {
   const db = await getDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction("keys", "readwrite");
-    const store = transaction.objectStore("keys");
+  const transaction = db.transaction("keys", "readwrite");
+  const store = transaction.objectStore("keys");
 
+  return new Promise((resolve, reject) => {
     const getRequest = store.get(userId);
 
     getRequest.onsuccess = () => {
@@ -77,11 +79,10 @@ export const updateEncryptedE2eeKey = async (userId: number, key: EncryptedE2EEK
 
 export const getEncryptedE2eeEntry = async (userId: number): Promise<StoredE2EEEntry> => {
   const db = await getDB();
+  const transaction = db.transaction("keys");
+  const store = transaction.objectStore("keys");
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction("keys");
-    const store = transaction.objectStore("keys");
-
     const request = store.get(userId);
 
     request.onerror = () => {
@@ -100,11 +101,10 @@ export const getEncryptedE2eeEntry = async (userId: number): Promise<StoredE2EEE
 
 export const deleteEncryptedE2eeKey = async (userId: number): Promise<void> => {
   const db = await getDB();
+  const transaction = db.transaction("keys", "readwrite");
+  const store = transaction.objectStore("keys");
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction("keys", "readwrite");
-    const store = transaction.objectStore("keys");
-
     const getRequest = store.get(userId);
 
     getRequest.onsuccess = () => {
@@ -141,11 +141,10 @@ export const deleteEncryptedE2eeKey = async (userId: number): Promise<void> => {
 
 export const storeEncryptedE2eeKey = async (data: StoredE2EEEntry): Promise<void> => {
   const db = await getDB();
+  const transaction = db.transaction("keys", "readwrite");
+  const store = transaction.objectStore("keys");
   
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction("keys", "readwrite");
-    const store = transaction.objectStore("keys");
-
     const request = store.put(data);
 
     request.onsuccess = () => {
@@ -156,6 +155,67 @@ export const storeEncryptedE2eeKey = async (data: StoredE2EEEntry): Promise<void
     request.onerror = () => {
       console.log("Failed to store E2EE entry in indexedDB");
       reject();
+    }
+  })
+}
+
+export const addChatMessage = async (message: StoredMessage): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-history", "readwrite");
+  const store = transaction.objectStore("chat-history");
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(message);
+
+    request.onsuccess = () => {
+      console.log("Chat message successfully stored in indexedDB");
+      resolve();
+    }
+
+    request.onerror = () => {
+      console.log("Failed to store chat message in indexedDB");
+      reject();
+    }
+  })
+}
+
+export const getChatMessagesForUser = async (userId: number): Promise<StoredMessage[]> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-history", "readwrite");
+  const store = transaction.objectStore("chat-history");
+  const index = store.index("localUserId");
+
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(IDBKeyRange.only(userId));
+
+    request.onsuccess = () => {
+      console.log("Get messages for user successfully");
+      resolve(request.result);
+    }
+
+    request.onerror = () => {
+      console.log("Failed to get messages for user");
+      reject(request.error);
+    }
+  })
+}
+
+export const clearChatMessages = async (): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-history", "readwrite");
+  const store = transaction.objectStore("chat-history");
+
+  return new Promise((resolve, reject) => {
+    const request = store.clear();
+
+    request.onsuccess = () => {
+      console.log("Chat messages cleared successfully");
+      resolve();
+    }
+
+    request.onerror = () => {
+      console.log("Failed to clear chat messages");
+      reject(request.error);
     }
   })
 }

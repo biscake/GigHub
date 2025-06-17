@@ -40,3 +40,20 @@ export interface AuthPayload {
 }
 
 export type WebsocketPayload = ChatMessagePayload | ReadReceiptPayload | AuthPayload;
+
+export interface StoredMessage {
+  id: string;
+  from: {
+    userId: number;
+    deviceId: string;
+  };
+  to: {
+    userId: number;
+  };
+  ciphertext: string;
+  sentAt: string;
+  receivedAt?: string;
+  readAt?: string;
+  direction: "incoming" | "outgoing";
+  localUserId: number;
+}
