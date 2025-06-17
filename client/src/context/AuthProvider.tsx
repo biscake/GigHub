@@ -61,9 +61,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await api.post<PostLoginResponse>('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
       
-      const token = res.data.accessToken; 
+      const token = res.data.accessToken;
+      const userId = res.data.user.id;
 
-      if (token) {
+      if (token && userId) {
         setAccessToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const decoded = jwtDecode(token) as JwtPayload;
@@ -71,6 +72,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         localStorage.setItem("rememberMe", data.rememberMe ? "true" : "false");
         sessionStorage.setItem("sessionActive", "true");
+
+        const lastLoggedInUser = localStorage.getItem("lastLoginUser");
+        if (lastLoggedInUser !== userId.toString()) {
+          localStorage.setItem("lastLoginUser", userId.toString());
+        }
       }
 
       return { success: true };
