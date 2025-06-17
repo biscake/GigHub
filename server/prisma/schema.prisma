@@ -130,7 +130,7 @@ model ChatMessage {
   senderId     Int
   sentAt       DateTime            @default(now())
   readAt       DateTime?
-  messages     ChatMessageDevice[]
+  devices     ChatMessageDevice[]
 }
 
 model ChatMessageDevice {
@@ -138,20 +138,22 @@ model ChatMessageDevice {
   messageId  String
   message    ChatMessage @relation(fields: [messageId], references: [id])
   deviceId   String
+  device     Device      @relation(fields: [deviceId], references: [deviceId])
   ciphertext String
 }
 
 model Device {
-  id                  Int      @id @default(autoincrement())
-  deviceId            String   @unique
+  id                  Int                 @id @default(autoincrement())
+  deviceId            String              @unique
   encryptedPrivateKey String
   salt                String
   iv                  String
   publicKey           String
-  user                User     @relation(fields: [userId], references: [id])
+  user                User                @relation(fields: [userId], references: [id])
   userId              Int
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  messages            ChatMessageDevice[]
 }
 
 enum Role {
