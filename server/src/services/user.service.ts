@@ -3,7 +3,7 @@ import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { GetUserByIdParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {

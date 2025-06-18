@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
+import { getUserById, getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
 import { storeResponse } from '../services/idempotency.service';
 import { createId } from '@paralleldrive/cuid2';
 import { uploadSingleImageToR2 } from '../services/r2.service';
@@ -65,5 +65,17 @@ export const getReceivedReviewsByUsername = asyncHandler(async (req: Request, re
     success: true,
     message: "Get received reviews successfully",
     receivedReviews: user.receivedReviews
+  })
+})
+
+export const getUsernameByUserId = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.userId);
+
+  const user = await getUserById({ id });
+
+  res.status(200).json({
+    success: true,
+    message: "Get user successfully",
+    username: user?.username
   })
 })
