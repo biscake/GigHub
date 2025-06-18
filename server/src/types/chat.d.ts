@@ -17,8 +17,27 @@ export interface GetSenderIdByMessageIdParams {
 }
 
 export interface GetChatMessagesParams {
-  deviceId: string;
-  senderId: number;
-  receipientId: number;
-  count: number;
+  originDeviceId: string;
+  originUserId: number;
+  targetUserId: number;
+  count?: number;
+  beforeDateISOString?: string;
+  afterDateISOString?: string;
+}
+
+export interface GetChatMessagesRes {
+  id: string;
+  from: {
+    userId: number;
+    deviceId: string;
+  };
+  to: {
+    userId: number;
+  };
+  ciphertext: string;
+  sentAt: string;
+  readAt?: string;
+  direction: "incoming" | "outgoing";
+  localUserId: number;
+  conversationKey: string;
 }
