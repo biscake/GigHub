@@ -12,6 +12,8 @@ export type AuthContextType = {
 
 export type ChatContextType = {
   sendMessageToUser: (message: string, receipientId: number) => Promise<void>;
+  syncNewMessages: (targetUserId: number) => Promise<void>;
+  syncOldMessages: (targetUserId: number) => Promise<void>;
 }
 
 export type E2EEContextType = {

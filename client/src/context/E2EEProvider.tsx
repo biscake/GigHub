@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useIdempotencyKey } from "../hooks/useIdempotencyKey";
 import api from "../lib/api";
-import { getEncryptedE2eeEntry, storeEncryptedE2eeKey } from "../lib/indexeddb";
+import { getEncryptedE2EEEntry, storeEncryptedE2EEKey } from "../lib/indexeddb";
 import type { User } from "../types/auth";
 import type { EncryptedE2EEKeyResponse, StoredE2EEEntry } from "../types/crypto";
 import { decryptJwk, derivePBKDF2Key, encryptJwk, generateDeviceIdAndSecret, generateEDCHKeyPair, generateSalt, importEDCHJwk, unwrapDerivedKey, wrapDerivedKey } from "../utils/crypto";
@@ -24,7 +24,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     const initKeyWithPassword = async (password: string): Promise<void> => {
       if (!user) return;
   
-      const data: StoredE2EEEntry = await getEncryptedE2eeEntry(user.id);
+      const data: StoredE2EEEntry = await getEncryptedE2EEEntry(user.id);
   
       if (data && data.deviceId && data.deviceSecret && data?.userId) {
         try {
@@ -49,7 +49,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       const wrappedKey = await wrapDerivedKey(pbkdf2Key, data.deviceSecret);
       data.wrappedDerivedKey = wrappedKey;
   
-      await storeEncryptedE2eeKey(data);
+      await storeEncryptedE2EEKey(data);
   
       const decryptedPrivateKey = await decryptJwk(data.encryptedPrivateKey, pbkdf2Key, data.iv);
       setPrivateKey(decryptedPrivateKey);
@@ -64,7 +64,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     const initKeyWithoutPassword = async (): Promise<void> => {
       if (!user) return;
 
-      const data: StoredE2EEEntry = await getEncryptedE2eeEntry(user.id);
+      const data: StoredE2EEEntry = await getEncryptedE2EEEntry(user.id);
 
       // retrieve encrypted private key from server using device id if deviceId, deviceSecret and wrappedDerivedKey exist
       if (!(data && data?.encryptedPrivateKey && data?.iv && data?.salt)) {
@@ -91,7 +91,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Wrapped key missing");
       }
       
-      await storeEncryptedE2eeKey(data);
+      await storeEncryptedE2EEKey(data);
 
       // decrypt private key
       const unwrappedKey = await unwrapDerivedKey(data.wrappedDerivedKey, data.deviceSecret);
@@ -125,7 +125,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
         encryptedPrivateKey: encryptedResult.encryptedPrivateKey
       }
   
-      await storeEncryptedE2eeKey(e2eeData);
+      await storeEncryptedE2EEKey(e2eeData);
   
       api.post('/api/keys',
         {

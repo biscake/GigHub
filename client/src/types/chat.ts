@@ -1,7 +1,7 @@
 export interface ChatMessage {
   ciphertext: string;
   deviceId: string;
-  receipientId: number;
+  recipientId: number;
 }
 
 export interface ChatMessagePayload {
@@ -15,18 +15,18 @@ interface UserIdWithDeviceId {
   deviceId: string;
 }
 
-export interface ChatReceipientPayload {
+export interface ChatRecipientPayload {
   type: 'Chat';
   from: UserIdWithDeviceId;
   ciphertext: string;
   timestamp: Date;
 }
 
-export interface ChatSenderPayload extends ChatReceipientPayload {
+export interface ChatSenderPayload extends ChatRecipientPayload {
   to: number;
 }
 
-export type ChatOnMessagePayload = ChatReceipientPayload | ChatSenderPayload;
+export type ChatOnMessagePayload = ChatRecipientPayload | ChatSenderPayload;
 
 export interface ReadReceiptPayload {
   type: 'Read';
@@ -52,8 +52,16 @@ export interface StoredMessage {
   };
   ciphertext: string;
   sentAt: string;
-  receivedAt?: string;
   readAt?: string;
   direction: "incoming" | "outgoing";
   localUserId: number;
+  conversationKey: string;
+}
+
+export interface StoredConversationMeta {
+  conversationKey: string;
+  localUserId: number;
+  lastFetchedAt?: string;
+  oldestSyncedAt?: string;
+  newestSyncedAt?: string;
 }

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import api from "../lib/api";
-import type { GetPublicKeysResponse } from "../types/api";
+import { type GetChatMessages, type GetPublicKeysResponse } from "../types/api";
 import type { ImportedPublicKey, PublicKey } from "../types/key";
 import { decryptMessage, deriveEDCHSharedKey, encryptMessage, importEDCHJwk } from "../utils/crypto";
 import { useE2EE } from "../hooks/useE2EE";
 import { ChatContext } from "./ChatContext";
-import type { AuthPayload, ChatMessage, ChatMessagePayload, ChatOnMessagePayload } from "../types/chat";
+import type { AuthPayload, ChatMessage, ChatMessagePayload, ChatOnMessagePayload, StoredConversationMeta } from "../types/chat";
+import { getConversationMeta, storeChatMessages, storeConversationMeta } from "../lib/indexeddb";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -105,7 +106,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         const chatMessage: ChatMessage = {
           ciphertext,
           deviceId: key.deviceId,
-          receipientId: key.userId
+          recipientId: key.userId
         }
 
         return chatMessage;
@@ -141,8 +142,82 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [deriveSharedKeys])
 
+  const syncOldMessages = useCallback(async (targetUserId: number) => {
+    if (!user) throw new Error("Invalid user");
+    const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, targetUserId);
+    let before = conversationMeta?.oldestSyncedAt ?? null;
+    console.log("syncing old messages");
+
+    while (true) {
+      const res = await api.get<GetChatMessages>(`api/chat/conversations/${user.id}/${targetUserId}`, {
+        params: {
+          originDeviceId: deviceId,
+          count: 30,
+          beforeDateISOString: before
+        }
+      })
+
+      const messages = res.data.chatMessages;
+      console.log(messages);
+      if (messages.length === 0) break;
+
+      before = messages[messages.length - 1].sentAt;
+
+      if (!before) throw new Error("Error getting synced date");
+      await storeChatMessages(messages);
+
+      await storeConversationMeta({
+        ...conversationMeta,
+        conversationKey: `${user.id}-${targetUserId}`,
+        localUserId: user.id,
+        oldestSyncedAt: before,
+        lastFetchedAt: new Date().toISOString()
+      });
+      
+      if (conversationMeta?.oldestSyncedAt && new Date(before) <= new Date(conversationMeta.oldestSyncedAt)) {
+        break;
+      }
+    }
+  }, [deviceId, user])
+
+  const syncNewMessages = useCallback(async (targetUserId: number) => {
+    if (!user) throw new Error("Invalid user");
+    const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, targetUserId);
+    let after = conversationMeta?.newestSyncedAt ?? null;
+
+    while (true) {
+      const res = await api.get<GetChatMessages>(`api/chat/conversations/${user.id}/${targetUserId}`, {
+        params: {
+          originDeviceId: deviceId,
+          afterDateISOString: after
+        }
+      })
+
+      const messages = res.data.chatMessages;
+      console.log(messages);
+      if (messages.length === 0) break;
+
+      after = messages[messages.length - 1].sentAt;
+
+      if (!after) throw new Error("Error getting synced date");
+      await storeChatMessages(messages);
+
+      await storeConversationMeta({
+        ...conversationMeta,
+        conversationKey: `${user.id}-${targetUserId}`,
+        localUserId: user.id,
+        newestSyncedAt: after,
+        lastFetchedAt: new Date().toISOString()
+      });
+      
+      if (conversationMeta?.oldestSyncedAt && new Date(after) <= new Date(conversationMeta.oldestSyncedAt)) {
+        break;
+      }
+    }
+  }, [deviceId, user])
+
   return (
-    <ChatContext.Provider value={{ sendMessageToUser }}>
+    <ChatContext.Provider value={{ sendMessageToUser, syncNewMessages, syncOldMessages }}>
       {children}
     </ChatContext.Provider>
   )

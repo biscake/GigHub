@@ -1,4 +1,4 @@
-import type { StoredMessage } from "../types/chat";
+import type { StoredConversationMeta, StoredMessage } from "../types/chat";
 import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry } from "../types/crypto";
 
 const indexedDB = window.indexedDB;
@@ -21,7 +21,19 @@ function getDB(): Promise<IDBDatabase> {
         }
 
         if (!db.objectStoreNames.contains("chat-history")) {
-          db.createObjectStore("chat-history", { keyPath: "id" });
+          const chatHistoryStore = db.createObjectStore("chat-history", { keyPath: "id" });
+          chatHistoryStore.createIndex("localUserId_conversationId_sentAt", ["localUserId", "conversationKey", "sentAt"], { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains("public-keys")) {
+          const publicKeysStore = db.createObjectStore("public-keys", { keyPath: ["userId", "deviceId"] });
+          publicKeysStore.createIndex("userId", "userId", { unique: false });
+          publicKeysStore.createIndex("deviceId", "deviceId", { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains("conversation-meta")) {
+          const convoStore = db.createObjectStore("conversation-meta", { keyPath: ["conversationKey", "localUserId"] });
+          convoStore.createIndex("localUserId", "localUserId");
         }
       };
 
@@ -40,7 +52,7 @@ function getDB(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-export const updateEncryptedE2eeKey = async (userId: number, key: EncryptedE2EEKeyWithSalt): Promise<void> => {
+export const updateEncryptedE2EEKey = async (userId: number, key: EncryptedE2EEKeyWithSalt): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("keys", "readwrite");
   const store = transaction.objectStore("keys");
@@ -77,7 +89,7 @@ export const updateEncryptedE2eeKey = async (userId: number, key: EncryptedE2EEK
   })
 }
 
-export const getEncryptedE2eeEntry = async (userId: number): Promise<StoredE2EEEntry> => {
+export const getEncryptedE2EEEntry = async (userId: number): Promise<StoredE2EEEntry> => {
   const db = await getDB();
   const transaction = db.transaction("keys");
   const store = transaction.objectStore("keys");
@@ -139,7 +151,7 @@ export const deleteEncryptedE2eeKey = async (userId: number): Promise<void> => {
   })
 }
 
-export const storeEncryptedE2eeKey = async (data: StoredE2EEEntry): Promise<void> => {
+export const storeEncryptedE2EEKey = async (data: StoredE2EEEntry): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("keys", "readwrite");
   const store = transaction.objectStore("keys");
@@ -159,45 +171,54 @@ export const storeEncryptedE2eeKey = async (data: StoredE2EEEntry): Promise<void
   })
 }
 
-export const addChatMessage = async (message: StoredMessage): Promise<void> => {
+export const storeChatMessages = async (messages: StoredMessage[]): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("chat-history", "readwrite");
   const store = transaction.objectStore("chat-history");
 
   return new Promise((resolve, reject) => {
-    const request = store.put(message);
+    for (const message of messages) {
+      store.put(message);
+    }
 
-    request.onsuccess = () => {
-      console.log("Chat message successfully stored in indexedDB");
+    transaction.oncomplete = () => {
+      console.log("All chat messages successfully stored in IndexedDB");
       resolve();
-    }
+    };
 
-    request.onerror = () => {
-      console.log("Failed to store chat message in indexedDB");
-      reject();
-    }
+    transaction.onerror = () => {
+      console.log("Failed to store one or more chat messages in IndexedDB");
+      reject(transaction.error);
+    };
   })
 }
 
-export const getChatMessagesForUser = async (userId: number): Promise<StoredMessage[]> => {
+export const getMessagesBefore = async (conversationKey: string, beforeDateISOString: string, userId: number, limit: number = 20): Promise<StoredMessage[]> => {
   const db = await getDB();
-  const transaction = db.transaction("chat-history", "readwrite");
-  const store = transaction.objectStore("chat-history");
-  const index = store.index("localUserId");
+  const tx = db.transaction("chat-history", "readonly");
+  const store = tx.objectStore("chat-history");
+  const index = store.index("localUserId_conversationId_sentAt");
 
-  return new Promise((resolve, reject) => {
-    const request = index.getAll(IDBKeyRange.only(userId));
+  const messages: StoredMessage[] = [];
 
-    request.onsuccess = () => {
-      console.log("Get messages for user successfully");
-      resolve(request.result);
+  const range = IDBKeyRange.bound(
+    [userId, conversationKey, ""],
+    [userId, conversationKey, beforeDateISOString],
+    false,
+    true
+  );
+
+  index.openCursor(range, "prev").onsuccess = (event) => {
+    const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+    if (cursor && messages.length < limit) {
+      messages.push(cursor.value);
+      cursor.continue();
     }
+  };
 
-    request.onerror = () => {
-      console.log("Failed to get messages for user");
-      reject(request.error);
-    }
-  })
+  return new Promise((resolve) => {
+    tx.oncomplete = () => resolve(messages);
+  });
 }
 
 export const clearChatMessages = async (): Promise<void> => {
@@ -218,4 +239,55 @@ export const clearChatMessages = async (): Promise<void> => {
       reject(request.error);
     }
   })
+}
+
+export const storeConversationMeta = async (meta: StoredConversationMeta): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta", "readwrite");
+  const store = transaction.objectStore("conversation-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(meta);
+
+    request.onsuccess = () => {
+      console.log("Conversation meta saved successfully");
+      resolve();
+    }
+
+    request.onerror = () => {
+      console.log("Failed to save conversation meta chat messages");
+      reject(request.error);
+    }
+  })
+}
+
+export const getConversationMeta = async (fromUserId: number, toUserId: number): Promise<StoredConversationMeta | undefined> => {
+  const conversationKey = `${fromUserId}-${toUserId}`;
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta");
+  const store = transaction.objectStore("conversation-meta");
+  const index = store.index("localUserId");
+  const range = IDBKeyRange.only(fromUserId);
+
+  return new Promise((resolve) => {
+    const request = index.openCursor(range);
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (!cursor) {
+        resolve(undefined);
+        return;
+      }
+
+      if (cursor.value.conversationKey === conversationKey) {
+        resolve(cursor.value);
+        return;
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => {
+      resolve(undefined);
+    };
+  });
 }

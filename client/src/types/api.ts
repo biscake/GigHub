@@ -1,5 +1,6 @@
 import type { ApplicationStats, GigApplication } from "./application";
 import type { User } from "./auth";
+import type { StoredMessage } from "./chat";
 import type { Gig } from "./gig";
 import type { PublicKey } from "./key";
 import type { Profile } from "./profile";
@@ -45,4 +46,8 @@ export interface UserProfileResponse extends ApiResponse {
 export interface PostLoginResponse extends ApiResponse {
   user: User;
   accessToken: string;
+}
+
+export interface GetChatMessages extends ApiResponse {
+  chatMessages: StoredMessage[];
 }
