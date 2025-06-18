@@ -5,7 +5,7 @@ const ProfileCard: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
   return (
     <>
       {profile && (
-        <div className="w-full flex flex-col">
+        <div className="w-full flex flex-col items-center">
           <div className="w-full flex flex-row justify-between item-center p-5">
             <ProfileImage profilePictureKey={profile.profilePictureKey} username={profile.username} />
             <div className="flex flex-col items-center justify-center">
@@ -17,7 +17,7 @@ const ProfileCard: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
               </button>
             </div>
           </div>
-          <div className="text-3xl">
+          <div className="w-full text-2xl px-10 rounded-xl border-[0.5px] border-gray-200 shadow-xs">
             <p>Bio: </p>
             <p>{profile.bio}</p>
           </div>

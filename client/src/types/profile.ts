@@ -38,3 +38,27 @@ export type UploadProfileProps = React.InputHTMLAttributes<HTMLInputElement> & {
   setImage: React.Dispatch<React.SetStateAction<string | null>>;
   setCroppedImagePixels: React.Dispatch<React.SetStateAction<Area | null>>;
 }
+
+export type UserReviewProps = {
+  username: string;
+}
+
+type Reviewer = {
+  id: number;
+  username: string;
+}
+
+export type Review = {
+  id: number;
+  comment: string;
+  rating: number;
+  createdAt: string;
+  reviewer: Reviewer;
+};
+
+export type UserWithReviewsResponse = {
+  id: number;
+  username: string;
+  receivedReviews: Review[];
+};
+
