@@ -74,8 +74,8 @@ export const encryptJwk = async (privateKey: JsonWebKey, encryptionKey: CryptoKe
   return { iv, encryptedPrivateKey: encryptedKey };
 }
 
-// import EDCH jwk
-export const importEDCHJwk = async (jwk: JsonWebKey) => {
+// import ECDH jwk
+export const importECDHJwk = async (jwk: JsonWebKey) => {
   const isPublicKey = jwk.d === undefined;
   
   if (!jwk.key_ops) {
@@ -111,11 +111,11 @@ export const decryptJwk = async (encryptedPrivateKey: ArrayBuffer, decryptionKey
 
   const jwk = JSON.parse(decoder.decode(decryptedKey));
 
-  return importEDCHJwk(jwk);
+  return importECDHJwk(jwk);
 }
 
 // generate elliptic curve diffie hellman key pair
-export const generateEDCHKeyPair = async () => {
+export const generateECDHKeyPair = async () => {
   const keyPair = await crypto.subtle.generateKey(
     {
       name: "ECDH",
@@ -152,7 +152,7 @@ export const generateDeviceIdAndSecret = async (): Promise<DeviceIdAndSecret> =>
 }
 
 // use user's private key and recipient's public key to derive a shared key between user and recipient
-export const deriveEDCHSharedKey = async (privateKey: CryptoKey, publicKey: CryptoKey): Promise<CryptoKey> => {
+export const deriveECDHSharedKey = async (privateKey: CryptoKey, publicKey: CryptoKey): Promise<CryptoKey> => {
   return crypto.subtle.deriveKey(
     {
       name: "ECDH",
