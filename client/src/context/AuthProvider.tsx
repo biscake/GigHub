@@ -1,6 +1,6 @@
 import { type AxiosError } from 'axios';
 import { jwtDecode } from "jwt-decode";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import api from '../lib/api';
 import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
@@ -9,7 +9,7 @@ import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
 import { Loading } from '../components/Loading';
-import { clearChatMessages, deleteEncryptedE2eeKey } from '../lib/indexeddb';
+import { clearChatMessages, clearConversationMeta, deleteEncryptedE2eeKey } from '../lib/indexeddb';
 
 const idempotencyKey = uuidv4();
 
@@ -51,12 +51,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchAccessToken();
   }, [])
 
-  useEffect(() => {
-    if (accessToken) {
-      setupInterceptors({ accessToken, user, login, logout, setAccessToken });
-    }
-  }, [accessToken, user])
-
   const login = async (data: LoginFormInputs) => {
     try {
       const res = await api.post<PostLoginResponse>('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
@@ -76,7 +70,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const lastLoggedInUser = localStorage.getItem("lastLoginUser");
         if (lastLoggedInUser !== userId.toString()) {
           localStorage.setItem("lastLoginUser", userId.toString());
-          clearChatMessages();
+          await clearChatMessages();
+          await clearConversationMeta(userId);
         }
       }
 
@@ -92,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       if (!user) return;
 
@@ -117,7 +112,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (accessToken) {
+      setupInterceptors({ accessToken, user, login, logout, setAccessToken });
+    }
+  }, [accessToken, user, logout])
 
   return (
     <AuthContext.Provider value={{ accessToken, user, login, logout, setAccessToken }}>
