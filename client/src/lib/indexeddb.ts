@@ -106,7 +106,6 @@ export const getEncryptedE2EEEntry = async (userId: number): Promise<StoredE2EEE
     request.onsuccess = () => {
       console.log("Successfully retrieved encrypted e2ee key from indexedDB");
       const data: StoredE2EEEntry = request.result;
-      console.log("from db", data);
       resolve(data);
     }
   })
