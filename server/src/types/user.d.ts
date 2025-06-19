@@ -12,3 +12,7 @@ export interface updateUserByProfileParams {
   bio: string | null;
   profilePictureKey: string;
 }
+
+export interface GetUserByIdParams {
+  id: number;
+}
