@@ -14,7 +14,6 @@ export const setupWebSocket = (app: Application) => {
       const payload = JSON.parse(data.toString()) as WebsocketPayload;
       const userId = ws.userId;
       const deviceId = ws.deviceId;
-      console.log(payload)
 
       switch (payload.type) {
         case 'Auth':

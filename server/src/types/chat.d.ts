@@ -2,14 +2,14 @@ import { ChatMessage } from "./websocket-payload";
 
 export interface StoreCiphertextInDbParams {
   senderId: number;
-  receipientId: number;
+  recipientId: number;
   payloadMessages: ChatMessage[];
   senderDeviceId: string;
 }
 
 export interface MarkMessageIdArrayAsReadParams {
   messageIds: string[];
-  receipientId: number;
+  recipientId: number;
 }
 
 export interface GetSenderIdByMessageIdParams {

@@ -2,36 +2,41 @@ import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { GetChatMessagesParams, GetChatMessagesRes, GetSenderIdByMessageIdParams, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
 
-export const storeCiphertextInDb = async ({ senderId, senderDeviceId, receipientId, payloadMessages }: StoreCiphertextInDbParams) => {
+export const storeCiphertextInDb = async ({ senderId, senderDeviceId, recipientId, payloadMessages }: StoreCiphertextInDbParams) => {
   try {
-    await prisma.chatMessage.create({
+    const result = await prisma.chatMessage.create({
       data: {
         senderId,
-        receipientId,
+        recipientId,
         devices: {
           createMany: {
             data: payloadMessages.map(msg => ({
               senderDeviceId,
-              receipientDeviceId: msg.deviceId,
+              recipientDeviceId: msg.deviceId,
               ciphertext: msg.ciphertext
             }))
           }
         }
+      },
+      include: {
+        devices: true,
       }
     });
+  
+    return result;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to store message in database");
   }
 }
 
-export const markMessageIdArrayAsRead = async ({ messageIds, receipientId }: MarkMessageIdArrayAsReadParams) => {
+export const markMessageIdArrayAsRead = async ({ messageIds, recipientId }: MarkMessageIdArrayAsReadParams) => {
   try {
     await prisma.chatMessage.updateMany({
       where: {
         id: {
           in: messageIds,
         },
-        receipientId
+        recipientId
       },
       data: {
         readAt: new Date()
@@ -69,39 +74,34 @@ export const getChatMessages = async ({
   try {
     const result = await prisma.chatMessage.findMany({
       where: {
-        OR: [
+        AND: [
           {
-            senderId: originUserId,
-            receipientId: targetUserId,
-            devices: {
-              some: {
-                OR: [
-                  { senderDeviceId: originDeviceId },
-                  { receipientDeviceId: originDeviceId }
-                ]
+            OR: [
+              {
+                senderId: originUserId,
+                recipientId: targetUserId
+              },
+              {
+                senderId: targetUserId,
+                recipientId: originUserId
               }
-            }
+            ]
           },
           {
-            senderId: targetUserId,
-            receipientId: originUserId,
-            devices: {
-              some: {
-                receipientDeviceId: originDeviceId
+            ...(beforeDateISOString && {
+              sentAt: {
+                lt: new Date(beforeDateISOString)
               }
-            }
+            })
+          },
+          {
+            ...(afterDateISOString && {
+              sentAt: {
+                gt: new Date(afterDateISOString)
+              }
+            })
           }
-        ],
-        ...(beforeDateISOString && {
-          sentAt: {
-            lt: new Date(beforeDateISOString)
-          }
-        }),
-        ...(afterDateISOString && {
-          sentAt: {
-            gt: new Date(afterDateISOString)
-          }
-        })
+        ]
       },
       include: {
         devices: true
@@ -113,16 +113,22 @@ export const getChatMessages = async ({
     })
 
     const formatted: GetChatMessagesRes[] = result.map(msg => {
+      const device = msg.devices.find(dev => dev.recipientDeviceId === originDeviceId);
+
+      if (!device) {
+        return null;
+      }
+
       const tmp: GetChatMessagesRes = {
-        id: msg.id,
+        id: device.id,
         from: {
           userId: msg.senderId,
-          deviceId: msg.devices[0].senderDeviceId,
+          deviceId: device.senderDeviceId,
         },
         to: {
-          userId: msg.receipientId,
+          userId: msg.recipientId,
         },
-        ciphertext: msg.devices[0].ciphertext,
+        ciphertext: device.ciphertext,
         sentAt: msg.sentAt.toISOString(),
         readAt: msg.readAt?.toISOString(),
         direction: msg.senderId === originUserId ? 'outgoing' : 'incoming',
@@ -131,11 +137,11 @@ export const getChatMessages = async ({
       }
 
       return tmp;
-    })
+    }).filter(msg => msg !== null);
 
-    result.map(r => console.log(r.sentAt.toISOString()));
     return formatted;
-  } catch {
+  } catch (err) {
+    console.error(err)
     throw new ServiceError("Prisma", "Failed to get chat messages from database");
   }
 }
