@@ -1,5 +1,6 @@
 import type { StoredConversationMeta, StoredMessage } from "../types/chat";
 import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry } from "../types/crypto";
+import type { StoredE2EEPublicKey } from "../types/key";
 
 const indexedDB = window.indexedDB;
 
@@ -8,7 +9,7 @@ let dbPromise: Promise<IDBDatabase> | null = null;
 function getDB(): Promise<IDBDatabase> {
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open("gighub-db", 1);
+      const request = indexedDB.open("gighub-db", 2);
 
       request.onerror = () => {
         reject(request.error);
@@ -28,7 +29,7 @@ function getDB(): Promise<IDBDatabase> {
         if (!db.objectStoreNames.contains("public-keys")) {
           const publicKeysStore = db.createObjectStore("public-keys", { keyPath: ["userId", "deviceId"] });
           publicKeysStore.createIndex("userId", "userId", { unique: false });
-          publicKeysStore.createIndex("deviceId", "deviceId", { unique: false });
+          publicKeysStore.createIndex("userId-deviceId", ["userId", "deviceId"], { unique: true });
         }
 
         if (!db.objectStoreNames.contains("conversation-meta")) {
@@ -105,7 +106,7 @@ export const getEncryptedE2EEEntry = async (userId: number): Promise<StoredE2EEE
     request.onsuccess = () => {
       console.log("Successfully retrieved encrypted e2ee key from indexedDB");
       const data: StoredE2EEEntry = request.result;
-
+      console.log("from db", data);
       resolve(data);
     }
   })
@@ -193,7 +194,8 @@ export const storeChatMessages = async (messages: StoredMessage[]): Promise<void
   })
 }
 
-export const getMessagesBefore = async (conversationKey: string, beforeDateISOString: string, userId: number, limit: number = 20): Promise<StoredMessage[]> => {
+export const getMessagesBefore = async (userId: number, targetUserId: number, beforeDateISOString: string, limit: number = 30): Promise<StoredMessage[]> => {
+  const conversationKey = `${userId}-${targetUserId}`
   const db = await getDB();
   const tx = db.transaction("chat-history", "readonly");
   const store = tx.objectStore("chat-history");
@@ -290,4 +292,92 @@ export const getConversationMeta = async (fromUserId: number, toUserId: number):
       resolve(undefined);
     };
   });
+}
+
+export const clearConversationMeta = async (localUserId: number): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta", "readwrite");
+  const store = transaction.objectStore("conversation-meta");
+  const index = store.index("localUserId");
+  const range = IDBKeyRange.only(localUserId);
+
+  return new Promise((resolve, reject) => {
+    const request = index.openCursor(range);
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+      }
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+
+    transaction.oncomplete = () => {
+      console.log(`Conversation meta for ${localUserId} deleted`);
+      resolve();
+    };
+
+    transaction.onerror = () => reject(transaction.error);
+  });
+}
+
+export const storeE2EEPublicKey = async (data: StoredE2EEPublicKey): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("public-keys", "readwrite");
+  const store = transaction.objectStore("public-keys");
+  
+  return new Promise((resolve, reject) => {
+    const request = store.put(data);
+
+    request.onsuccess = () => {
+      console.log("E2EE entry successfully stored in indexedDB");
+      resolve();
+    }
+
+    request.onerror = () => {
+      console.log("Failed to store E2EE entry in indexedDB");
+      reject(request.error);
+    }
+  })
+}
+
+export const getAllUserE2EEPublicKeys = async (userId: number): Promise<StoredE2EEPublicKey[]> => {
+  const db = await getDB();
+  const transaction = db.transaction("public-keys");
+  const store = transaction.objectStore("public-keys");
+  const index = store.index("userId");
+  const range = IDBKeyRange.only(userId);
+
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(range);
+    request.onsuccess = () => {
+      resolve(request.result as StoredE2EEPublicKey[]);
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    }
+  })
+}
+
+export const getUserDeviceE2EEPublicKey = async (userId: number, deviceId: string): Promise<StoredE2EEPublicKey | null> => {
+  const db = await getDB();
+  const transaction = db.transaction("public-keys");
+  const store = transaction.objectStore("public-keys");
+  const index = store.index("userId-deviceId");
+  const range = IDBKeyRange.only([userId, deviceId]);
+
+  return new Promise((resolve) => {
+    const request = index.get(range);
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onerror = () => {
+      resolve(null);
+    }
+  })
 }
