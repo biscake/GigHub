@@ -62,3 +62,11 @@ export type UserWithReviewsResponse = {
   receivedReviews: Review[];
 };
 
+export type UserIdResponse = {
+  userId: number;
+}
+
+export type ReviewUserData = {
+  comment: string;
+  rating: number;
+}

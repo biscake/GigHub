@@ -3,7 +3,8 @@ import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { GetUserByIdParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { BadRequestError } from "../errors/bad-request-error";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -108,9 +109,42 @@ export const getUserById = async ({ id }: GetUserByIdParams) => {
     const user = await prisma.user.findUnique({
       where: { id }
     });
-
+    
     return user;
   } catch {
     throw new ServiceError("Primsa", "Failed to get user from database");
+  }
+}
+
+export const getUserByName = async ({ username }: GetUserByNameParams) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username }
+    });
+    
+    return user;
+  } catch {
+    throw new ServiceError("Primsa", "Failed to get user from database");
+  }
+}
+
+export const createReviewInDatabase = async (review: createReviewInDatabaseParams) => {
+  try {
+    const result = await prisma.review.create({
+      data: {
+        comment: review.comment,
+        rating: review.rating,
+        reviewerId: review.reviewerId,
+        revieweeId: review.revieweeId,
+      }
+    });
+
+    return result;
+  } catch (err) {
+    if (err instanceof BadRequestError) {
+      throw err;
+    }
+
+    throw new ServiceError("Prisma", "Failed to create review in database");
   }
 }

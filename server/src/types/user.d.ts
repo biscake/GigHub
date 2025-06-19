@@ -16,3 +16,14 @@ export interface updateUserByProfileParams {
 export interface GetUserByIdParams {
   id: number;
 }
+
+export interface GetUserByNameParams {
+  username: string;
+}
+
+export interface createReviewInDatabaseParams {
+  comment: string;
+  rating: number;
+  reviewerId: number;
+  revieweeId: number;
+}
