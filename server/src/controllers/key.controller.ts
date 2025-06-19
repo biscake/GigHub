@@ -3,12 +3,14 @@ import asyncHandler from 'express-async-handler';
 import { getPublicKeysByUserId, storeNewDeviceByUserId } from '../services/key.service';
 
 export const getEncryptedPrivateKey = asyncHandler(async (req: Request, res: Response) => {
-  const { encryptedPrivateKey } = req.device;
+  const { encryptedPrivateKey, iv, salt } = req.device;
 
   res.status(200).json({
     success: true,
     message: "Get encrypted private key successfully",
-    encryptedPrivateKey
+    encryptedPrivateKey,
+    iv,
+    salt
   })
 })
 
