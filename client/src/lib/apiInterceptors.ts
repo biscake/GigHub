@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { type AuthContextType } from "../types/auth";
 import api from "./api";
+import type { AuthContextType } from "../types/context";
 
 let requestInterceptorId: number | null = null;
 let responseInterceptorId: number | null = null;
