@@ -70,3 +70,7 @@ export type ReviewUserData = {
   comment: string;
   rating: number;
 }
+
+export type CreateReviewFormProps = {
+  setIsReview: React.Dispatch<React.SetStateAction<boolean>>;
+}

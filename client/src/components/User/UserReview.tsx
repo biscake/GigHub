@@ -32,7 +32,7 @@ const UserReview: React.FC<UserReviewProps> = ({ username }) => {
   return (
     <>
       {isReview ? (
-        <CreateReviewForm />
+        <CreateReviewForm setIsReview={setIsReview} />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-between w-full p-5">
           <div className="w-full flex flex-row justify-between gap-2 p-5">

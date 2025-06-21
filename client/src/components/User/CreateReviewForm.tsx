@@ -1,15 +1,15 @@
 import { FormProvider, useForm, type SubmitHandler } from "react-hook-form";
-import type { ReviewUserData, UserIdResponse } from "../../types/profile";
+import type { CreateReviewFormProps, ReviewUserData, UserIdResponse } from "../../types/profile";
 import api from "../../lib/api";
 import { useIdempotencyKey } from "../../hooks/useIdempotencyKey";
 import type { AxiosError } from "axios";
 import type { ApiErrorResponse, ValidationError } from "../../types/api";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useGetApi } from "../../hooks/useGetApi";
 import { Spinner } from "../Spinner";
 
-const CreateReviewForm = () => {
+const CreateReviewForm: React.FC<CreateReviewFormProps> = ({ setIsReview }) => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
   const idempotencyKey = useIdempotencyKey();
   const { username: reviewee } = useParams();
@@ -33,6 +33,7 @@ const CreateReviewForm = () => {
         }
       });
 
+      setIsReview(false);
     } catch (e) {
       console.log(e)
       const err = e as AxiosError<ApiErrorResponse>;
@@ -77,6 +78,7 @@ const CreateReviewForm = () => {
             <button
               className="w-1/4 rounded-md bg-gray-200 py-2 text-sm font-medium text-black hover:bg-gray-300 cursor-pointer"
               type="button"
+              onClick={() => setIsReview(false)}
             >
               Cancel
             </button>
