@@ -34,6 +34,7 @@ const CreateReviewForm = () => {
       });
 
     } catch (e) {
+      console.log(e)
       const err = e as AxiosError<ApiErrorResponse>;
       const errorMessage = err.response?.data?.message;
 
@@ -75,6 +76,7 @@ const CreateReviewForm = () => {
             / >
             <button
               className="w-1/4 rounded-md bg-gray-200 py-2 text-sm font-medium text-black hover:bg-gray-300 cursor-pointer"
+              type="button"
             >
               Cancel
             </button>
