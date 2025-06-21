@@ -11,13 +11,13 @@ const ProfileCard: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
             <div className="flex flex-col items-center justify-center">
               <button
                 onClick={() => setIsEdit(true)}
-                className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto cursor-pointer"
+                className="w-full justify-center rounded-md bg-green-600 px-3 p-2 text-xl font-semibold text-white shadow-xs hover:bg-green-500 sm:w-auto cursor-pointer"
               >
                 edit
               </button>
             </div>
           </div>
-          <div className="w-full text-2xl px-10 rounded-xl border-[0.5px] border-gray-200 shadow-xs">
+          <div className="w-full text-2xl px-10 py-5 rounded-xl border-[0.5px] border-gray-200 shadow-xs">
             <p>Bio: </p>
             <p>{profile.bio}</p>
           </div>

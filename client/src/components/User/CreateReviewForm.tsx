@@ -48,17 +48,22 @@ const CreateReviewForm = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full p-5">
+    <div className="flex flex-col items-center justify-center bg-main w-full pt-5">
       <FormProvider {...methods}>
         <div
-          className="flex items-center justify-center min-h-screen px-4"
+          className="flex flex-col items-center justify-center w-full p-5 rounded-xl border-[0.5px] border-gray-200 shadow-xs"
         >
           <form
             method='post'
             onSubmit={methods.handleSubmit(handleUserReview)}
-            className="w-full max-w-sm flex flex-col gap-5 text-center text-sm text-black"
+            className="w-full max-w-sm flex flex-col gap-5 items-center text-center text-sm text-black"
           >
-            <textarea {...methods.register("comment")} id="comment"></textarea>
+            <h2 className="text-2xl font-semibold text-center text-main">Leave a review: </h2>
+            <textarea 
+              {...methods.register("comment")} 
+              id="comment"
+              className="w-full min-h-[100px] resize-none rounded-xl border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-main"
+            / >
             <input
               type="number"
               id="rating"
@@ -66,14 +71,15 @@ const CreateReviewForm = () => {
               max="5"
               step="1"
               {...methods.register("rating")}
+              className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-main"
             / >
             <button
-              className="w-full justify-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-black shadow-xs hover:bg-gray-400 sm:ml-3 sm:w-auto cursor-pointer"
+              className="w-1/4 rounded-md bg-gray-200 py-2 text-sm font-medium text-black hover:bg-gray-300 cursor-pointer"
             >
               Cancel
             </button>
             <button
-              className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto cursor-pointer"
+              className="w-1/4 rounded-md bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-500 cursor-pointer"
               type="submit"
             >
               Submit

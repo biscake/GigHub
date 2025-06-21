@@ -95,7 +95,10 @@ export const getUserIdByUsername = asyncHandler(async (req: Request, res: Respon
 export const createReview = asyncHandler(async (req: Request, res: Response) => {
   const idempotencyKey = req.idempotencyKey;
 
-  const review = await createReviewInDatabase({ ...req.body });
+  const review = await createReviewInDatabase({ 
+    ...req.body,
+    reviewerId: req.user.id
+  });
 
   const responseBody = {
     success: true,

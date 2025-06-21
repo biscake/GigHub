@@ -133,7 +133,7 @@ export const createReviewInDatabase = async (review: createReviewInDatabaseParam
     const result = await prisma.review.create({
       data: {
         comment: review.comment,
-        rating: review.rating,
+        rating: Number(review.rating),
         reviewerId: review.reviewerId,
         revieweeId: review.revieweeId,
       }
