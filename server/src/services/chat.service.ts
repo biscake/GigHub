@@ -1,6 +1,6 @@
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { GetChatMessagesParams, GetChatMessagesRes, GetSenderIdByMessageIdParams, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
+import { GetChatMessagesParams, GetChatMessagesRes, GetSenderIdByMessageIdParams, GetUpdatedReadReceipt, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
 
 export const storeCiphertextInDb = async ({ senderId, senderDeviceId, recipientId, payloadMessages }: StoreCiphertextInDbParams) => {
   try {
@@ -34,7 +34,7 @@ export const markMessageIdArrayAsRead = async ({ messageIds, recipientId }: Mark
     await prisma.chatMessage.updateMany({
       where: {
         id: {
-          in: messageIds,
+          in: messageIds
         },
         recipientId
       },
@@ -120,7 +120,7 @@ export const getChatMessages = async ({
       }
 
       const tmp: GetChatMessagesRes = {
-        id: device.id,
+        id: msg.id,
         from: {
           userId: msg.senderId,
           deviceId: device.senderDeviceId,
@@ -141,7 +141,25 @@ export const getChatMessages = async ({
 
     return formatted;
   } catch (err) {
-    console.error(err)
     throw new ServiceError("Prisma", "Failed to get chat messages from database");
+  }
+}
+
+export const getUpdatedReadReceipt = async ({ lastUpdatedISOString, originUserId, targetUserId }: GetUpdatedReadReceipt) => {
+  try {
+    const result = await prisma.chatMessage.findMany({
+      where: {
+        senderId: originUserId,
+        recipientId: targetUserId,
+        readAt: {
+          ...(lastUpdatedISOString && { gt: new Date(lastUpdatedISOString)}) ,
+          not: null
+        }
+      }
+    })
+
+    return result.map(msg => ({ messageId: msg.id, readAt: msg.readAt!.toISOString() }));
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to get updated read receipts from database");
   }
 }

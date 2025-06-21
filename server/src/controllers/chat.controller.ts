@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { getChatMessages } from '../services/chat.service';
+import { getChatMessages, getUpdatedReadReceipt } from '../services/chat.service';
 
-export const getChatMessagesBetweenUsers = asyncHandler(
+export const syncMessagesBetweenUsers = asyncHandler(
   async (req: Request, res: Response) => {
     if (!req.query.originDeviceId) throw new BadRequestError("Missing queries");
 
@@ -27,8 +27,31 @@ export const getChatMessagesBetweenUsers = asyncHandler(
 
     res.status(200).json({
       success: true,
-      message: `Get chat messages between ${originUserId} and ${targetUserId} successfully`,
-      chatMessages
+      message: `Messages of user ${originUserId} and user ${targetUserId} synced successfully`,
+      chatMessages,
     })
   },
 );
+
+export const syncReadReceiptBetweenUsers = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.params.originUserId || !req.params.targetUserId) throw new BadRequestError("Missing user id");
+    
+    const since = req.query.since as string;
+    const originUserId = parseInt(req.params.originUserId);
+    const targetUserId = parseInt(req.params.targetUserId);
+
+    const updatedReadReceipts = await getUpdatedReadReceipt({
+      lastUpdatedISOString: since,
+      originUserId,
+      targetUserId
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Read receipt of user ${originUserId} and user ${targetUserId} synced successfully`,
+      updatedReadReceipts,
+      lastUpdatedISOString: (new Date()).toISOString()
+    })
+  }
+)

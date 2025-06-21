@@ -20,9 +20,16 @@ export interface ChatSenderPayload extends ChatRecipientPayload {
   to: number;
 }
 
-export interface ReadReceiptPayload {
+export interface ReadPayload {
   type: 'Read';
   messageIds: string[];
+}
+
+export interface ReadReceiptPayload {
+  type: 'Read-Receipt';
+  recipientId: number;
+  messageId: string;
+  readAt: string;
 }
 
 export interface AuthPayload {
@@ -31,4 +38,4 @@ export interface AuthPayload {
   deviceId: string;
 }
 
-export type WebsocketPayload = ChatMessagePayload | ReadReceiptPayload | AuthPayload;
+export type WebsocketPayload = ChatMessagePayload | ReadPayload | AuthPayload;

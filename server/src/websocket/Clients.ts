@@ -31,4 +31,17 @@ export class Clients {
       socket.send(JSON.stringify(message));
     }
   }
+
+  public sendAllUserDevice(userId: number, message: Record<string, any>) {
+    const userSockets = this.clients.get(userId);
+    if (!userSockets) {
+      return;
+    }
+
+    userSockets.forEach(socket => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(message));
+      }
+    })
+  }
 }

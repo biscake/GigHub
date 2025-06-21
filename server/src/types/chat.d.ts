@@ -41,3 +41,9 @@ export interface GetChatMessagesRes {
   localUserId: number;
   conversationKey: string;
 }
+
+export interface GetUpdatedReadReceipt {
+  lastUpdatedISOString: string;
+  originUserId: number;
+  targetUserId: number;
+}
