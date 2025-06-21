@@ -9,6 +9,7 @@ import { type SignupFormInputs } from '../../types/form';
 import { cpasswordValidation, emailValidation, passwordValidation, usernameValidation } from '../../validators/signupFormValidators';
 import { FormInput } from './FormInput';
 import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
+import { useE2EE } from '../../hooks/useE2EE';
 
 const SignupForm = () => {
   const idempotencyKey = useIdempotencyKey();
@@ -16,6 +17,7 @@ const SignupForm = () => {
 
   const methods = useForm<SignupFormInputs>({ mode: 'onChange' });
   const { login, user } = useAuth();
+  const { setPassword } = useE2EE();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,6 +35,7 @@ const SignupForm = () => {
         }
       });
 
+      setPassword(() => data.password);
       await login({ username: data.username , password: data.password, rememberMe: true });
       navigate('/');
     } catch (err) {

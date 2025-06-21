@@ -1,34 +1,30 @@
 import { Application, Request } from 'express';
-import WebSocket from 'ws';
 import { Clients } from './Clients';
-import { authenticateWS } from './middleware/auth.middleware';
 import { WebsocketPayload } from '../types/websocket-payload';
 import { handleChat } from './handlers/chat.handler';
 import { handleRead } from './handlers/read.handler';
+import { ExtWebSocket } from '../types/ws';
+import { handleAuth } from './handlers/auth.handler';
 
 const clients = new Clients();
 
 export const setupWebSocket = (app: Application) => {
-  app.ws('/ws', async (ws: WebSocket, req: Request) => {
-    const user = await authenticateWS(req);
-
-    if (!user) {
-      ws.close();
-      return;
-    }
-
-    clients.add(user.id, ws);
-    console.log(`${user.username} connected`);
-
+  app.ws('/ws', async (ws: ExtWebSocket, _req: Request) => {
     ws.on('message', (data) => {
       const payload = JSON.parse(data.toString()) as WebsocketPayload;
+      const userId = ws.userId;
+      const deviceId = ws.deviceId;
 
       switch (payload.type) {
+        case 'Auth':
+          return handleAuth(payload.accessToken, payload.deviceId, ws, clients);
         case 'Chat':
-          return handleChat(user.id, payload, clients);
+          if (!userId || !deviceId) return;
+          return handleChat(userId, deviceId, payload, clients);
         
         case 'Read':
-          return handleRead(user.id, payload, clients);
+          if (!userId) return;
+          return handleRead(userId, payload, clients);
       }
     })
   })

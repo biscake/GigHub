@@ -1,14 +1,15 @@
 import { type AxiosError } from 'axios';
 import { jwtDecode } from "jwt-decode";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import api from '../lib/api';
 import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
-import type { ApiErrorResponse } from '../types/api';
+import type { ApiErrorResponse, PostLoginResponse } from '../types/api';
 import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
 import { Loading } from '../components/Loading';
+import { clearChatMessages, clearConversationMeta, deleteEncryptedE2eeKey } from '../lib/indexeddb';
 
 const idempotencyKey = uuidv4();
 
@@ -50,19 +51,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchAccessToken();
   }, [])
 
-  useEffect(() => {
-    if (accessToken) {
-      setupInterceptors({ accessToken, user, login, logout, setAccessToken });
-    }
-  }, [accessToken, user])
-
   const login = async (data: LoginFormInputs) => {
     try {
-      const res = await api.post('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
+      const res = await api.post<PostLoginResponse>('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
       
-      const token = res.data.accessToken; 
+      const token = res.data.accessToken;
+      const userId = res.data.user.id;
 
-      if (token) {
+      if (token && userId) {
         setAccessToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const decoded = jwtDecode(token) as JwtPayload;
@@ -70,6 +66,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         localStorage.setItem("rememberMe", data.rememberMe ? "true" : "false");
         sessionStorage.setItem("sessionActive", "true");
+
+        const lastLoggedInUser = localStorage.getItem("lastLoginUser");
+        if (lastLoggedInUser !== userId.toString()) {
+          localStorage.setItem("lastLoginUser", userId.toString());
+          await clearChatMessages();
+          await clearConversationMeta(userId);
+        }
       }
 
       return { success: true };
@@ -84,10 +87,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
+      if (!user) return;
+
       const res = await api.post('/api/auth/logout');
 
+      await deleteEncryptedE2eeKey(user.id);
       setAccessToken(null);
       setUser(null);
       localStorage.removeItem("rememberMe");
@@ -106,7 +112,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (accessToken) {
+      setupInterceptors({ accessToken, user, login, logout, setAccessToken });
+    }
+  }, [accessToken, user, logout])
 
   return (
     <AuthContext.Provider value={{ accessToken, user, login, logout, setAccessToken }}>
