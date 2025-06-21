@@ -222,6 +222,89 @@ export const getMessagesBefore = async (userId: number, targetUserId: number, be
   });
 }
 
+export const getMessagesByPage = async (userId: number, targetUserId: number, page: number = 0, pageSize: number = 30): Promise<StoredMessage[]> => {
+  if (page < 0) throw new Error("Invalid page");
+  if (pageSize <= 0) throw new Error("Invalid page size");
+
+  const conversationKey = `${userId}-${targetUserId}`
+  const db = await getDB();
+  const tx = db.transaction("chat-history", "readonly");
+  const store = tx.objectStore("chat-history");
+  const index = store.index("localUserId_conversationId_sentAt");
+
+  const messages: StoredMessage[] = [];
+  console.log(userId, conversationKey);
+  const range = IDBKeyRange.bound(
+    [userId, conversationKey, ''],
+    [userId, conversationKey, '\uffff'],
+    false,
+    false
+  );
+
+  return new Promise((resolve, reject) => {
+    const request = index.openCursor(range, "prev");
+    let skipped = false;
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+  
+      if (!cursor) {
+        resolve(messages);
+        return;
+      }
+
+      if (!skipped && page > 0) {
+        skipped = true;
+        cursor.advance(pageSize * page);
+        return;
+      } 
+
+      messages.push(cursor.value);
+
+      if (messages.length >= pageSize) {
+        resolve(messages);
+        return;
+      }
+
+      cursor.continue();
+    }
+
+    request.onerror = () => {
+      console.error("Failed to get messages by page");
+      reject(request.error);
+    }
+  })
+}
+
+export const updateMessageReadAt = async (messageId: string, readAtISOString: string): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-history", "readwrite");
+  const store = transaction.objectStore("chat-history");
+
+  return new Promise((resolve, reject) => {
+    const getRequest = store.get(messageId);
+    getRequest.onsuccess = () => {
+      const updateRequest = store.put({
+        ...getRequest.result,
+        readAt: new Date(readAtISOString)
+      })
+
+      updateRequest.onsuccess = () => {
+        console.log(`ReadAt for message ${messageId} updated`);
+        resolve();
+      }
+
+      updateRequest.onerror = () => {
+        reject(updateRequest.error);
+      }
+    };
+
+    getRequest.onerror = () => {
+      reject(getRequest.error)
+    }
+  })
+}
+
 export const clearChatMessages = async (): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("chat-history", "readwrite");

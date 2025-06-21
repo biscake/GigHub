@@ -48,6 +48,14 @@ export interface PostLoginResponse extends ApiResponse {
   accessToken: string;
 }
 
-export interface GetChatMessages extends ApiResponse {
+export interface GetChatMessagesResponse extends ApiResponse {
   chatMessages: StoredMessage[];
+}
+
+export interface GetReadReceiptResponse extends ApiResponse {
+  updatedReadReceipts: {
+    messageId: string;
+    readAt: string;
+  }[];
+  lastUpdatedISOString: string;
 }

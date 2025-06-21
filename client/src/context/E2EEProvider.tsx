@@ -5,11 +5,12 @@ import api from "../lib/api";
 import { getEncryptedE2EEEntry, getUserDeviceE2EEPublicKey, storeE2EEPublicKey, storeEncryptedE2EEKey } from "../lib/indexeddb";
 import type { User } from "../types/auth";
 import type { EncryptedE2EEKeyResponse, StoredE2EEEntry } from "../types/crypto";
-import { decryptJwk, deriveECDHSharedKey, derivePBKDF2Key, encryptJwk, generateDeviceIdAndSecret, generateECDHKeyPair, generateSalt, importECDHJwk, unwrapDerivedKey, wrapDerivedKey } from "../utils/crypto";
+import { decryptJwk, decryptMessage, deriveECDHSharedKey, derivePBKDF2Key, encryptJwk, generateDeviceIdAndSecret, generateECDHKeyPair, generateSalt, importECDHJwk, unwrapDerivedKey, wrapDerivedKey } from "../utils/crypto";
 import { arrayBufferToBase64, base64ToArrayBuffer, base64ToUint8, Uint8ToBase64 } from "../utils/utils";
 import { E2EEContext } from "./E2EEContext";
 import type { DerivedSharedKey, ImportedPublicKey, PublicKey, StoredE2EEPublicKey } from "../types/key";
 import type { GetPublicKeysResponse } from "../types/api";
+import type { StoredMessage } from "../types/chat";
 
 export const E2EEProvider = ({ children }: { children: ReactNode }) => {
   const [privateKey, setPrivateKey] = useState<CryptoKey | null>(null);
@@ -193,7 +194,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const getUserDevicePublicKey = async (userId: number, deviceId: string): Promise<ImportedPublicKey[]> => {
+  const getUserDevicePublicKey = useCallback(async (userId: number, deviceId: string): Promise<ImportedPublicKey[]> => {
     let key: StoredE2EEPublicKey | PublicKey | null = (await getUserDeviceE2EEPublicKey(userId, deviceId));
 
     if (!key) {
@@ -226,9 +227,9 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return [ importedKey ];
-  }
+  }, [])
 
-  const deriveSharedKeys = async (publicKeys: ImportedPublicKey[]): Promise<DerivedSharedKey[]> => {
+  const deriveSharedKeys = useCallback(async (publicKeys: ImportedPublicKey[]): Promise<DerivedSharedKey[]> => {
     try {
       if (!privateKey) throw new Error("Private key not initialized");
 
@@ -241,7 +242,22 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to derive shared keys", err);
       throw err;
     }
-  }
+  }, [privateKey])
+
+  const decryptCiphertext = useCallback(async (data: StoredMessage): Promise<string> => {
+    try {
+      const publicKeys = await getUserDevicePublicKey(data.from.userId, data.from.deviceId);
+      const sharedKeys = await deriveSharedKeys(publicKeys);
+
+      const { ciphertext } = data;
+
+      const text = await decryptMessage(ciphertext, sharedKeys[0].sharedKey);
+      return text;
+    } catch (err) {
+      console.error("Failed to decrypt message", err);
+      throw err;
+    }
+  }, [deriveSharedKeys, getUserDevicePublicKey])
 
   useEffect(() => {
     const runInitKeys = async () => {
@@ -269,7 +285,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
   }, [user, initKeyWithPassword, initKeyWithoutPassword, initNewDevice, password]);
 
   return (
-    <E2EEContext.Provider value={{ privateKey, setPassword, deviceId, getAllUserPublicKeys, getUserDevicePublicKey, deriveSharedKeys }}>
+    <E2EEContext.Provider value={{ privateKey, setPassword, deviceId, getAllUserPublicKeys, getUserDevicePublicKey, deriveSharedKeys, decryptCiphertext }}>
       {children}
     </E2EEContext.Provider>
   )

@@ -20,11 +20,18 @@ export interface ChatSenderPayload extends ChatRecipientPayload {
   to: number;
 }
 
-export type ChatOnMessagePayload = ChatRecipientPayload | ChatSenderPayload;
+export type WebSocketOnMessagePayload = ChatRecipientPayload | ChatSenderPayload | ReadReceiptPayload;
 
-export interface ReadReceiptPayload {
+export interface ReadPayload {
   type: 'Read';
   messageIds: string[];
+}
+
+export interface ReadReceiptPayload {
+  type: 'Read-Receipt';
+  messageId: string;
+  readAt: string;
+  recipientId: number;
 }
 
 export interface AuthPayload {
@@ -33,7 +40,7 @@ export interface AuthPayload {
   deviceId: string;
 }
 
-export type WebsocketPayload = ChatMessagePayload | ReadReceiptPayload | AuthPayload;
+export type WebSocketMessagePayload = ChatMessagePayload | ReadPayload | AuthPayload;
 
 export interface StoredMessage {
   id: string;
@@ -58,4 +65,21 @@ export interface StoredConversationMeta {
   lastFetchedAt?: string;
   oldestSyncedAt?: string;
   newestSyncedAt?: string;
+  lastReadReceiptUpdatedAt?: string;
+}
+
+export interface CachedDecryptedMessage {
+  text: string;
+  sentAt: string;
+  readAt?: string;
+  direction: "incoming" | "outgoing";
+  id: string;
+}
+
+export interface DecryptedChatMessage {
+  id: string;
+  sentAt: string;
+  readAt?: string;
+  text: string;
+  direction: string;
 }
