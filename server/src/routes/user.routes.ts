@@ -33,4 +33,6 @@ router.put('/:username/profile/edit',
 
 router.get('/:username', getUserIdByUsername)
 
+router.get('/userid/:id', getUsernameByUserId)
+
 export default router;

@@ -69,7 +69,7 @@ export const getReceivedReviewsByUsername = asyncHandler(async (req: Request, re
 })
 
 export const getUsernameByUserId = asyncHandler(async (req: Request, res: Response) => {
-  const id = Number(req.params.userId);
+  const id = Number(req.params.id);
 
   const user = await getUserById({ id });
 
