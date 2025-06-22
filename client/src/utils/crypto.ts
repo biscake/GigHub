@@ -1,5 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
-import type { DeviceIdAndSecret, EncryptedE2EEKey } from "../types/crypto";
+import type { EncryptedE2EEKey } from "../types/crypto";
 import { base64ToUint8, Uint8ToBase64 } from "./utils";
 
 // use pbkdf2 to derive a key from user's password + device secret
@@ -137,7 +136,7 @@ export const generateECDHKeyPair = async () => {
 };
 
 // device secret key that is used to wrap derived PBKDF2 key
-const generateDeviceSecret = async (): Promise<CryptoKey> => {
+export const generateDeviceSecret = async (): Promise<CryptoKey> => {
   const deviceSecret = await crypto.subtle.generateKey(
     { name: "AES-KW", length: 256 },
     false,
@@ -145,10 +144,6 @@ const generateDeviceSecret = async (): Promise<CryptoKey> => {
   );
 
   return deviceSecret;
-}
-
-export const generateDeviceIdAndSecret = async (): Promise<DeviceIdAndSecret> => {
-  return { deviceId: uuidv4(), deviceSecret: await generateDeviceSecret() };
 }
 
 // use user's private key and recipient's public key to derive a shared key between user and recipient
