@@ -14,10 +14,10 @@ export const setupWebSocket = (app: Application) => {
       const payload = JSON.parse(data.toString()) as WebsocketPayload;
       const userId = ws.userId;
       const deviceId = ws.deviceId;
-
+      
       switch (payload.type) {
         case 'Auth':
-          return handleAuth(payload.accessToken, payload.deviceId, ws, clients);
+          return handleAuth(payload.accessToken, ws, clients);
         case 'Chat':
           if (!userId || !deviceId) return;
           return handleChat(userId, deviceId, payload, clients);
