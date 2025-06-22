@@ -11,23 +11,15 @@ export const registerUser = asyncHandler(
     const pwHash = req.pwHash;
     const idempotencyKey = req.idempotencyKey;
 
-    const { accessToken, refreshToken, user } = await register({ username, email, pwHash });
+    const { user } = await register({ username, email, pwHash });
 
     const responseBody = {
       success: true,
       message: 'User successfully registered',
       user,
-      accessToken: accessToken,
     };
 
     await storeResponse({responseBody, idempotencyKey});
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-      maxAge: TWO_WEEKS_MS
-    });
 
     res.status(200).json(responseBody);
   },
@@ -35,9 +27,9 @@ export const registerUser = asyncHandler(
 
 export const loginUserCredentials = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const { username, password, rememberMe } = req.body;
+    const { username, password, rememberMe, deviceId } = req.body;
 
-    const { accessToken, refreshToken, user } = await login({ username, password });
+    const { accessToken, refreshToken, user } = await login({ username, password, deviceId });
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
