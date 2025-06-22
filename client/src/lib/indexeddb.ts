@@ -1,6 +1,5 @@
 import type { StoredConversationMeta, StoredMessage } from "../types/chat";
-import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry } from "../types/crypto";
-import type { StoredE2EEPublicKey } from "../types/key";
+import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry, StoredE2EEPublicKey } from "../types/crypto";
 
 const indexedDB = window.indexedDB;
 
@@ -415,12 +414,12 @@ export const storeE2EEPublicKey = async (data: StoredE2EEPublicKey): Promise<voi
     const request = store.put(data);
 
     request.onsuccess = () => {
-      console.log("E2EE entry successfully stored in indexedDB");
+      console.log("E2EE public key successfully stored in indexedDB");
       resolve();
     }
 
     request.onerror = () => {
-      console.log("Failed to store E2EE entry in indexedDB");
+      console.log("Failed to store E2EE public key in indexedDB");
       reject(request.error);
     }
   })
