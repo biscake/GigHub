@@ -1,8 +1,9 @@
-export interface GetDeviceByDeviceIdParams {
+export interface GetKeysByUserAndDeviceIdParams {
   deviceId: string;
+  userId: number;
 }
 
-export interface StoreNewDeviceByUserIdParams {
+export interface UpdateDeviceKeysParams {
   encryptedPrivateKey: string;
   publicKey: string;
   deviceId: string;
