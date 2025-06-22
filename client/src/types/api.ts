@@ -2,8 +2,14 @@ import type { ApplicationStats, GigApplication } from "./application";
 import type { User } from "./auth";
 import type { StoredMessage } from "./chat";
 import type { Gig } from "./gig";
-import type { PublicKey } from "./key";
+import type { PublicKey } from "./crypto";
 import type { Profile } from "./profile";
+
+export type ApiInterceptorParams = {
+  accessToken: string | null;
+  setAccessToken: React.Dispatch<React.SetStateAction<string | null>>;
+  logout: () => void;
+}
 
 export type ValidationError = {
   msg: string;
@@ -12,6 +18,10 @@ export type ValidationError = {
 export interface ApiResponse {
   message: string;
   success: boolean;
+}
+
+export interface PostRefreshTokenResponse extends ApiResponse {
+  accessToken: string;
 }
 
 export interface ApiErrorResponse extends ApiResponse {
