@@ -10,9 +10,8 @@ import { getConversationMeta, storeChatMessages, storeConversationMeta, updateMe
 import { useMessageCache } from "../hooks/useMessageCache";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
-  const { deviceId, deriveSharedKeys, getAllUserPublicKeys } = useE2EE();
-  const { accessToken } = useAuth();
+  const { accessToken, user, deviceIdRef } = useAuth();
+  const { deriveSharedKeys, getAllUserPublicKeys } = useE2EE();
   const socketRef = useRef<WebSocket | null>(null);
   const { addNewMessagesByUser, updateReadReceipt } = useMessageCache();
 
@@ -20,7 +19,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (!user) throw new Error("User not logged in");
       if (!socketRef.current) throw new Error("WebSocket not connected");
-
+      
       const socket = socketRef.current;
       const receipientPublicKeys = await getAllUserPublicKeys(receipientId);
       const senderPublicKeys = await getAllUserPublicKeys(user.id);
@@ -48,33 +47,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [deriveSharedKeys, user, getAllUserPublicKeys])
 
-  const syncMessages = useCallback(async (targetUserId: number, fetchNew?: boolean): Promise<StoredMessage[]> => {
+  const syncMessages = useCallback(async (otherUserId: number, fetchNew?: boolean): Promise<StoredMessage[]> => {
     try {
+      const deviceId = deviceIdRef.current;
       if (!user || !deviceId) throw new Error("Invalid user");
-      const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, targetUserId);
+      const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, otherUserId);
       let before = conversationMeta?.oldestSyncedAt ?? null;
       let after = conversationMeta?.newestSyncedAt ?? null;
 
       let result: StoredMessage[] = [];
   
       while (true) {
-        let params: { originDeviceId: string, count: number, afterDateISOString?: string | null, beforeDateISOString?: string | null };
+        let params: { count: number, afterDateISOString?: string | null, beforeDateISOString?: string | null };
   
         if (fetchNew) {
           params = {
-            originDeviceId: deviceId,
             count: 30,
             afterDateISOString: after
           }
         } else {
           params = {
-            originDeviceId: deviceId,
             count: 30,
             beforeDateISOString: before
           }
         }
   
-        const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/${user.id}/${targetUserId}/messages`, { params })
+        const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/${otherUserId}/messages`, { params })
         
         const messages = res.data.chatMessages;
         if (messages.length === 0) break;
@@ -89,7 +87,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
         await storeConversationMeta({
           ...conversationMeta,
-          conversationKey: conversationMeta?.conversationKey ?? `${user.id}-${targetUserId}`,
+          conversationKey: conversationMeta?.conversationKey ?? `${user.id}-${otherUserId}`,
           localUserId: user.id,
           ...(fetchNew ? { newestSyncedAt: after } : { oldestSyncedAt: before }),
           lastFetchedAt: new Date().toISOString()
@@ -101,7 +99,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
   
       if (!fetchNew) {
-        return [...(await syncMessages(targetUserId, true)), ...result];
+        return [...(await syncMessages(otherUserId, true)), ...result];
       }
 
       return result;
@@ -109,7 +107,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to sync conversation", err);
       return [];
     }
-  }, [deviceId, user]);
+  }, [deviceIdRef, user]);
 
   const syncReadReceipt = useCallback(async (recipientId: number) => {
     try {
@@ -117,7 +115,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, recipientId);
       const lastUpdated = conversationMeta?.lastReadReceiptUpdatedAt ?? null;
 
-      const res = await api.get<GetReadReceiptResponse>(`api/chat/conversations/${user.id}/${recipientId}/read-receipt`, {
+      const res = await api.get<GetReadReceiptResponse>(`api/chat/conversations/${recipientId}/read-receipt`, {
         params: {
           since: lastUpdated
         }
@@ -162,7 +160,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   // connects client to websocket
   useEffect(() => {
-    if (!accessToken || !deviceId || !user) return;
+    if (!accessToken || !user) return;
 
     socketRef.current = new WebSocket(`ws://localhost:3000/ws`);
 
@@ -172,7 +170,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       socketRef.current?.send(JSON.stringify({
         type: 'Auth',
         accessToken,
-        deviceId
       } as AuthPayload));
     };
 
@@ -186,7 +183,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
     socketRef.current.onmessage = async (event) => {
       const data: WebSocketOnMessagePayload = JSON.parse(event.data);
-      
       if (data.type === 'Chat') {
         const isSender = 'to' in data;
 
@@ -208,7 +204,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       socketRef.current?.close();
     };
-  }, [accessToken, deviceId, user, syncMessages, addNewMessagesByUser, updateReadReceipt])
+  }, [accessToken, deviceIdRef, user, syncMessages, addNewMessagesByUser, updateReadReceipt])
 
   return (
     <ChatContext.Provider value={{ sendMessageToUser, syncMessages, syncReadReceipt, sendRead }}>
