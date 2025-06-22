@@ -5,18 +5,15 @@ import { useAuth } from '../../hooks/useAuth';
 import { type LoginFormInputs } from '../../types/form';
 import { Checkbox } from '../Checkbox';
 import { FormInput } from './FormInput';
-import { useE2EE } from '../../hooks/useE2EE';
 
 const LoginForm = () => {
   const { login } = useAuth();
   const [apiErr, setApiErr] = useState<string | null>(null);
-  const { setPassword } = useE2EE();
 
   const methods = useForm<LoginFormInputs>();
   const navigate = useNavigate();
 
   const submitCredential: SubmitHandler<LoginFormInputs> = async (data) => {
-    setPassword(() => data.password);
     const result = await login(data);
 
     if (!result.success && result.error) {
