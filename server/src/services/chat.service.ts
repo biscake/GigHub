@@ -1,7 +1,7 @@
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { GetChatMessagesParams, GetChatMessagesRes, GetSenderIdByMessageIdParams, GetUpdatedReadReceipt, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
+import { GetChatMessagesParams, GetChatMessagesRes, GetMessagesSinceParams, GetSenderIdByMessageIdParams, GetUpdatedReadReceipt, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
 
 export const storeCiphertextInDb = async ({ senderId, senderDeviceId, recipientId, payloadMessages }: StoreCiphertextInDbParams) => {
   try {
@@ -101,37 +101,51 @@ export const getChatMessages = async ({
   userDeviceId,
   userId,
   otherUserId,
-  beforeDateISOString,
+  before,
   count,
-  afterDateISOString
+  since
 }: GetChatMessagesParams) => {
   try {
     const result = await prisma.chatMessage.findMany({
       where: {
         AND: [
           {
-            OR: [
-              {
-                senderId: userId,
-                recipientId: otherUserId
-              },
-              {
-                senderId: otherUserId,
-                recipientId: userId
+            ...(userId && otherUserId
+              ? {
+                OR: [
+                  {
+                    senderId: userId,
+                    recipientId: otherUserId
+                  },
+                  {
+                    senderId: otherUserId,
+                    recipientId: userId
+                  }
+                ]
               }
-            ]
+              : {
+                OR: [
+                  {
+                    senderId: userId,
+                  },
+                  {
+                    recipientId: userId
+                  }
+                ]
+              }
+            )
           },
           {
-            ...(beforeDateISOString && {
+            ...(before && {
               sentAt: {
-                lt: new Date(beforeDateISOString)
+                lt: new Date(before)
               }
             })
           },
           {
-            ...(afterDateISOString && {
+            ...(since && {
               sentAt: {
-                gt: new Date(afterDateISOString)
+                gt: new Date(since)
               }
             })
           }
@@ -197,14 +211,14 @@ export const getChatMessages = async ({
   }
 }
 
-export const getUpdatedReadReceipt = async ({ lastUpdatedISOString, userId, otherUserId }: GetUpdatedReadReceipt) => {
+export const getUpdatedReadReceipt = async ({ since, userId, otherUserId }: GetUpdatedReadReceipt) => {
   try {
     const result = await prisma.chatMessage.findMany({
       where: {
         senderId: userId,
-        recipientId: otherUserId,
+        ...(otherUserId && { recipientId: otherUserId }),
         readAt: {
-          ...(lastUpdatedISOString && { gt: new Date(lastUpdatedISOString)}) ,
+          ...(since && { gt: new Date(since)}) ,
           not: null
         }
       }
