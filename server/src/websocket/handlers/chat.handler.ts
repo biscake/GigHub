@@ -8,7 +8,7 @@ export const handleChat = async (userId: number, deviceId: string, payload: Chat
   try {
     const result = await storeCiphertextInDb({ senderId: userId, senderDeviceId: deviceId, recipientId: payload.to, payloadMessages: messages });
     messages.forEach(msg => {
-      const device = result.devices.find(d => d.recipientDeviceId === msg.deviceId);
+      const device = result.devices.find(d => d.recipientDevice.deviceId === msg.deviceId);
       if (!device) {
         console.warn('No matching device found for message', msg);
         return;

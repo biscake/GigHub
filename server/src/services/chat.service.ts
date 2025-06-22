@@ -1,28 +1,62 @@
+import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { GetChatMessagesParams, GetChatMessagesRes, GetSenderIdByMessageIdParams, GetUpdatedReadReceipt, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
 
 export const storeCiphertextInDb = async ({ senderId, senderDeviceId, recipientId, payloadMessages }: StoreCiphertextInDbParams) => {
   try {
+    const devices = await prisma.device.findMany({
+      where: {
+        OR: [
+          {
+            userId: recipientId
+          },
+          {
+            userId: senderId,
+          }
+        ]
+      },
+    });
+
+    const senderDevice = devices.find(d => d.deviceId === senderDeviceId && d.userId === senderId);
+
+    if (!senderDevice) {
+      throw new Error(`Sender device ${senderDeviceId} for user ${senderId} not found`);
+    }
+
+    const devicesData = payloadMessages
+      .map(msg => {
+        const recipient = devices.find(d => d.deviceId === msg.deviceId && d.userId === msg.recipientId);
+
+        if (!recipient) return null;
+        return {
+          senderDeviceId: senderDevice.id,
+          recipientDeviceId: recipient.id,
+          ciphertext: msg.ciphertext,
+        };
+      })
+      .filter(item => item !== null);
+
     const result = await prisma.chatMessage.create({
       data: {
         senderId,
         recipientId,
         devices: {
           createMany: {
-            data: payloadMessages.map(msg => ({
-              senderDeviceId,
-              recipientDeviceId: msg.deviceId,
-              ciphertext: msg.ciphertext
-            }))
-          }
-        }
+            data: devicesData,
+          },
+        },
       },
       include: {
-        devices: true,
-      }
+        devices: {
+          include: {
+            recipientDevice: true,
+            senderDevice: true
+          }
+        },
+      },
     });
-  
+
     return result;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to store message in database");
@@ -64,9 +98,9 @@ export const getMessagesByMessageIdArray = async ({ messageIds }: GetSenderIdByM
 }
 
 export const getChatMessages = async ({
-  originDeviceId,
-  originUserId,
-  targetUserId,
+  userDeviceId,
+  userId,
+  otherUserId,
   beforeDateISOString,
   count,
   afterDateISOString
@@ -78,12 +112,12 @@ export const getChatMessages = async ({
           {
             OR: [
               {
-                senderId: originUserId,
-                recipientId: targetUserId
+                senderId: userId,
+                recipientId: otherUserId
               },
               {
-                senderId: targetUserId,
-                recipientId: originUserId
+                senderId: otherUserId,
+                recipientId: userId
               }
             ]
           },
@@ -104,7 +138,12 @@ export const getChatMessages = async ({
         ]
       },
       include: {
-        devices: true
+        devices: {
+          include: {
+            recipientDevice: true,
+            senderDevice: true
+          }
+        }
       },
       ...(count && { take: count }),
       orderBy: {
@@ -112,9 +151,22 @@ export const getChatMessages = async ({
       }
     })
 
-    const formatted: GetChatMessagesRes[] = result.map(msg => {
-      const device = msg.devices.find(dev => dev.recipientDeviceId === originDeviceId);
+    const userDevice = await prisma.device.findUnique({
+      where: {
+        deviceId_userId: {
+          userId,
+          deviceId: userDeviceId
+        },
+      }
+    });
 
+    if (!userDevice) {
+      throw new NotFoundError("userDevice");
+    }
+
+    const formatted: GetChatMessagesRes[] = result.map(msg => {
+      const device = msg.devices.find(dev => dev.recipientDeviceId === userDevice.id);
+      
       if (!device) {
         return null;
       }
@@ -123,7 +175,7 @@ export const getChatMessages = async ({
         id: msg.id,
         from: {
           userId: msg.senderId,
-          deviceId: device.senderDeviceId,
+          deviceId: device.senderDevice.deviceId,
         },
         to: {
           userId: msg.recipientId,
@@ -131,9 +183,9 @@ export const getChatMessages = async ({
         ciphertext: device.ciphertext,
         sentAt: msg.sentAt.toISOString(),
         readAt: msg.readAt?.toISOString(),
-        direction: msg.senderId === originUserId ? 'outgoing' : 'incoming',
-        localUserId: originUserId,
-        conversationKey: `${originUserId}-${targetUserId}`
+        direction: msg.senderId === userId ? 'outgoing' : 'incoming',
+        localUserId: userId,
+        conversationKey: `${userId}-${otherUserId}`
       }
 
       return tmp;
@@ -145,12 +197,12 @@ export const getChatMessages = async ({
   }
 }
 
-export const getUpdatedReadReceipt = async ({ lastUpdatedISOString, originUserId, targetUserId }: GetUpdatedReadReceipt) => {
+export const getUpdatedReadReceipt = async ({ lastUpdatedISOString, userId, otherUserId }: GetUpdatedReadReceipt) => {
   try {
     const result = await prisma.chatMessage.findMany({
       where: {
-        senderId: originUserId,
-        recipientId: targetUserId,
+        senderId: userId,
+        recipientId: otherUserId,
         readAt: {
           ...(lastUpdatedISOString && { gt: new Date(lastUpdatedISOString)}) ,
           not: null

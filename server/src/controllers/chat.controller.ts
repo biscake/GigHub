@@ -5,29 +5,27 @@ import { getChatMessages, getUpdatedReadReceipt } from '../services/chat.service
 
 export const syncMessagesBetweenUsers = asyncHandler(
   async (req: Request, res: Response) => {
-    if (!req.query.originDeviceId) throw new BadRequestError("Missing queries");
-
-    if (!req.params.originUserId || !req.params.targetUserId) throw new BadRequestError("Missing user id");
+    if (!req.params.otherUserId) throw new BadRequestError("Missing other user id");
 
     const count = parseInt(req.query.count as string);
-    const originDeviceId = req.query.originDeviceId as string;
-    const originUserId = parseInt(req.params.originUserId);
-    const targetUserId = parseInt(req.params.targetUserId);
+    const userDeviceId = req.user.deviceId;
+    const userId = req.user.id;
+    const otherUserId = parseInt(req.params.otherUserId);
     const beforeDateISOString = req.query.beforeDateISOString as string;
     const afterDateISOString = req.query.afterDateISOString as string;
-
+    
     const chatMessages = await getChatMessages({
       count,
-      originDeviceId,
-      originUserId,
-      targetUserId,
+      userDeviceId,
+      userId,
+      otherUserId,
       beforeDateISOString,
       afterDateISOString
     });
 
     res.status(200).json({
       success: true,
-      message: `Messages of user ${originUserId} and user ${targetUserId} synced successfully`,
+      message: `Messages of user ${userId} and user ${otherUserId} synced successfully`,
       chatMessages,
     })
   },
@@ -35,21 +33,21 @@ export const syncMessagesBetweenUsers = asyncHandler(
 
 export const syncReadReceiptBetweenUsers = asyncHandler(
   async (req: Request, res: Response) => {
-    if (!req.params.originUserId || !req.params.targetUserId) throw new BadRequestError("Missing user id");
+    if (!req.params.otherUserId) throw new BadRequestError("Missing other user id");
     
     const since = req.query.since as string;
-    const originUserId = parseInt(req.params.originUserId);
-    const targetUserId = parseInt(req.params.targetUserId);
+    const userId = req.user.id;
+    const otherUserId = parseInt(req.params.otherUserId);
 
     const updatedReadReceipts = await getUpdatedReadReceipt({
       lastUpdatedISOString: since,
-      originUserId,
-      targetUserId
+      userId,
+      otherUserId
     });
 
     res.status(200).json({
       success: true,
-      message: `Read receipt of user ${originUserId} and user ${targetUserId} synced successfully`,
+      message: `Read receipt of user ${userId} and user ${otherUserId} synced successfully`,
       updatedReadReceipts,
       lastUpdatedISOString: (new Date()).toISOString()
     })
