@@ -19,10 +19,10 @@ export interface GetSenderIdByMessageIdParams {
 export interface GetChatMessagesParams {
   userDeviceId: string;
   userId: number;
-  otherUserId: number;
+  otherUserId?: number;
   count?: number;
-  beforeDateISOString?: string;
-  afterDateISOString?: string;
+  before?: string;
+  since?: string;
 }
 
 export interface GetChatMessagesRes {
@@ -43,7 +43,13 @@ export interface GetChatMessagesRes {
 }
 
 export interface GetUpdatedReadReceipt {
-  lastUpdatedISOString: string;
+  since: string;
+  userId: number;
+  otherUserId: number;
+}
+
+export interface GetMessagesSinceParams {
+  since: string;
   userId: number;
   otherUserId: number;
 }

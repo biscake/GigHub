@@ -3,7 +3,7 @@ import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
 import { getChatMessages, getUpdatedReadReceipt } from '../services/chat.service';
 
-export const syncMessagesBetweenUsers = asyncHandler(
+export const syncMessages = asyncHandler(
   async (req: Request, res: Response) => {
     if (!req.params.otherUserId) throw new BadRequestError("Missing other user id");
 
@@ -11,16 +11,16 @@ export const syncMessagesBetweenUsers = asyncHandler(
     const userDeviceId = req.user.deviceId;
     const userId = req.user.id;
     const otherUserId = parseInt(req.params.otherUserId);
-    const beforeDateISOString = req.query.beforeDateISOString as string;
-    const afterDateISOString = req.query.afterDateISOString as string;
+    const before = req.query.before as string;
+    const since = req.query.since as string;
     
     const chatMessages = await getChatMessages({
       count,
       userDeviceId,
       userId,
       otherUserId,
-      beforeDateISOString,
-      afterDateISOString
+      before,
+      since
     });
 
     res.status(200).json({
@@ -31,7 +31,7 @@ export const syncMessagesBetweenUsers = asyncHandler(
   },
 );
 
-export const syncReadReceiptBetweenUsers = asyncHandler(
+export const syncReadReceipt = asyncHandler(
   async (req: Request, res: Response) => {
     if (!req.params.otherUserId) throw new BadRequestError("Missing other user id");
     
@@ -40,7 +40,7 @@ export const syncReadReceiptBetweenUsers = asyncHandler(
     const otherUserId = parseInt(req.params.otherUserId);
 
     const updatedReadReceipts = await getUpdatedReadReceipt({
-      lastUpdatedISOString: since,
+      since,
       userId,
       otherUserId
     });
