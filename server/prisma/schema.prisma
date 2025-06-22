@@ -15,7 +15,6 @@ model User {
   role             Role              @default(USER)
   gigs             Gig[]
   accounts         Account[]
-  RefreshToken     RefreshToken[]
   ResetToken       ResetToken[]
   applications     GigApplication[]
   profile          UserProfile?
@@ -25,7 +24,7 @@ model User {
   applicationStats ApplicationStats?
   receivedMessage  ChatMessage[]     @relation("receivedMessage")
   sentMessage      ChatMessage[]     @relation("sentMessage")
-  deviceId         Device[]
+  devices           Device[]
 }
 
 model Account {
@@ -102,8 +101,10 @@ model RefreshToken {
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  deviceId  Int
+  device    Device   @relation(fields: [deviceId], references: [id])
+
+  @@unique([deviceId, token])
 }
 
 model ResetToken {
@@ -123,40 +124,43 @@ model IdempotencyKey {
 }
 
 model ChatMessage {
-  id           String              @id @default(uuid())
+  id          String              @id @default(uuid())
   recipient   User                @relation("receivedMessage", fields: [recipientId], references: [id])
   recipientId Int
-  sender       User                @relation("sentMessage", fields: [senderId], references: [id])
-  senderId     Int
-  sentAt       DateTime            @default(now())
-  readAt       DateTime?
-  devices      ChatMessageDevice[]
+  sender      User                @relation("sentMessage", fields: [senderId], references: [id])
+  senderId    Int
+  sentAt      DateTime            @default(now())
+  readAt      DateTime?
+  devices     ChatMessageDevice[]
 }
 
 model ChatMessageDevice {
-  id                 String      @id @default(uuid())
-  messageId          String
-  message            ChatMessage @relation(fields: [messageId], references: [id])
-  recipientDeviceId String
-  recipientDevice   Device      @relation("recipientMessage", fields: [recipientDeviceId], references: [deviceId])
-  senderDeviceId     String
-  senderDevice       Device      @relation("senderMessage", fields: [senderDeviceId], references: [deviceId])
-  ciphertext         String
+  id                String      @id @default(uuid())
+  messageId         String
+  message           ChatMessage @relation(fields: [messageId], references: [id])
+  recipientDeviceId Int
+  recipientDevice   Device      @relation("recipientMessage", fields: [recipientDeviceId], references: [id])
+  senderDeviceId    Int
+  senderDevice      Device      @relation("senderMessage", fields: [senderDeviceId], references: [id])
+  ciphertext        String
 }
 
 model Device {
   id                  Int                 @id @default(autoincrement())
-  deviceId            String              @unique
-  encryptedPrivateKey String
-  salt                String
-  iv                  String
-  publicKey           String
+  deviceId            String              
+  encryptedPrivateKey String?
+  salt                String?
+  iv                  String?
+  publicKey           String?
   user                User                @relation(fields: [userId], references: [id])
   userId              Int
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   sentMessages        ChatMessageDevice[] @relation("senderMessage")
   receivedMessages    ChatMessageDevice[] @relation("recipientMessage")
+  refreshTokens       RefreshToken[]
+
+  @@unique([deviceId, userId])
 }
 
 enum Role {
