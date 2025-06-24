@@ -112,7 +112,7 @@ describe("Auth: login", () => {
 
     (bcrypt.compare as Mock).mockResolvedValue(true);
 
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("Database error");
+    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("LoginService error: Failed to login user");
   })
 
   it("Failure to find user in database should throw error", async () => {
@@ -120,6 +120,6 @@ describe("Auth: login", () => {
 
     (bcrypt.compare as Mock).mockResolvedValue(true);
 
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("Database error");
+    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("LoginService error: Failed to login user");
   })
 })
