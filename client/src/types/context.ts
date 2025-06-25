@@ -35,5 +35,5 @@ export type MessageCacheContextType = {
   getMessagesByKey: (conversationKey: string) => CachedDecryptedMessage[];
   updateReadReceipt: (msgId: string, readAt: string) => void;
   cache: Map<string, CachedDecryptedMessage[]>;
-  latestConversationMessage: React.SetStateAction<{ otherUserId: number, latestMessage: CachedDecryptedMessage }[]>;
+  latestConversationMessage: { otherUserId: number, latestMessage: CachedDecryptedMessage }[];
 }
