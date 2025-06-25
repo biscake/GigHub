@@ -13,7 +13,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { accessToken, user, deviceIdRef } = useAuth();
   const { deriveSharedKeys, getAllUserPublicKeys } = useE2EE();
   const socketRef = useRef<WebSocket | null>(null);
-  const { addNewMessagesByUser, updateReadReceipt } = useMessageCache();
+  const { addNewMessagesByKey, updateReadReceipt } = useMessageCache();
   const updateGlobalSync = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateGlobalSyncMeta = () => {
@@ -203,13 +203,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       if (data.type === 'Chat') {
         const isSender = 'to' in data;
 
+        let messages: StoredMessage[];
         if (isSender) {
-          const messages = await syncMessages(data.to, true);
-          addNewMessagesByUser(data.to, messages);
+          messages = await syncMessages(data.to, true);
         } else {
-          const messages = await syncMessages(data.from, true);
-          addNewMessagesByUser(data.from, messages);
+          messages = await syncMessages(data.from, true);
         }
+
+        addNewMessagesByKey(messages[0].conversationKey, messages);
+
       }
 
       if (data.type === 'Read-Receipt') {
@@ -223,7 +225,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       socketRef.current?.close();
     };
-  }, [accessToken, deviceIdRef, user, syncMessages, addNewMessagesByUser, updateReadReceipt])
+  }, [accessToken, deviceIdRef, user, syncMessages, addNewMessagesByKey, updateReadReceipt])
 
   // fetches new messages on load
   useEffect(() => {
