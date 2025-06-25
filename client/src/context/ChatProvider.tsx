@@ -13,7 +13,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { accessToken, user, deviceIdRef } = useAuth();
   const { deriveSharedKeys, getAllUserPublicKeys } = useE2EE();
   const socketRef = useRef<WebSocket | null>(null);
-  const { addNewMessagesByKey, updateReadReceipt } = useMessageCache();
+  const { addNewMessagesByKey, updateReadReceipt, loadMessageFromDBByKey } = useMessageCache();
   const updateGlobalSync = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateGlobalSyncMeta = () => {
@@ -227,21 +227,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [accessToken, deviceIdRef, user, syncMessages, addNewMessagesByKey, updateReadReceipt])
 
-  // fetches new messages on load
+  // fetches new messages on load and load messages onto cache
   useEffect(() => {
     if (!user) return;
 
     const fetchNewMessages = async () => {
       try {
         const since = await getGlobalSyncMeta() ?? null;
-        console.log(since);
         
         const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/messages`, {
           params: {
             since
           }
         });
-        console.log(res);
+        
         const messages = res.data.chatMessages;
 
         updateGlobalSyncMeta();
@@ -267,8 +266,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    const loadMessagesToCache = async () => {
+      try {
+        const allConversationMetas = await getAllConversationMeta();
+        allConversationMetas.forEach(async meta => {
+          await loadMessageFromDBByKey(meta.conversationKey);
+        });
+      } catch {
+        console.error("Error loading messages into cache");
+      }
+    }
+
     fetchNewMessages();
-  }, [user])
+    loadMessagesToCache();
+  }, [user, loadMessageFromDBByKey])
 
   return (
     <ChatContext.Provider value={{ sendMessageToUser, syncMessages, syncReadReceipt, sendRead }}>
