@@ -123,7 +123,7 @@ export const getChatMessages = async ({
                   }
                 ]
               }
-              : {
+              : userId && {
                 OR: [
                   {
                     senderId: userId,
@@ -199,7 +199,7 @@ export const getChatMessages = async ({
         readAt: msg.readAt?.toISOString(),
         direction: msg.senderId === userId ? 'outgoing' : 'incoming',
         localUserId: userId,
-        conversationKey: `${userId}-${otherUserId}`
+        conversationKey: `${userId === msg.senderId ? msg.senderId : userId}-${userId === msg.senderId ? userId : msg.senderId}`
       }
 
       return tmp;
