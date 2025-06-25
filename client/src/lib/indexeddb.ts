@@ -8,7 +8,7 @@ let dbPromise: Promise<IDBDatabase> | null = null;
 function getDB(): Promise<IDBDatabase> {
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open("gighub-db", 2);
+      const request = indexedDB.open("gighub-db", 3);
 
       request.onerror = () => {
         reject(request.error);
@@ -16,6 +16,7 @@ function getDB(): Promise<IDBDatabase> {
 
       request.onupgradeneeded = () => {
         const db = request.result;
+        
         if (!db.objectStoreNames.contains("keys")) {
           db.createObjectStore("keys", { keyPath: "userId" });
         }
@@ -34,6 +35,10 @@ function getDB(): Promise<IDBDatabase> {
         if (!db.objectStoreNames.contains("conversation-meta")) {
           const convoStore = db.createObjectStore("conversation-meta", { keyPath: ["conversationKey", "localUserId"] });
           convoStore.createIndex("localUserId", "localUserId");
+        }
+
+        if (!db.objectStoreNames.contains("chat-meta")) {
+          db.createObjectStore("chat-meta");
         }
       };
 
@@ -375,34 +380,78 @@ export const getConversationMeta = async (fromUserId: number, toUserId: number):
   });
 }
 
-export const clearConversationMeta = async (localUserId: number): Promise<void> => {
+export const getAllConversationMeta = async (): Promise<StoredConversationMeta[]> => {
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta");
+  const store = transaction.objectStore("conversation-meta");
+  const index = store.index("localUserId");
+  const result: StoredConversationMeta[] = [];
+
+  return new Promise((resolve) => {
+    const request = index.openCursor();
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (!cursor) {
+        resolve(result);
+        return;
+      }
+
+      result.push(cursor.value);
+
+      cursor.continue();
+    };
+
+    request.onerror = () => {
+      resolve([]);
+    };
+  });
+}
+
+export const clearConversationMeta = async (): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("conversation-meta", "readwrite");
   const store = transaction.objectStore("conversation-meta");
-  const index = store.index("localUserId");
-  const range = IDBKeyRange.only(localUserId);
 
   return new Promise((resolve, reject) => {
-    const request = index.openCursor(range);
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-      if (cursor) {
-        cursor.delete();
-        cursor.continue();
-      }
+    const request = store.clear();
+    request.onsuccess = () => {
+      resolve();
     };
 
     request.onerror = () => {
       reject(request.error);
     };
-
-    transaction.oncomplete = () => {
-      console.log(`Conversation meta for ${localUserId} deleted`);
-      resolve();
-    };
-
-    transaction.onerror = () => reject(transaction.error);
   });
+}
+
+export const updateAllConversationMetaSyncDate = async (dateISOString: string): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta", "readwrite");
+  const store = transaction.objectStore("conversation-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (!cursor) {
+        resolve();
+        return;
+      }
+
+      const value = cursor.value;
+      value.lastSyncedAt = dateISOString;
+      const updateRequest = cursor.update(value);
+
+      updateRequest.onsuccess = () => {
+        cursor.continue();
+      };
+
+      updateRequest.onerror = () => {
+        reject(updateRequest.error);
+      };
+    };
+  })
 }
 
 export const storeE2EEPublicKey = async (data: StoredE2EEPublicKey): Promise<void> => {
@@ -461,4 +510,64 @@ export const getUserDeviceE2EEPublicKey = async (userId: number, deviceId: strin
       resolve(null);
     }
   })
+}
+
+export const setGlobalSyncMeta = async (dateISOString: string): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-meta", "readwrite");
+  const store = transaction.objectStore("chat-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(dateISOString, "lastSyncedAt");
+
+    request.onsuccess = () => {
+      resolve();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+export const getGlobalSyncMeta = async (): Promise<string> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-meta");
+  const store = transaction.objectStore("chat-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.get("lastSyncedAt");
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+export const clearGlobalChatMeta = async (): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-meta", "readwrite");
+  const store = transaction.objectStore("chat-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.clear();
+
+    request.onsuccess = () => {
+      resolve();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+export const clearUserData = async (): Promise<void> => {
+  await clearChatMessages();
+  await clearConversationMeta();
+  await clearGlobalChatMeta();
 }
