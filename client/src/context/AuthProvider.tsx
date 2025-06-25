@@ -80,6 +80,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userId = res.data.user.id;
 
       if (token && userId) {
+        const lastLoggedInUser = localStorage.getItem("lastLoginUser");
+        if (lastLoggedInUser !== userId.toString()) {
+          localStorage.setItem("lastLoginUser", userId.toString());
+          await clearUserData();
+        }
+        
         setPassword(data.password);
         setAccessToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -88,12 +94,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         localStorage.setItem("rememberMe", data.rememberMe ? "true" : "false");
         sessionStorage.setItem("sessionActive", "true");
-
-        const lastLoggedInUser = localStorage.getItem("lastLoginUser");
-        if (lastLoggedInUser !== userId.toString()) {
-          localStorage.setItem("lastLoginUser", userId.toString());
-          await clearUserData();
-        }
       }
 
       return { success: true };
