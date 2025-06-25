@@ -85,7 +85,6 @@ export interface DecryptedChatMessage {
 }
 
 export interface LatestConversationMessage {
-  otherUserId: number;
   latestMessage: CachedDecryptedMessage;
   conversationKey: string
 }

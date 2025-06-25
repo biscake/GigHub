@@ -5,7 +5,6 @@ import { useE2EE } from "../hooks/useE2EE";
 import { MessageCacheContext } from "./MessageCacheContext";
 import { useAuth } from "../hooks/useAuth";
 import type { User } from "../types/auth";
-import { convertKeyToUserId } from "../utils/conversationKeyToUser";
 
 export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -34,7 +33,6 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
     const result: LatestConversationMessage[] = [];
     cacheMap.forEach((messages, conversationKey) => {
       result.push({
-        otherUserId: convertKeyToUserId(conversationKey).otherUserId,
         latestMessage: messages[0],
         conversationKey
       })
