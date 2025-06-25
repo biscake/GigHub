@@ -53,3 +53,24 @@ export const syncReadReceipt = asyncHandler(
     })
   }
 )
+
+export const syncNewMessages = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userDeviceId = req.user.deviceId;
+    const userId = req.user.id;
+    const since = req.query?.since as string ?? null;
+    console.log(userDeviceId, userId, since);
+    
+    const chatMessages = await getChatMessages({
+      userDeviceId,
+      userId,
+      since
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: `New messages fetched successfully`,
+      chatMessages,
+    })
+  },
+);
