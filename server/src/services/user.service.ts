@@ -86,13 +86,12 @@ export const getUserWithReviewsByUsername = async ({ username, NUMBER_OF_REVIEWS
 }
 
 export const updateUserByUsername = async (params: updateUserByProfileParams) => {
-  const { profileName, bio, profilePictureKey } = params;
+  const { id, profileName, bio, profilePictureKey } = params;
 
-  const user = await getUserWithNormalizedProfileByUsername({ username: profileName });
   try {
     await prisma.userProfile.update({
       where: {
-        userId: user.id
+        userId: id
       },
       data: {
         bio: bio,

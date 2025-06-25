@@ -1,10 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import {
   getUserWithNormalizedProfileByUsername,
   getUserWithReviewsByUsername,
   getUserById,
-  getUserByName
+  getUserByName,
+  updateUserByUsername
 } from "../../services/user.service";
 import { mockUser, mockUserProfile, mockReview } from "../__mocks__/mock-prisma-models";
 import { Role } from "@prisma/client";
@@ -16,15 +17,14 @@ vi.mock("../../lib/prisma", async () => {
 });
 
 describe("getUserWithNormalizedProfileByUsername", () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
-  });
+  beforeEach(() => vi.resetAllMocks());
 
   it("Returns normalized profile with image URL", async () => {
     const mockUserWithProfile = {
       ...mockUser,
       profile: mockUserProfile,
     }
+
     prisma.user.findUnique.mockResolvedValue(mockUserWithProfile);
 
     const result = await getUserWithNormalizedProfileByUsername({ username: "testuser" });
@@ -74,16 +74,7 @@ describe("getUserWithReviewsByUsername", () => {
       id: 1,
       username: "testuser",
       receivedReviews: [
-        {
-          id: 101,
-          comment: "Excellent work",
-          rating: 5,
-          createdAt: new Date(),
-          reviewer: {
-            id: 2,
-            username: "reviewer1"
-          }
-        }
+        mockReview
       ]
     };
 
@@ -141,5 +132,36 @@ describe("getUserByName", () => {
     prisma.user.findUnique.mockRejectedValue(new Error("database error"));
 
     await expect(getUserByName({ username: "testuser" })).rejects.toThrow("Prisma error: Failed to get user from database");
+  });
+});
+
+describe("updateUserByUsername", () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  const mockParams = {
+      id: 1,
+      profileName: "testuser",
+      bio: "test update bio",
+      profilePictureKey: "profiles/test.svg"
+    };
+
+  it("Updates the user's profile", async () => {
+    prisma.userProfile.update.mockResolvedValue(mockUserProfile);
+
+    await updateUserByUsername(mockParams);
+
+    expect(prisma.userProfile.update).toHaveBeenCalledWith({
+      where: { userId: mockUser.id },
+      data: {
+        bio: "test update bio",
+        profilePictureKey: "profiles/test.svg"
+      }
+    });
+  });
+
+  it("Throw ServiceError if prisma fails", async () => {
+    prisma.userProfile.update.mockRejectedValue(new Error("Database error"));
+
+    await expect(updateUserByUsername(mockParams)).rejects.toThrow("Prisma error: Failed to update user profile in database");
   });
 });

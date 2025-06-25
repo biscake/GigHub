@@ -32,6 +32,7 @@ export const editUserProfile = asyncHandler(async (req: Request, res: Response) 
 
   const profileDetails = {
     ...req.body,
+    id: req.user.id,
     profilePictureKey: key
   }
 
