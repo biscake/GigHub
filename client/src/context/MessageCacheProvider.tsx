@@ -5,6 +5,7 @@ import { useE2EE } from "../hooks/useE2EE";
 import { MessageCacheContext } from "./MessageCacheContext";
 import { useAuth } from "../hooks/useAuth";
 import type { User } from "../types/auth";
+import { convertKeyToUserId } from "../utils/conversationKeyToUser";
 
 export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const conversationOffSet = useRef(new Map<string, number>()); // offset for new messages pagination
   const msgIdMap = useRef(new Map<string, CachedDecryptedMessage>()); // to find msg to update read receipt in cache
   const prevUser = useRef<User | null>(null);
+  const [latestConversationMessage, setLatestConversationMessage] = useState<{ otherUserId: number, latestMessage: CachedDecryptedMessage }[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -27,6 +29,18 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       prevUser.current = user;
     }
   }, [user]);
+
+  const updateLatestConversation = useCallback((cacheMap: Map<string, CachedDecryptedMessage[]>) => {
+    const result: { otherUserId: number, latestMessage: CachedDecryptedMessage }[] = [];
+    cacheMap.forEach((messages, conversationKey) => {
+      result.push({
+        otherUserId: convertKeyToUserId(conversationKey).otherUserId,
+        latestMessage: messages[0]
+      })
+    })
+
+    setLatestConversationMessage(result.sort((a, b) => new Date(a.latestMessage.sentAt).getTime() - new Date(b.latestMessage.sentAt).getTime()));
+  }, []);
 
   const decryptAndUpdateMap = useCallback(async (encryptedMessages: StoredMessage[]) => {
     return await Promise.all(encryptedMessages.map(async encrypted => {
@@ -60,9 +74,10 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       const prevMessages = tmp.get(conversationKey) ?? [];
       const newMessages = [...prevMessages, ...decryptedMessages];
       tmp.set(conversationKey, newMessages);
+      updateLatestConversation(tmp);
       return tmp;
     })
-  }, [user, decryptAndUpdateMap]);
+  }, [user, decryptAndUpdateMap, updateLatestConversation]);
 
   const addNewMessagesByKey = useCallback(async (conversationKey: string, messages: StoredMessage[]) => {
     if (!user) return;
@@ -77,9 +92,10 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       const prevMessages = tmp.get(conversationKey) ?? [];
       const newMessages = [...decryptedMessages, ...prevMessages]; // prepend new message to front of array, since array is sorted in descending order
       tmp.set(conversationKey, newMessages);
+      updateLatestConversation(prev);
       return tmp;
     })
-  }, [user, decryptAndUpdateMap]);
+  }, [user, decryptAndUpdateMap, updateLatestConversation]);
 
   const getMessagesByKey = useCallback((conversationKey: string): CachedDecryptedMessage[] => {
     if (!user) return [];
@@ -93,10 +109,10 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
 
     msg!.readAt = readAt;
     setCache(prev => new Map(prev)); // force a re-render
-  }, [user])
+  }, [user]);
 
   return (
-    <MessageCacheContext.Provider value={{ loadMessageFromDBByKey, getMessagesByKey, updateReadReceipt, addNewMessagesByKey, cache }}>
+    <MessageCacheContext.Provider value={{ loadMessageFromDBByKey, getMessagesByKey, updateReadReceipt, addNewMessagesByKey, cache, latestConversationMessage }}>
       {children}
     </MessageCacheContext.Provider>
   )
