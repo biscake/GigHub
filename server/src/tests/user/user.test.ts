@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import {
   getUserWithNormalizedProfileByUsername,
@@ -59,7 +59,7 @@ describe("getUserWithNormalizedProfileByUsername", () => {
   });
 
   it("Throws ServiceError if prisma fails", async () => {
-    prisma.user.findUnique.mockRejectedValue(new Error("Database error"));
+    prisma.user.findUnique.mockRejectedValue(new Error("database error"));
 
     await expect(getUserWithNormalizedProfileByUsername({ username: "error" }))
       .rejects.toThrow("Prisma error: Failed to get user from database");
@@ -94,7 +94,7 @@ describe("getUserWithReviewsByUsername", () => {
   });
 
   it("Throws ServiceError if Prisma fails", async () => {
-    prisma.user.findUnique.mockRejectedValue(new Error("db error"));
+    prisma.user.findUnique.mockRejectedValue(new Error("database error"));
 
     await expect(getUserWithReviewsByUsername({ username: "err", NUMBER_OF_REVIEWS: 2 }))
       .rejects.toThrow("Prisma error: Failed to get user from database");
@@ -160,7 +160,7 @@ describe("updateUserByUsername", () => {
   });
 
   it("Throw ServiceError if prisma fails", async () => {
-    prisma.userProfile.update.mockRejectedValue(new Error("Database error"));
+    prisma.userProfile.update.mockRejectedValue(new Error("database error"));
 
     await expect(updateUserByUsername(mockParams)).rejects.toThrow("Prisma error: Failed to update user profile in database");
   });
