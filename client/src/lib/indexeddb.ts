@@ -226,21 +226,18 @@ export const getMessagesBefore = async (userId: number, targetUserId: number, be
   });
 }
 
-export const getMessagesByPage = async (userId: number, targetUserId: number, page: number = 0, pageSize: number = 30): Promise<StoredMessage[]> => {
-  if (page < 0) throw new Error("Invalid page");
+export const getMessagesByPage = async (localUserId: number, conversationKey: string, offset = 0, pageSize: number = 30): Promise<StoredMessage[]> => {
   if (pageSize <= 0) throw new Error("Invalid page size");
 
-  const conversationKey = `${userId}-${targetUserId}`
   const db = await getDB();
   const tx = db.transaction("chat-history", "readonly");
   const store = tx.objectStore("chat-history");
   const index = store.index("localUserId_conversationId_sentAt");
 
   const messages: StoredMessage[] = [];
-  console.log(userId, conversationKey);
   const range = IDBKeyRange.bound(
-    [userId, conversationKey, ''],
-    [userId, conversationKey, '\uffff'],
+    [localUserId, conversationKey, ''],
+    [localUserId, conversationKey, '\uffff'],
     false,
     false
   );
@@ -257,9 +254,9 @@ export const getMessagesByPage = async (userId: number, targetUserId: number, pa
         return;
       }
 
-      if (!skipped && page > 0) {
+      if (!skipped && offset > 0) {
         skipped = true;
-        cursor.advance(pageSize * page);
+        cursor.advance(offset);
         return;
       } 
 

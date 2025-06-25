@@ -15,6 +15,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const socketRef = useRef<WebSocket | null>(null);
   const { addNewMessagesByKey, updateReadReceipt, loadMessageFromDBByKey } = useMessageCache();
   const updateGlobalSync = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadingCache = useRef(false);
 
   const updateGlobalSyncMeta = () => {
     const timer = updateGlobalSync.current;
@@ -229,7 +230,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   // fetches new messages on load and load messages onto cache
   useEffect(() => {
-    if (!user) return;
+    if (!user || loadingCache.current) return;
+    loadingCache.current = true;
 
     const fetchNewMessages = async () => {
       try {
@@ -274,6 +276,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         });
       } catch {
         console.error("Error loading messages into cache");
+      } finally {
+        loadingCache.current = false;
       }
     }
 
