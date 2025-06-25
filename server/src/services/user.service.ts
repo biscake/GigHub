@@ -112,7 +112,7 @@ export const getUserById = async ({ id }: GetUserByIdParams) => {
     
     return user;
   } catch {
-    throw new ServiceError("Primsa", "Failed to get user from database");
+    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }
 
@@ -124,7 +124,7 @@ export const getUserByName = async ({ username }: GetUserByNameParams) => {
     
     return user;
   } catch {
-    throw new ServiceError("Primsa", "Failed to get user from database");
+    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }
 

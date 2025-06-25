@@ -31,10 +31,20 @@ export const mockRefreshTokenRecord = {
 
 export const mockUserProfile = {
   id: 1,
-  numberOfGigsPosted: "0",
-  numberOfGigsCompleted: "0",
-  averageRating: "0.0",
+  numberOfGigsPosted: 2,
+  numberOfGigsCompleted: 3,
+  averageRating: 4.5,
   bio: "test bio",
+  profilePictureKey: "test.svg",
   userId: 1,
   user: mockUser
+}
+
+export const mockReview = {
+  id: 1,
+  comment: "test comment",
+  rating: 5,
+  createdAt: new Date(),
+  reviewerId: 2,
+  revieweeId: 1
 }
