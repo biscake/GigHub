@@ -15,7 +15,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const conversationOffSet = useRef(new Map<string, number>()); // offset for new messages pagination
   const msgIdMap = useRef(new Map<string, CachedDecryptedMessage>()); // to find msg to update read receipt in cache
   const prevUser = useRef<User | null>(null);
-  const [latestConversationMessage, setLatestConversationMessage] = useState<{ otherUserId: number, latestMessage: CachedDecryptedMessage }[]>([]);
+  const [latestConversationMessage, setLatestConversationMessage] = useState<{ conversationKey: string, otherUserId: number, latestMessage: CachedDecryptedMessage }[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -31,11 +31,12 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const updateLatestConversation = useCallback((cacheMap: Map<string, CachedDecryptedMessage[]>) => {
-    const result: { otherUserId: number, latestMessage: CachedDecryptedMessage }[] = [];
+    const result: { conversationKey: string, otherUserId: number, latestMessage: CachedDecryptedMessage }[] = [];
     cacheMap.forEach((messages, conversationKey) => {
       result.push({
         otherUserId: convertKeyToUserId(conversationKey).otherUserId,
-        latestMessage: messages[0]
+        latestMessage: messages[0],
+        conversationKey
       })
     })
 
