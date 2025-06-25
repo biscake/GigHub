@@ -83,3 +83,9 @@ export interface DecryptedChatMessage {
   text: string;
   direction: string;
 }
+
+export interface LatestConversationMessage {
+  otherUserId: number;
+  latestMessage: CachedDecryptedMessage;
+  conversationKey: string
+}
