@@ -30,9 +30,9 @@ export type E2EEContextType = {
 }
 
 export type MessageCacheContextType = {
-  loadMessageFromDBByUser: (conversationWith: number) => Promise<void>;
-  addNewMessagesByUser: (conversationWith: number, messages: StoredMessage[]) => void;
-  getMessagesByUser: (userId: number) => CachedDecryptedMessage[];
+  loadMessageFromDBByKey: (conversationKey: string) => Promise<void>;
+  addNewMessagesByKey: (conversationKey: string, messages: StoredMessage[]) => void;
+  getMessagesByKey: (conversationKey: string) => CachedDecryptedMessage[];
   updateReadReceipt: (msgId: string, readAt: string) => void;
-  cache: Map<number, CachedDecryptedMessage[]>;
+  cache: Map<string, CachedDecryptedMessage[]>;
 }
