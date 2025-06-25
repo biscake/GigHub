@@ -8,7 +8,7 @@ import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
 import { Loading } from '../components/Loading';
-import { clearChatMessages, clearConversationMeta, deleteEncryptedE2eeKey } from '../lib/indexeddb';
+import { clearUserData, deleteEncryptedE2eeKey } from '../lib/indexeddb';
 import { useIdempotencyKey } from '../hooks/useIdempotencyKey';
 import { v4 as uuidv4 } from "uuid";
 
@@ -92,8 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const lastLoggedInUser = localStorage.getItem("lastLoginUser");
         if (lastLoggedInUser !== userId.toString()) {
           localStorage.setItem("lastLoginUser", userId.toString());
-          await clearChatMessages();
-          await clearConversationMeta(userId);
+          await clearUserData();
         }
       }
 

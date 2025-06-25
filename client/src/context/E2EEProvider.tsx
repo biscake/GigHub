@@ -127,6 +127,8 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       encryptedPrivateKey: encryptedResult.encryptedPrivateKey
     }
 
+    if (!derivedKeySalt || !encryptedResult.iv || !encryptedResult.encryptedPrivateKey || !deviceSecret) return null;
+
     await storeEncryptedE2EEKey(e2eeData);
 
     try {
