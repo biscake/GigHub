@@ -87,7 +87,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       const prevMessages = tmp.get(conversationKey) ?? [];
       const newMessages = [...decryptedMessages, ...prevMessages]; // prepend new message to front of array, since array is sorted in descending order
       tmp.set(conversationKey, newMessages);
-      updateLatestConversation(prev);
+      updateLatestConversation(tmp);
       return tmp;
     })
   }, [user, decryptAndUpdateMap, updateLatestConversation]);
