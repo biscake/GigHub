@@ -88,9 +88,12 @@ export interface GetConversationByConversationKey {
 export interface UpsertConversationParams {
   gigId: number;
   userId: number;
+<<<<<<< HEAD
 }
 
 export interface GetConversationMetaByKeyParams {
   userId: number;
   conversationKey: string;
+=======
+>>>>>>> d982e17c861b4407afd7f69c4b80c0e45148276a
 }
