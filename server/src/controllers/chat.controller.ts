@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { getAllLastRead, getChatMessages, getConversationParticipantsAndKeys, getExistingConversations, getLastRead } from '../services/chat.service';
+import { findIfNotCreateConversation, getAllLastRead, getChatMessages, getConversationParticipantsAndKeys, getExistingConversations, getLastRead } from '../services/chat.service';
 
 export const syncMessages = asyncHandler(
   async (req: Request, res: Response) => {
@@ -87,6 +87,23 @@ export const getConversationParticipants = asyncHandler(
       message: `Get last read successfully`,
       participants: result,
       conversationKey
+    })
+  }
+)
+
+export const getOrElseCreateConversation = asyncHandler(
+  async (req: Request, res: Response) => {
+    const gigId = parseInt(req.params.gigId);
+    const userId = req.user.id;
+
+    const result = await findIfNotCreateConversation({ gigId, userId });
+
+    res.status(200).json({
+      success: true,
+      message: `Get last read successfully`,
+      conversationKey: result.conversation.conversationKey,
+      title: result.title,
+      gigAuthorUsername: result.gigAuthorUsername
     })
   }
 )

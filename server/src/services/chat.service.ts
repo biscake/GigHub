@@ -1,3 +1,4 @@
+import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
@@ -12,7 +13,8 @@ import {
   GetSenderIdByMessageIdParams,
   StoreCiphertextInDbByConversationKeyParams,
   StoreCiphertextInDbNewConversationParams,
-  UpdateReadReceiptParams
+  UpdateReadReceiptParams,
+  UpsertConversationParams
 } from "../types/chat";
 
 export const storeCiphertextInDbNewConversation = async ({ senderId, senderDeviceId, recipientId, payloadMessages, gigId }: StoreCiphertextInDbNewConversationParams) => {
@@ -299,11 +301,24 @@ export const getExistingConversations = async ({ userId }: GetExistingConversati
           some: {
             userId
           }
+        },
+      },
+      include: {
+        gig: {
+          include: {
+            author: true
+          }
         }
       }
     })
 
-    const formatted = result.map(c => c.conversationKey);
+    const formatted = result.map(c => {
+      return {
+        conversationKey: c.conversationKey,
+        gigAuthorUsername: c.gig.author.username,
+        title: c.gig.title
+      }
+    });
 
     return formatted;
   } catch {
@@ -424,5 +439,53 @@ export const getConversationParticipantsAndKeys = async ({ conversationKey }: Ge
     return formatted;
   } catch {
     throw new ServiceError("Prisma", "Failed to get conversation participants");
+  }
+}
+
+export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConversationParams) => {
+  try {
+    const gig = await prisma.gig.findUnique({
+      where: { id: gigId },
+      include: {
+        author: true
+      }
+    });
+
+    if (!gig) throw new NotFoundError("Gig");
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        gigId,
+        participants: {
+          some: {
+            userId: {
+              in: [userId, gig.authorId]
+            }
+          }
+        },
+      },
+    });
+
+    if (conversation) return { conversation, title: gig.title, gigAuthorUsername: gig.author.username };
+
+    const result = await prisma.conversation.create({
+      data: {
+        gigId,
+        participants: {
+          create: [
+            { userId },
+            { userId: gig.authorId }
+          ]
+        },
+      },
+    });
+    
+    return { conversation: result, title: gig.title, gigAuthorUsername: gig.author.username };
+  } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+    console.log(err)
+    throw new ServiceError("Prisma", "Failed to find or create conversation");
   }
 }

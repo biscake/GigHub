@@ -84,3 +84,8 @@ export interface GetConversationParticipantsAndKeysParams {
 export interface GetConversationByConversationKey {
   conversationKey: string;
 }
+
+export interface UpsertConversationParams {
+  gigId: number;
+  userId: number;
+}
