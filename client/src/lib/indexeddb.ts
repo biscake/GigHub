@@ -1,6 +1,5 @@
 import type { StoredConversationMeta, StoredMessage } from "../types/chat";
-import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry } from "../types/crypto";
-import type { StoredE2EEPublicKey } from "../types/key";
+import type { EncryptedE2EEKeyWithSalt, StoredE2EEEntry, StoredE2EEPublicKey } from "../types/crypto";
 
 const indexedDB = window.indexedDB;
 
@@ -9,7 +8,7 @@ let dbPromise: Promise<IDBDatabase> | null = null;
 function getDB(): Promise<IDBDatabase> {
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open("gighub-db", 2);
+      const request = indexedDB.open("gighub-db", 3);
 
       request.onerror = () => {
         reject(request.error);
@@ -17,6 +16,7 @@ function getDB(): Promise<IDBDatabase> {
 
       request.onupgradeneeded = () => {
         const db = request.result;
+        
         if (!db.objectStoreNames.contains("keys")) {
           db.createObjectStore("keys", { keyPath: "userId" });
         }
@@ -35,6 +35,10 @@ function getDB(): Promise<IDBDatabase> {
         if (!db.objectStoreNames.contains("conversation-meta")) {
           const convoStore = db.createObjectStore("conversation-meta", { keyPath: ["conversationKey", "localUserId"] });
           convoStore.createIndex("localUserId", "localUserId");
+        }
+
+        if (!db.objectStoreNames.contains("chat-meta")) {
+          db.createObjectStore("chat-meta");
         }
       };
 
@@ -130,7 +134,7 @@ export const deleteEncryptedE2eeKey = async (userId: number): Promise<void> => {
         ...data,
         encryptedPrivateKey: null,
         iv: null,
-        keySalt: null
+        salt: null
       })
 
       deleteRequest.onsuccess = () => {
@@ -222,21 +226,18 @@ export const getMessagesBefore = async (userId: number, targetUserId: number, be
   });
 }
 
-export const getMessagesByPage = async (userId: number, targetUserId: number, page: number = 0, pageSize: number = 30): Promise<StoredMessage[]> => {
-  if (page < 0) throw new Error("Invalid page");
+export const getMessagesByPage = async (localUserId: number, conversationKey: string, offset = 0, pageSize: number = 30): Promise<StoredMessage[]> => {
   if (pageSize <= 0) throw new Error("Invalid page size");
 
-  const conversationKey = `${userId}-${targetUserId}`
   const db = await getDB();
   const tx = db.transaction("chat-history", "readonly");
   const store = tx.objectStore("chat-history");
   const index = store.index("localUserId_conversationId_sentAt");
 
   const messages: StoredMessage[] = [];
-  console.log(userId, conversationKey);
   const range = IDBKeyRange.bound(
-    [userId, conversationKey, ''],
-    [userId, conversationKey, '\uffff'],
+    [localUserId, conversationKey, ''],
+    [localUserId, conversationKey, '\uffff'],
     false,
     false
   );
@@ -253,9 +254,9 @@ export const getMessagesByPage = async (userId: number, targetUserId: number, pa
         return;
       }
 
-      if (!skipped && page > 0) {
+      if (!skipped && offset > 0) {
         skipped = true;
-        cursor.advance(pageSize * page);
+        cursor.advance(offset);
         return;
       } 
 
@@ -272,35 +273,6 @@ export const getMessagesByPage = async (userId: number, targetUserId: number, pa
     request.onerror = () => {
       console.error("Failed to get messages by page");
       reject(request.error);
-    }
-  })
-}
-
-export const updateMessageReadAt = async (messageId: string, readAtISOString: string): Promise<void> => {
-  const db = await getDB();
-  const transaction = db.transaction("chat-history", "readwrite");
-  const store = transaction.objectStore("chat-history");
-
-  return new Promise((resolve, reject) => {
-    const getRequest = store.get(messageId);
-    getRequest.onsuccess = () => {
-      const updateRequest = store.put({
-        ...getRequest.result,
-        readAt: new Date(readAtISOString)
-      })
-
-      updateRequest.onsuccess = () => {
-        console.log(`ReadAt for message ${messageId} updated`);
-        resolve();
-      }
-
-      updateRequest.onerror = () => {
-        reject(updateRequest.error);
-      }
-    };
-
-    getRequest.onerror = () => {
-      reject(getRequest.error)
     }
   })
 }
@@ -345,13 +317,12 @@ export const storeConversationMeta = async (meta: StoredConversationMeta): Promi
   })
 }
 
-export const getConversationMeta = async (fromUserId: number, toUserId: number): Promise<StoredConversationMeta | undefined> => {
-  const conversationKey = `${fromUserId}-${toUserId}`;
+export const getConversationMeta = async (localUserId: number, conversationKey: string): Promise<StoredConversationMeta | undefined> => {
   const db = await getDB();
   const transaction = db.transaction("conversation-meta");
   const store = transaction.objectStore("conversation-meta");
   const index = store.index("localUserId");
-  const range = IDBKeyRange.only(fromUserId);
+  const range = IDBKeyRange.only(localUserId);
 
   return new Promise((resolve) => {
     const request = index.openCursor(range);
@@ -376,34 +347,78 @@ export const getConversationMeta = async (fromUserId: number, toUserId: number):
   });
 }
 
-export const clearConversationMeta = async (localUserId: number): Promise<void> => {
+export const getAllConversationMeta = async (): Promise<StoredConversationMeta[]> => {
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta");
+  const store = transaction.objectStore("conversation-meta");
+  const index = store.index("localUserId");
+  const result: StoredConversationMeta[] = [];
+
+  return new Promise((resolve) => {
+    const request = index.openCursor();
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (!cursor) {
+        resolve(result);
+        return;
+      }
+
+      result.push(cursor.value);
+
+      cursor.continue();
+    };
+
+    request.onerror = () => {
+      resolve([]);
+    };
+  });
+}
+
+export const clearConversationMeta = async (): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("conversation-meta", "readwrite");
   const store = transaction.objectStore("conversation-meta");
-  const index = store.index("localUserId");
-  const range = IDBKeyRange.only(localUserId);
 
   return new Promise((resolve, reject) => {
-    const request = index.openCursor(range);
-    request.onsuccess = (event) => {
-      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-      if (cursor) {
-        cursor.delete();
-        cursor.continue();
-      }
+    const request = store.clear();
+    request.onsuccess = () => {
+      resolve();
     };
 
     request.onerror = () => {
       reject(request.error);
     };
-
-    transaction.oncomplete = () => {
-      console.log(`Conversation meta for ${localUserId} deleted`);
-      resolve();
-    };
-
-    transaction.onerror = () => reject(transaction.error);
   });
+}
+
+export const updateAllConversationMetaSyncDate = async (dateISOString: string): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("conversation-meta", "readwrite");
+  const store = transaction.objectStore("conversation-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      if (!cursor) {
+        resolve();
+        return;
+      }
+
+      const value = cursor.value;
+      value.lastSyncedAt = dateISOString;
+      const updateRequest = cursor.update(value);
+
+      updateRequest.onsuccess = () => {
+        cursor.continue();
+      };
+
+      updateRequest.onerror = () => {
+        reject(updateRequest.error);
+      };
+    };
+  })
 }
 
 export const storeE2EEPublicKey = async (data: StoredE2EEPublicKey): Promise<void> => {
@@ -415,12 +430,12 @@ export const storeE2EEPublicKey = async (data: StoredE2EEPublicKey): Promise<voi
     const request = store.put(data);
 
     request.onsuccess = () => {
-      console.log("E2EE entry successfully stored in indexedDB");
+      console.log("E2EE public key successfully stored in indexedDB");
       resolve();
     }
 
     request.onerror = () => {
-      console.log("Failed to store E2EE entry in indexedDB");
+      console.log("Failed to store E2EE public key in indexedDB");
       reject(request.error);
     }
   })
@@ -462,4 +477,64 @@ export const getUserDeviceE2EEPublicKey = async (userId: number, deviceId: strin
       resolve(null);
     }
   })
+}
+
+export const setGlobalSyncMeta = async (dateISOString: string): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-meta", "readwrite");
+  const store = transaction.objectStore("chat-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(dateISOString, "lastSyncedAt");
+
+    request.onsuccess = () => {
+      resolve();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+export const getGlobalSyncMeta = async (): Promise<string> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-meta");
+  const store = transaction.objectStore("chat-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.get("lastSyncedAt");
+
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+export const clearGlobalChatMeta = async (): Promise<void> => {
+  const db = await getDB();
+  const transaction = db.transaction("chat-meta", "readwrite");
+  const store = transaction.objectStore("chat-meta");
+
+  return new Promise((resolve, reject) => {
+    const request = store.clear();
+
+    request.onsuccess = () => {
+      resolve();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+export const clearUserData = async (): Promise<void> => {
+  await clearChatMessages();
+  await clearConversationMeta();
+  await clearGlobalChatMeta();
 }

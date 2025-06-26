@@ -40,16 +40,13 @@ export const register = async ({ username, email, pwHash }: registerInput) => {
       }
     });
 
-    const accessToken = issueAccessToken(user);
-    const refreshToken = issueRefreshToken();
-
-    return { accessToken, refreshToken, user };
+    return { user };
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to create user");
   }
 }
 
-export const login = async ({ username, password }: loginInput) => {
+export const login = async ({ username, password, deviceId }: loginInput) => {
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -80,23 +77,37 @@ export const login = async ({ username, password }: loginInput) => {
       throw new BadRequestError('Invalid username or password');
     }
 
-    const accessToken = issueAccessToken(user);
+    const accessToken = issueAccessToken(user, deviceId);
     const refreshToken = issueRefreshToken();
 
+    const device = await prisma.device.upsert({
+      where: {
+        deviceId_userId: {
+          deviceId,
+          userId: user.id,
+        },
+      },
+      create: {
+        deviceId,
+        userId: user.id,
+      },
+      update: {},
+    });
+    
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         expiresAt: new Date(Date.now() + TWO_WEEKS_MS),
-        userId: user.id
+        deviceId: device.id
       }
-    })
+    });
 
     return { accessToken, refreshToken, user };
   } catch (err) {
     if (err instanceof BadRequestError) {
       throw err;
     }
-
+    console.error(err)
     throw new ServiceError("LoginService", "Failed to login user");
   }
 }
@@ -109,10 +120,14 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
 
     const storedToken = await prisma.refreshToken.findUnique({
       where: {
-        token: refreshToken
+        token: refreshToken,
       },
       include: {
-        user: true
+        device: {
+          include: {
+            user: true
+          }
+        }
       }
     })
 
@@ -120,11 +135,15 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
       throw new BadRequestError('Invalid refresh token');
     }
 
-    if (!storedToken?.user) {
+    if (!storedToken.device) {
+      throw new Error("Missing device to create refresh token");
+    }
+
+    if (!storedToken.device.user) {
       throw new Error("Missing user to create refresh token");
     }
 
-    const newAccessToken = issueAccessToken(storedToken.user);
+    const newAccessToken = issueAccessToken(storedToken.device.user, storedToken.device.deviceId);
     const newRefreshToken = issueRefreshToken();
 
     await prisma.$transaction([
@@ -138,12 +157,16 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
         data: {
           token: newRefreshToken,
           expiresAt: new Date(Date.now() + TWO_WEEKS_MS),
-          userId: storedToken.userId
+          device: {
+            connect: {
+              id: storedToken.deviceId
+            }
+          }
         }
       })
     ])
 
-    return { newAccessToken, newRefreshToken, user: storedToken.user };
+    return { newAccessToken, newRefreshToken, user: storedToken.device.user };
   } catch (err) {
     if (err instanceof BadRequestError) {
       throw err;

@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { getPublicKeysByUserId, storeNewDeviceByUserId } from '../services/key.service';
+import { getKeysByUserAndDeviceId, getPublicKeysByUserId, updateDeviceKeys } from '../services/key.service';
 
 export const getEncryptedPrivateKey = asyncHandler(async (req: Request, res: Response) => {
-  const { encryptedPrivateKey, iv, salt } = req.device;
+  const userId = req.user.id;
+  const deviceId = req.params.deviceId;
+  const { encryptedPrivateKey, iv, salt } = await getKeysByUserAndDeviceId({ userId, deviceId });
 
   res.status(200).json({
     success: true,
@@ -14,11 +16,11 @@ export const getEncryptedPrivateKey = asyncHandler(async (req: Request, res: Res
   })
 })
 
-export const postNewDevice = asyncHandler(async (req: Request, res: Response) => {
+export const postDeviceKeys = asyncHandler(async (req: Request, res: Response) => {
   const { privateKey, publicKey, deviceId, userId } = req.body;
   const { encryptedPrivateKey, iv, salt } = privateKey;
 
-  await storeNewDeviceByUserId({ encryptedPrivateKey, iv, salt, publicKey, deviceId, userId });
+  await updateDeviceKeys({ encryptedPrivateKey, iv, salt, publicKey, deviceId, userId });
 
   res.status(200).json({
     success: true,

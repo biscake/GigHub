@@ -1,4 +1,5 @@
-export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+export const base64ToArrayBuffer = (base64: string): ArrayBuffer | null => {
+  if (!base64) return null;
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
@@ -7,13 +8,15 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   return bytes.buffer;
 }
 
-export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+export const arrayBufferToBase64 = (buffer: ArrayBuffer): string | null => {
+  if (!buffer) return null;
   const bytes = new Uint8Array(buffer);
   const binary = bytes.reduce((acc, byte) => acc + String.fromCharCode(byte), "");
   return btoa(binary);
 }
 
-export const Uint8ToBase64 = (uint8: Uint8Array): string => {
+export const Uint8ToBase64 = (uint8: Uint8Array): string | null => {
+  if (!uint8) return null;
   let binary = '';
 
   for (let i = 0; i < uint8.length; i++) {
@@ -23,7 +26,8 @@ export const Uint8ToBase64 = (uint8: Uint8Array): string => {
   return btoa(binary);
 }
 
-export const base64ToUint8 = (base64: string): Uint8Array => {
+export const base64ToUint8 = (base64: string): Uint8Array | null=> {
+  if (!base64) return null;
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
 

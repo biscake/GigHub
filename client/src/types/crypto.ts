@@ -13,17 +13,34 @@ export interface EncryptedE2EEKeyResponse {
   salt: string;
 }
 
-export interface DeviceIdAndSecret {
-  deviceId: string;
-  deviceSecret: CryptoKey;
-}
-
 export interface StoredE2EEEntry {
   userId: number;
-  deviceId: string;
   wrappedDerivedKey: ArrayBuffer;
   deviceSecret: CryptoKey;
-  salt: Uint8Array;
-  iv: Uint8Array;
-  encryptedPrivateKey: ArrayBuffer;
+  salt: Uint8Array | null;
+  iv: Uint8Array | null;
+  encryptedPrivateKey: ArrayBuffer | null;
+}
+
+export type PublicKey = {
+  publicKey: JsonWebKey;
+  deviceId: string;
+}
+
+export type ImportedPublicKey = {
+  publicKey: CryptoKey;
+  deviceId: string;
+  userId: number;
+}
+
+export type StoredE2EEPublicKey = {
+  userId: number;
+  publicKey: JsonWebKey;
+  deviceId: string;
+}
+
+export type DerivedSharedKey = {
+  deviceId: string;
+  sharedKey: CryptoKey;
+  userId: number;
 }

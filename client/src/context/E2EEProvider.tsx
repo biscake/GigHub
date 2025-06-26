@@ -5,39 +5,33 @@ import api from "../lib/api";
 import { getEncryptedE2EEEntry, getUserDeviceE2EEPublicKey, storeE2EEPublicKey, storeEncryptedE2EEKey } from "../lib/indexeddb";
 import type { User } from "../types/auth";
 import type { EncryptedE2EEKeyResponse, StoredE2EEEntry } from "../types/crypto";
-import { decryptJwk, decryptMessage, deriveECDHSharedKey, derivePBKDF2Key, encryptJwk, generateDeviceIdAndSecret, generateECDHKeyPair, generateSalt, importECDHJwk, unwrapDerivedKey, wrapDerivedKey } from "../utils/crypto";
+import { decryptJwk, decryptMessage, deriveECDHSharedKey, derivePBKDF2Key, encryptJwk, generateDeviceSecret, generateECDHKeyPair, generateSalt, importECDHJwk, unwrapDerivedKey, wrapDerivedKey } from "../utils/crypto";
 import { arrayBufferToBase64, base64ToArrayBuffer, base64ToUint8, Uint8ToBase64 } from "../utils/utils";
 import { E2EEContext } from "./E2EEContext";
-import type { DerivedSharedKey, ImportedPublicKey, PublicKey, StoredE2EEPublicKey } from "../types/key";
-import type { GetPublicKeysResponse } from "../types/api";
-import type { StoredMessage } from "../types/chat";
+import type { DerivedSharedKey, ImportedPublicKey, PublicKey, StoredE2EEPublicKey } from "../types/crypto";
+import type { GetConversationParticipantsResponse, GetPublicKeysResponse } from "../types/api";
+import type { Participant, StoredMessage } from "../types/chat";
 
 export const E2EEProvider = ({ children }: { children: ReactNode }) => {
-  const [privateKey, setPrivateKey] = useState<CryptoKey | null>(null);
-  const [password, setPassword] = useState<string | null>(null);
-  const [deviceId, setDeviceId] = useState<string | null>(null);
-  const idempotencyKeyRef = useRef<string | null>(null);
-  const { user } = useAuth();
-  const idempotencyKey = useIdempotencyKey();
-
-  useEffect(() => {
-    if (!idempotencyKeyRef.current) {
-      idempotencyKeyRef.current = idempotencyKey.get();
-    }
-  }, [idempotencyKey])
+  const privateKey = useRef<CryptoKey | null>(null);
+  const { user, deviceIdRef, password, setPassword } = useAuth();
+  const { get, clear } = useIdempotencyKey();
+  const [loading, setLoading] = useState(true);
+  const initRef = useRef(false);
 
   // get encrypted private key and device details from indexeddb if exist 
   // else if does not exist, get encrypted private key from server
   // derive pbkdf2key using stored salt and user's password
   // wrap derived key with device secret
-  const initKeyWithPassword = useCallback(async (password: string): Promise<void> => {
-    if (!user) return;
+  const initKeyWithPassword = useCallback(async (password: string): Promise<CryptoKey | null> => {
+    const deviceId = deviceIdRef.current;
+    if (!user || !deviceId) return null;
 
     const data: StoredE2EEEntry = await getEncryptedE2EEEntry(user.id);
 
-    if (data && data.deviceId && data.deviceSecret && data?.userId) {
+    if (data && data.deviceSecret && data?.userId) {
       try {
-        const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${data.deviceId}`);
+        const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${deviceId}`);
         data.encryptedPrivateKey = base64ToArrayBuffer(res.data.encryptedPrivateKey);
         data.salt = base64ToUint8(res.data.salt);
         data.iv = base64ToUint8(res.data.iv);
@@ -46,12 +40,12 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    if (!data || !data.deviceId || !data.deviceSecret
+    if (!data || !data.deviceSecret
       || !data.encryptedPrivateKey || !data.iv
       || !data.salt || !data.userId 
-      ) {
-        throw new Error("Missing or corrupted key");
-      }
+    ) {
+      throw new Error("Missing or corrupted key");
+    }
 
     // derive pbkdf2
     const pbkdf2Key = await derivePBKDF2Key(password, data.salt);
@@ -61,25 +55,27 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     await storeEncryptedE2EEKey(data);
 
     const decryptedPrivateKey = await decryptJwk(data.encryptedPrivateKey, pbkdf2Key, data.iv);
-    setPrivateKey(decryptedPrivateKey);
-    setDeviceId(data.deviceId);
     setPassword(null);
-  }, [user])
+    return decryptedPrivateKey;
+  }, [user, setPassword, deviceIdRef])
 
   // get encrypted private key and device details from indexeddb if exist 
   // else if does not exist, get encrypted private key from server
   // unwrap derived key with device secret 
   // decrypt encrypted private key with unwrapped derived key
-  const initKeyWithoutPassword = useCallback(async (): Promise<void> => {
-    if (!user) return;
+  const initKeyWithoutPassword = useCallback(async (): Promise<CryptoKey | null> => {
+    const deviceId = deviceIdRef.current;
+    if (!user || !deviceId) return null;
 
     const data: StoredE2EEEntry = await getEncryptedE2EEEntry(user.id);
 
     // retrieve encrypted private key from server using device id if deviceId, deviceSecret and wrappedDerivedKey exist
-    if (!(data && data?.encryptedPrivateKey && data?.iv && data?.salt)) {
-      if (data?.deviceId && data?.deviceSecret && data?.wrappedDerivedKey && data?.userId) {
+    if (!data || !data?.encryptedPrivateKey || !data?.iv || !data?.salt) {
+      if (data?.deviceSecret && data?.wrappedDerivedKey && data?.userId) {
         try {
-          const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${data.deviceId}`);
+          const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${deviceId}`);
+          console.log("frm server", res)
+
           data.encryptedPrivateKey = base64ToArrayBuffer(res.data.encryptedPrivateKey);
           data.salt = base64ToUint8(res.data.salt);
           data.iv = base64ToUint8(res.data.iv);
@@ -89,7 +85,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    if (!data || !data.deviceId || !data.deviceSecret
+    if (!data || !data.deviceSecret
       || !data.encryptedPrivateKey || !data.iv
       || !data.salt || !data.userId
     ) {
@@ -105,20 +101,19 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     // decrypt private key
     const unwrappedKey = await unwrapDerivedKey(data.wrappedDerivedKey, data.deviceSecret);
     const decryptedPrivateKey = await decryptJwk(data.encryptedPrivateKey, unwrappedKey, data.iv);
-    setPrivateKey(decryptedPrivateKey);
-    setDeviceId(data.deviceId);
-  }, [user])
+    return decryptedPrivateKey
+  }, [user, deviceIdRef])
 
   // generate deviceId, deviceSecret and a elliptic curve diffie hellman keypair
   // use user's password to derive key
   // encrypt private key with derived key
   // wrap derived key with device secret
-  const initNewDevice = useCallback(async (password: string, user: User): Promise<void> => {
-    if (!user) return;
+  const initNewDevice = useCallback(async (password: string, user: User): Promise<CryptoKey | null> => {
+    const deviceId = deviceIdRef.current;
+    if (!user || !deviceId) return null;
     if (!password) throw new Error("Encryption password is null");
 
-    const { deviceId, deviceSecret } = await generateDeviceIdAndSecret();
-
+    const deviceSecret = await generateDeviceSecret();
     const keyPair = await generateECDHKeyPair();
     const derivedKeySalt = generateSalt();
     const derivedKey = await derivePBKDF2Key(password, derivedKeySalt);
@@ -127,7 +122,6 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
 
     const e2eeData: StoredE2EEEntry = {
       userId: user.id,
-      deviceId,
       wrappedDerivedKey,
       deviceSecret,
       salt: derivedKeySalt,
@@ -135,38 +129,51 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       encryptedPrivateKey: encryptedResult.encryptedPrivateKey
     }
 
+    if (!derivedKeySalt || !encryptedResult.iv || !encryptedResult.encryptedPrivateKey || !deviceSecret) return null;
+
     await storeEncryptedE2EEKey(e2eeData);
 
-    api.post('/api/keys',
-      {
-        privateKey: {
-          iv: Uint8ToBase64(e2eeData.iv),
-          encryptedPrivateKey: arrayBufferToBase64(e2eeData.encryptedPrivateKey),
-          salt: Uint8ToBase64(derivedKeySalt),
-        },
-        publicKey: keyPair.publicKey,
-        deviceId: e2eeData.deviceId,
-        userId: user.id
-      }
-      ,
-      {
-      headers: {
-        'Content-Type': "application/json",
-        'Idempotency-Key': idempotencyKeyRef.current
-      }
-    })
+    try {
+      if (!e2eeData.iv || !e2eeData.encryptedPrivateKey || !e2eeData.salt) throw new Error("Corrupted data");
+      
+      api.post('/api/keys',
+        {
+          privateKey: {
+            iv: Uint8ToBase64(e2eeData.iv),
+            encryptedPrivateKey: arrayBufferToBase64(e2eeData.encryptedPrivateKey),
+            salt: Uint8ToBase64(derivedKeySalt),
+          },
+          publicKey: keyPair.publicKey,
+          deviceId: deviceId,
+          userId: user.id
+        }
+        ,
+        {
+        headers: {
+          'Content-Type': "application/json",
+          'Idempotency-Key': get()
+        }
+      })
+    } catch (err) {
+      console.error(err);
+    } finally {
+      clear();
+    }
 
     const importedPrivateKey = await importECDHJwk(keyPair.privateKey);
-    setPrivateKey(importedPrivateKey);
-    setDeviceId(e2eeData.deviceId);
     setPassword(null);
-  }, [])
+    return importedPrivateKey;
+  }, [deviceIdRef, clear, get, setPassword])
 
-  const getAllUserPublicKeys = async (userId: number): Promise<ImportedPublicKey[]> => {
+  const getUserPublicKeys = useCallback(async (userId: number, deviceId?: string): Promise<ImportedPublicKey[]> => {
     try {
-      const res = await api.get<GetPublicKeysResponse>(`/api/keys/public/${userId}`);
+      const res = await api.get<GetPublicKeysResponse>(`/api/keys/public/${userId}`, {
+        params: {
+          deviceId
+        }
+      });
 
-      const publicKeys: PublicKey[] = res.data.publicKeys;
+      const publicKeys = res.data.publicKeys;
       
       const importedKey = await Promise.all(
         publicKeys.map(async key => {
@@ -177,7 +184,8 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
           }
 
           const toStore: StoredE2EEPublicKey = {
-            ...key,
+            deviceId: key.deviceId,
+            publicKey: key.publicKey,
             userId
           }
 
@@ -186,13 +194,46 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
           return importedKey;
         })
       );
-
+      
       return importedKey;
     } catch (err) {
       console.error("Failed to get public keys", err);
       return [];
     }
-  }
+  }, [])
+
+  const getAllPublicKeysConversation = useCallback(async (conversationKey: string): Promise<ImportedPublicKey[]> => {
+    try {
+      const res = await api.get<GetConversationParticipantsResponse>(`/api/chat/conversations/${conversationKey}`);
+      
+      const participants: Participant[] = res.data.participants;
+      
+      const importedKey = await Promise.all(
+        participants.map(async p => {
+          const importedKey: ImportedPublicKey = {
+            deviceId: p.deviceId,
+            publicKey: await importECDHJwk(p.publicKey),
+            userId: p.userId
+          }
+
+          const toStore: StoredE2EEPublicKey = {
+            deviceId: p.deviceId,
+            publicKey: p.publicKey,
+            userId: p.userId
+          }
+
+          await storeE2EEPublicKey(toStore);
+          
+          return importedKey;
+        })
+      );
+      
+      return importedKey;
+    } catch (err) {
+      console.error("Failed to get public keys", err);
+      return [];
+    }
+  }, [])
 
   const getUserDevicePublicKey = useCallback(async (userId: number, deviceId: string): Promise<ImportedPublicKey[]> => {
     let key: StoredE2EEPublicKey | PublicKey | null = (await getUserDeviceE2EEPublicKey(userId, deviceId));
@@ -220,6 +261,8 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    if (!key) throw new Error("Unable to get public key")
+
     const importedKey: ImportedPublicKey = {
       deviceId: key.deviceId,
       publicKey: await importECDHJwk(key.publicKey),
@@ -231,10 +274,11 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
 
   const deriveSharedKeys = useCallback(async (publicKeys: ImportedPublicKey[]): Promise<DerivedSharedKey[]> => {
     try {
-      if (!privateKey) throw new Error("Private key not initialized");
+      const key = privateKey.current;
+      if (!key) throw new Error("Private key not initialized");
 
       const sharedKeys = await Promise.all(
-        publicKeys.map(async entry => ({ deviceId: entry.deviceId, sharedKey: await deriveECDHSharedKey(privateKey, entry.publicKey), userId: entry.userId }))
+        publicKeys.map(async entry => ({ deviceId: entry.deviceId, sharedKey: await deriveECDHSharedKey(key, entry.publicKey), userId: entry.userId }))
       );
 
       return sharedKeys;
@@ -242,7 +286,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to derive shared keys", err);
       throw err;
     }
-  }, [privateKey])
+  }, [])
 
   const decryptCiphertext = useCallback(async (data: StoredMessage): Promise<string> => {
     try {
@@ -260,33 +304,44 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
   }, [deriveSharedKeys, getUserDevicePublicKey])
 
   useEffect(() => {
+    if (initRef.current) return;
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    initRef.current = true;
+
     const runInitKeys = async () => {
-      if (!user) return;
-
       console.log("Initializing key...",);
-
+      let key: CryptoKey | null = null;
       try {
         if (password) {
-          await initKeyWithPassword(password);
+          key = await initKeyWithPassword(password);
         } else {
-          await initKeyWithoutPassword();
+          key = await initKeyWithoutPassword();
         }
       } catch (err) {
         if (err instanceof Error && err.message === "Missing or corrupted key" && password) {
           console.error("Key initialization failed, registering as new device...");
-          await initNewDevice(password, user);
+          key = await initNewDevice(password, user);
         } else {
           console.error(err);
         }
+      } finally {
+        privateKey.current = key;
+        initRef.current = false;
+        setLoading(false);
       }
     };
   
     runInitKeys();
-  }, [user, initKeyWithPassword, initKeyWithoutPassword, initNewDevice, password]);
+  }, [user, initKeyWithPassword, initKeyWithoutPassword, initNewDevice, password, setPassword]);
 
   return (
-    <E2EEContext.Provider value={{ privateKey, setPassword, deviceId, getAllUserPublicKeys, getUserDevicePublicKey, deriveSharedKeys, decryptCiphertext }}>
-      {children}
+    <E2EEContext.Provider value={{ getAllPublicKeysConversation, getUserDevicePublicKey, deriveSharedKeys, decryptCiphertext, privateKey, getUserPublicKeys }}>
+      {!loading && children}
     </E2EEContext.Provider>
   )
 }

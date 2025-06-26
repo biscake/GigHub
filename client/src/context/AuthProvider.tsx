@@ -1,7 +1,6 @@
 import { type AxiosError } from 'axios';
 import { jwtDecode } from "jwt-decode";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import api from '../lib/api';
 import { ejectInterceptors, setupInterceptors } from '../lib/apiInterceptors';
 import type { ApiErrorResponse, PostLoginResponse } from '../types/api';
@@ -9,14 +8,27 @@ import type { JwtPayload, User } from "../types/auth";
 import type { LoginFormInputs } from "../types/form";
 import { AuthContext } from "./AuthContext";
 import { Loading } from '../components/Loading';
-import { clearChatMessages, clearConversationMeta, deleteEncryptedE2eeKey } from '../lib/indexeddb';
-
-const idempotencyKey = uuidv4();
+import { clearUserData, deleteEncryptedE2eeKey } from '../lib/indexeddb';
+import { useIdempotencyKey } from '../hooks/useIdempotencyKey';
+import { v4 as uuidv4 } from "uuid";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { get, clear } = useIdempotencyKey();
+  const deviceIdRef = useRef<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
+
+  useEffect(() => {
+    const devId = localStorage.getItem("deviceId");
+    if (devId) {
+      deviceIdRef.current = devId;
+      return;
+    }
+
+    localStorage.setItem("deviceId", uuidv4());
+  }, [])
 
   useEffect(() => {
     const fetchAccessToken = async () => {
@@ -28,9 +40,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const res = await api.post('/api/auth/refreshtoken', { rememberMe }, {
             headers: {
               'Content-Type': 'application/json',
-              'Idempotency-Key': idempotencyKey
+              'Idempotency-Key': get()
             }
           });
+
+          if (!res.data) {
+            return;
+          }
+
           const token = res.data.accessToken;
   
           if (token) {
@@ -40,8 +57,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser({ id: decoded.sub, username: decoded.username });
           }
         } catch (err) {
-          console.log(err);
+          console.error(err);
           setUser(null);
+        } finally {
+          clear();
         }
       }
 
@@ -49,16 +68,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchAccessToken();
-  }, [])
+  }, [clear, get])
 
-  const login = async (data: LoginFormInputs) => {
+  const login = useCallback(async (data: LoginFormInputs) => {
     try {
-      const res = await api.post<PostLoginResponse>('/api/auth/login', data, { headers: { 'Content-Type': 'application/json' } });
+      const deviceId = deviceIdRef.current;
+      if (!deviceId) throw new Error("Device Id not initialized");
+      const res = await api.post<PostLoginResponse>('/api/auth/login', { ...data, deviceId }, { headers: { 'Content-Type': 'application/json' } });
       
       const token = res.data.accessToken;
       const userId = res.data.user.id;
 
       if (token && userId) {
+        const lastLoggedInUser = localStorage.getItem("lastLoginUser");
+        if (lastLoggedInUser !== userId.toString()) {
+          localStorage.setItem("lastLoginUser", userId.toString());
+          await clearUserData();
+        }
+        
+        setPassword(data.password);
         setAccessToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const decoded = jwtDecode(token) as JwtPayload;
@@ -66,13 +94,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         localStorage.setItem("rememberMe", data.rememberMe ? "true" : "false");
         sessionStorage.setItem("sessionActive", "true");
-
-        const lastLoggedInUser = localStorage.getItem("lastLoginUser");
-        if (lastLoggedInUser !== userId.toString()) {
-          localStorage.setItem("lastLoginUser", userId.toString());
-          await clearChatMessages();
-          await clearConversationMeta(userId);
-        }
       }
 
       return { success: true };
@@ -85,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [setPassword])
 
   const logout = useCallback(async () => {
     try {
@@ -116,12 +137,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (accessToken) {
-      setupInterceptors({ accessToken, user, login, logout, setAccessToken });
+      setupInterceptors({ accessToken, logout, setAccessToken });
     }
-  }, [accessToken, user, logout])
+  }, [accessToken, logout])
 
   return (
-    <AuthContext.Provider value={{ accessToken, user, login, logout, setAccessToken }}>
+    <AuthContext.Provider value={{ accessToken, user, login, logout, setAccessToken, deviceIdRef, password, setPassword }}>
       {loading ? <Loading /> : children}
     </AuthContext.Provider>
   )

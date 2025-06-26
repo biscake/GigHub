@@ -1,12 +1,21 @@
 import { Router } from 'express';
-import { syncMessagesBetweenUsers, syncReadReceiptBetweenUsers } from '../controllers/chat.controller';
+import { getAllReadReceipts, getConversationMeta, getConversationParticipants, getConversations, getOrElseCreateConversation, syncMessages, syncReadReceipt } from '../controllers/chat.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
-import { isOriginUserOfChat } from '../middleware/chat/is-origin-user';
 
 const router = Router();
 
-router.get('/conversations/:originUserId/:targetUserId/messages', authenticateJWT, isOriginUserOfChat, syncMessagesBetweenUsers);
+router.get('/conversations', authenticateJWT, getConversations);
 
-router.get('/conversations/:originUserId/:targetUserId/read-receipt', authenticateJWT, isOriginUserOfChat, syncReadReceiptBetweenUsers);
+router.get('/conversations/gigs/:gigId', authenticateJWT, getOrElseCreateConversation);
+
+router.get('/conversations/read-receipt', authenticateJWT, getAllReadReceipts);
+
+router.get('/conversations/:conversationKey', authenticateJWT, getConversationParticipants)
+
+router.get('/conversations/:conversationKey/meta', authenticateJWT, getConversationMeta);
+
+router.get('/conversations/:conversationKey/messages', authenticateJWT, syncMessages);
+
+router.get('/conversations/:conversationKey/read-receipt', authenticateJWT, syncReadReceipt);
 
 export default router;

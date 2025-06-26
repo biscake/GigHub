@@ -1,14 +1,13 @@
 import { Router } from 'express';
 import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
-import { isOwnerOfDevice } from '../middleware/keys/is-owner-of-device.middleware';
-import { getEncryptedPrivateKey, getPublicKey, postNewDevice } from '../controllers/key.controller';
+import { getEncryptedPrivateKey, getPublicKey, postDeviceKeys } from '../controllers/key.controller';
 
 const router = Router();
 
-router.get('/private/:deviceId', authenticateJWT, isOwnerOfDevice, getEncryptedPrivateKey);
+router.get('/private/:deviceId', authenticateJWT, getEncryptedPrivateKey);
 
-router.post('/', idempotencyKey, postNewDevice);
+router.post('/', idempotencyKey, postDeviceKeys);
 
 router.get('/public/:userId', getPublicKey);
 

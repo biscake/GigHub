@@ -6,30 +6,31 @@ interface ChatMessage {
 
 export interface ChatMessagePayload {
   type: 'Chat';
-  to: number;
+  conversationKey: string;
   messages: ChatMessage[];
 }
 
 export interface ChatRecipientPayload {
   type: 'Chat';
-  from: number;
-  timestamp: string;
+  conversationKey: string;
 }
 
-export interface ChatSenderPayload extends ChatRecipientPayload {
-  to: number;
+export interface NewConversationCreatedPayload {
+  type: 'Chat';
+  conversationKey: string;
+  gigId: number;
 }
 
 export interface ReadPayload {
   type: 'Read';
-  messageIds: string[];
+  conversationKey: string;
+  lastRead: string;
 }
 
 export interface ReadReceiptPayload {
   type: 'Read-Receipt';
-  recipientId: number;
-  messageId: string;
-  readAt: string;
+  conversationKey: string;
+  lastRead: string;
 }
 
 export interface AuthPayload {
@@ -38,4 +39,5 @@ export interface AuthPayload {
   deviceId: string;
 }
 
-export type WebsocketPayload = ChatMessagePayload | ReadPayload | AuthPayload;
+
+export type WebsocketPayload = NewConversationPayload | ChatMessagePayload | ReadPayload | AuthPayload;

@@ -27,3 +27,7 @@ export interface createReviewInDatabaseParams {
   reviewerId: number;
   revieweeId: number;
 }
+
+export interface GetNormalizedProfilesParams {
+  search: string;
+}

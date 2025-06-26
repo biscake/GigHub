@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import api from "./api";
-import type { AuthContextType } from "../types/context";
+import type { ApiInterceptorParams } from "../types/api";
 
 let requestInterceptorId: number | null = null;
 let responseInterceptorId: number | null = null;
 
-export const setupInterceptors = (auth: AuthContextType) => {
+export const setupInterceptors = ({ logout, setAccessToken, accessToken }: ApiInterceptorParams) => {
   if (requestInterceptorId !== null) {
     api.interceptors.request.eject(requestInterceptorId);
   }
@@ -15,8 +15,8 @@ export const setupInterceptors = (auth: AuthContextType) => {
   }
 
   requestInterceptorId = api.interceptors.request.use((config) => {
-    if (auth.accessToken) {
-      config.headers.Authorization = `Bearer ${auth.accessToken}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   });
@@ -44,11 +44,11 @@ export const setupInterceptors = (auth: AuthContextType) => {
   
           originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
 
-          auth.setAccessToken(res.data.accessToken);
+          setAccessToken(res.data.accessToken);
   
           return api(originalRequest);
         } catch (error) {
-          auth.logout();
+          logout();
           return Promise.reject(error);
         }
       }

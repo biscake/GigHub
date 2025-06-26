@@ -153,6 +153,7 @@ export const getSentApplicationsByUserId = async ({ userId, page = 1, COUNT }: {
     const result = await prisma.gigApplication.findMany({
       where: {
         userId,
+        status: Status.PENDING
       },
       take: COUNT,
       orderBy: {
@@ -185,7 +186,8 @@ export const getReceivedApplicationsByUserId = async ({ userId, page = 1, COUNT 
       where: {
         gig: {
           authorId: userId
-        }
+        },
+        status: Status.PENDING
       },
       take: COUNT,
       orderBy: {
@@ -264,5 +266,39 @@ export const updateApplicationMessageById = async ({ message, applicationId }: {
     })
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to update application message in database");
+  }
+}
+
+export const getAcceptedApplicationsByUserId = async ({ userId, page = 1, COUNT }: { userId: number; page: number; COUNT: number; }) => {
+  try {
+    const result = await prisma.gigApplication.findMany({
+      where: {
+        userId,
+        status: Status.ACCEPTED
+      },
+      take: COUNT,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      skip: (page - 1) * COUNT,
+      include: {
+        gig: {
+          include: {
+            author: true,
+          }
+        }
+      }
+    })
+
+    const totalGigs = await prisma.gigApplication.count({
+      where: {
+        userId,
+        status: Status.ACCEPTED
+      },
+    });
+
+    return { applications: result, totalCount: totalGigs};
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to get user's received applications from database");
   }
 }

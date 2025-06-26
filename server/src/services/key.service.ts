@@ -2,12 +2,17 @@ import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { GetDeviceByDeviceIdParams, GetPublicKeysByUserIdParams, StoreNewDeviceByUserIdParams } from "../types/key";
+import { GetKeysByUserAndDeviceIdParams, GetPublicKeysByUserIdParams, UpdateDeviceKeysParams } from "../types/key";
 
-export const getDeviceByDeviceId = async ({ deviceId }: GetDeviceByDeviceIdParams) => {
+export const getKeysByUserAndDeviceId = async ({ userId, deviceId }: GetKeysByUserAndDeviceIdParams) => {
   try {
     const device = await prisma.device.findUnique({
-      where: { deviceId }
+      where: {
+        deviceId_userId: {
+          deviceId,
+          userId
+        }
+      }
     });
 
     if (!device) {
@@ -24,12 +29,16 @@ export const getDeviceByDeviceId = async ({ deviceId }: GetDeviceByDeviceIdParam
   }
 }
 
-export const storeNewDeviceByUserId = async ({ encryptedPrivateKey, iv, salt, publicKey, deviceId, userId }: StoreNewDeviceByUserIdParams) => {
+export const updateDeviceKeys = async ({ encryptedPrivateKey, iv, salt, publicKey, deviceId, userId }: UpdateDeviceKeysParams) => {
   try {
-    await prisma.device.create({
+    await prisma.device.update({
+      where: {
+        deviceId_userId: {
+          deviceId,
+          userId
+        }
+      },
       data: {
-        deviceId,
-        userId,
         publicKey: JSON.stringify(publicKey),
         encryptedPrivateKey,
         iv,
@@ -37,7 +46,6 @@ export const storeNewDeviceByUserId = async ({ encryptedPrivateKey, iv, salt, pu
       }
     })
   } catch (err) {
-    console.error(err);
     throw new ServiceError("Prisma", "Failed to create new device for user");
   }
 }
@@ -59,7 +67,7 @@ export const getPublicKeysByUserId = async ({ userId, deviceId }: GetPublicKeysB
       throw new NotFoundError("User devices");
     }
 
-    const parsedPublicKeys = result.map(key => ({ ...key, publicKey: JSON.parse(key.publicKey) }));
+    const parsedPublicKeys = result.map(({ publicKey, ...rest }) => ({ ...rest, ...(publicKey && { publicKey: JSON.parse(publicKey) }) }));
 
     return parsedPublicKeys;
   } catch {

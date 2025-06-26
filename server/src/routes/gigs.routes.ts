@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { acceptGigApplication, createGig, deleteApplication, deleteGig, editApplication, getGigs, getGigWithId, getUserApplicationStats, getUserReceivedApplications, getUserSentApplications, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
+import { acceptGigApplication, createGig, deleteApplication, deleteGig, editApplication, getGigs, getGigWithId, getUserAcceptedGigs, getUserApplicationStats, getUserReceivedApplications, getUserSentApplications, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isOwnerOfGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
 import { isAuthorizedToApplyGig } from '../middleware/gig/is-authorize-apply-gig.middleware';
@@ -34,6 +34,8 @@ router.post('/:gigId/apply', idempotencyKey, isValidGigId, authenticateJWT, isAu
 router.get('/applications/sent', authenticateJWT, getUserSentApplications);
 
 router.get('/applications/received', authenticateJWT, getUserReceivedApplications);
+
+router.get('/applications/accepted', authenticateJWT, getUserAcceptedGigs);
 
 router.get('/applications/stats', authenticateJWT, getUserApplicationStats);
 

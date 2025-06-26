@@ -1,49 +1,170 @@
+import { AppError } from "../errors/app-error";
+import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { GetChatMessagesParams, GetChatMessagesRes, GetSenderIdByMessageIdParams, GetUpdatedReadReceipt, MarkMessageIdArrayAsReadParams, StoreCiphertextInDbParams } from "../types/chat";
+import {
+  GetAllLastReadParams,
+  GetChatMessagesParams,
+  GetChatMessagesRes,
+  GetConversationByConversationKey,
+  GetConversationMetaByKeyParams,
+  GetConversationParticipantsAndKeysParams,
+  GetExistingConversationsParams,
+  GetLastReadParams,
+  GetSenderIdByMessageIdParams,
+  StoreCiphertextInDbByConversationKeyParams,
+  StoreCiphertextInDbNewConversationParams,
+  UpdateReadReceiptParams,
+  UpsertConversationParams
+} from "../types/chat";
 
-export const storeCiphertextInDb = async ({ senderId, senderDeviceId, recipientId, payloadMessages }: StoreCiphertextInDbParams) => {
+export const storeCiphertextInDbNewConversation = async ({ senderId, senderDeviceId, recipientId, payloadMessages, gigId }: StoreCiphertextInDbNewConversationParams) => {
   try {
+    const devices = await prisma.device.findMany({
+      where: {
+        OR: [
+          {
+            userId: recipientId
+          },
+          {
+            userId: senderId,
+          }
+        ]
+      },
+    });
+
+    const senderDevice = devices.find(d => d.deviceId === senderDeviceId && d.userId === senderId);
+
+    if (!senderDevice) {
+      throw new Error(`Sender device ${senderDeviceId} for user ${senderId} not found`);
+    }
+
+    const devicesData = payloadMessages
+      .map(msg => {
+        const recipient = devices.find(d => d.deviceId === msg.deviceId && d.userId === msg.recipientId);
+
+        if (!recipient) return null;
+        return {
+          senderDeviceId: senderDevice.id,
+          recipientDeviceId: recipient.id,
+          ciphertext: msg.ciphertext,
+        };
+      })
+      .filter(item => item !== null);
+    
+    const conversation = await prisma.conversation.create({
+      data: {
+        participants: {
+          create: [{ userId: senderId }, { userId: recipientId }]
+        },
+        gigId
+      },
+    });
+
     const result = await prisma.chatMessage.create({
       data: {
         senderId,
-        recipientId,
         devices: {
           createMany: {
-            data: payloadMessages.map(msg => ({
-              senderDeviceId,
-              recipientDeviceId: msg.deviceId,
-              ciphertext: msg.ciphertext
-            }))
-          }
-        }
+            data: devicesData,
+          },
+        },
+        conversationKey: conversation.conversationKey
       },
       include: {
-        devices: true,
-      }
+        devices: {
+          include: {
+            recipientDevice: true,
+            senderDevice: true
+          }
+        },
+      },
     });
-  
+
     return result;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to store message in database");
   }
 }
 
-export const markMessageIdArrayAsRead = async ({ messageIds, recipientId }: MarkMessageIdArrayAsReadParams) => {
+export const storeCiphertextInDbByConversationKey = async ({ senderId, senderDeviceId, conversationKey, payloadMessages }: StoreCiphertextInDbByConversationKeyParams) => {
   try {
-    await prisma.chatMessage.updateMany({
+    const conversation = await prisma.conversation.findUnique({
       where: {
-        id: {
-          in: messageIds
-        },
-        recipientId
+        conversationKey,
       },
-      data: {
-        readAt: new Date()
+      include: {
+        participants: true
       }
-    })
+    });
+
+    if (!conversation) throw new NotFoundError("Conversation")
+
+    const participants = conversation?.participants.map(p => p.userId);
+
+    const devices = await prisma.device.findMany({
+      where: {
+        userId: {
+          in: participants
+        }
+      },
+    });
+
+    const senderDevice = devices.find(d => d.deviceId === senderDeviceId && d.userId === senderId);
+
+    if (!senderDevice) {
+      throw new Error(`Sender device ${senderDeviceId} for user ${senderId} not found`);
+    }
+
+    const devicesData = payloadMessages
+      .map(msg => {
+        const recipient = devices.find(d => d.deviceId === msg.deviceId && d.userId === msg.recipientId);
+
+        if (!recipient) return null;
+        return {
+          senderDeviceId: senderDevice.id,
+          recipientDeviceId: recipient.id,
+          ciphertext: msg.ciphertext,
+        };
+      })
+      .filter(item => item !== null);
+    
+
+    const result = await prisma.chatMessage.create({
+      data: {
+        senderId,
+        devices: {
+          createMany: {
+            data: devicesData,
+          },
+        },
+        conversationKey: conversation.conversationKey
+      },
+      include: {
+        devices: {
+          include: {
+            recipientDevice: true,
+            senderDevice: true
+          }
+        },
+      },
+    });
+
+    return result;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to store message in database");
+  }
+}
+
+export const getConversationByConversationKey = async ({ conversationKey }: GetConversationByConversationKey) => {
+  try {
+    const result = await prisma.conversation.findUnique({
+      where: { conversationKey }
+    });
+
+    return result;
   } catch {
-    throw new ServiceError("Prisma", "Failed to update read receipts in database");
+    throw new ServiceError("Prisma", "Failed to get conversation");
   }
 }
 
@@ -64,47 +185,66 @@ export const getMessagesByMessageIdArray = async ({ messageIds }: GetSenderIdByM
 }
 
 export const getChatMessages = async ({
-  originDeviceId,
-  originUserId,
-  targetUserId,
-  beforeDateISOString,
+  userDeviceId,
+  userId,
+  conversationKey,
+  before,
   count,
-  afterDateISOString
+  since
 }: GetChatMessagesParams) => {
   try {
+    let conversations;
+
+    if (!conversationKey) {
+      conversations = (await prisma.conversation.findMany({
+        where: {
+          participants: {
+            some: {
+              userId
+            }
+          }
+        }
+      }));
+    }
+
     const result = await prisma.chatMessage.findMany({
       where: {
         AND: [
           {
-            OR: [
-              {
-                senderId: originUserId,
-                recipientId: targetUserId
-              },
-              {
-                senderId: targetUserId,
-                recipientId: originUserId
+            ...(conversationKey
+              ? {
+                conversationKey
               }
-            ]
+              : {
+                conversationKey: {
+                  in: conversations?.map(c => c.conversationKey) ?? []
+                }
+              }
+            )
           },
           {
-            ...(beforeDateISOString && {
+            ...(before && {
               sentAt: {
-                lt: new Date(beforeDateISOString)
+                lt: new Date(before)
               }
             })
           },
           {
-            ...(afterDateISOString && {
+            ...(since && {
               sentAt: {
-                gt: new Date(afterDateISOString)
+                gt: new Date(since)
               }
             })
           }
         ]
       },
       include: {
-        devices: true
+        devices: {
+          include: {
+            recipientDevice: true,
+            senderDevice: true
+          }
+        }
       },
       ...(count && { take: count }),
       orderBy: {
@@ -112,9 +252,22 @@ export const getChatMessages = async ({
       }
     })
 
-    const formatted: GetChatMessagesRes[] = result.map(msg => {
-      const device = msg.devices.find(dev => dev.recipientDeviceId === originDeviceId);
+    const userDevice = await prisma.device.findUnique({
+      where: {
+        deviceId_userId: {
+          userId,
+          deviceId: userDeviceId
+        },
+      }
+    });
 
+    if (!userDevice) {
+      throw new NotFoundError("userDevice");
+    }
+
+    const formatted: GetChatMessagesRes[] = result.map(msg => {
+      const device = msg.devices.find(dev => dev.recipientDeviceId === userDevice.id);
+      
       if (!device) {
         return null;
       }
@@ -123,17 +276,13 @@ export const getChatMessages = async ({
         id: msg.id,
         from: {
           userId: msg.senderId,
-          deviceId: device.senderDeviceId,
-        },
-        to: {
-          userId: msg.recipientId,
+          deviceId: device.senderDevice.deviceId,
         },
         ciphertext: device.ciphertext,
         sentAt: msg.sentAt.toISOString(),
-        readAt: msg.readAt?.toISOString(),
-        direction: msg.senderId === originUserId ? 'outgoing' : 'incoming',
-        localUserId: originUserId,
-        conversationKey: `${originUserId}-${targetUserId}`
+        direction: msg.senderId === userId ? 'outgoing' : 'incoming',
+        localUserId: userId,
+        conversationKey: msg.conversationKey
       }
 
       return tmp;
@@ -145,21 +294,231 @@ export const getChatMessages = async ({
   }
 }
 
-export const getUpdatedReadReceipt = async ({ lastUpdatedISOString, originUserId, targetUserId }: GetUpdatedReadReceipt) => {
+export const getExistingConversations = async ({ userId }: GetExistingConversationsParams) => {
   try {
-    const result = await prisma.chatMessage.findMany({
+    const result = await prisma.conversation.findMany({
       where: {
-        senderId: originUserId,
-        recipientId: targetUserId,
-        readAt: {
-          ...(lastUpdatedISOString && { gt: new Date(lastUpdatedISOString)}) ,
-          not: null
+        participants: {
+          some: {
+            userId
+          }
+        },
+      },
+      include: {
+        gig: {
+          include: {
+            author: true
+          }
         }
       }
     })
 
-    return result.map(msg => ({ messageId: msg.id, readAt: msg.readAt!.toISOString() }));
+    const formatted = result.map(c => {
+      return {
+        conversationKey: c.conversationKey,
+        gigAuthorUsername: c.gig.author.username,
+        title: c.gig.title
+      }
+    });
+
+    return formatted;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get exisiting conversations for user");
+  }
+}
+
+export const updateLastRead = async ({ lastRead, userId, conversationKey }: UpdateReadReceiptParams) => {
+  try {
+    const result = await prisma.chatLastRead.upsert({
+      where: { 
+        userId_conversationKey: {
+          userId,
+          conversationKey
+        }
+       },
+      create: {
+        userId,
+        conversationKey,
+        lastRead: new Date(lastRead)
+      },
+      update: { lastRead: new Date(lastRead) },
+      include: {
+        conversation: {
+          include: {
+            participants: true
+          }
+        }
+      }
+    })
+
+    return result;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get update last read for user");
+  }
+}
+
+export const getLastRead = async ({ conversationKey }: GetLastReadParams) => {
+  try {
+    const result = await prisma.chatLastRead.findMany({
+      where: {
+        conversationKey
+      }
+    })
+
+    const formatted = result.map(r => {
+      return {
+        userId: r.userId,
+        lastRead: r.lastRead.toISOString()
+      }
+    })
+
+    return formatted;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get update last read for user");
+  }
+}
+
+export const getAllLastRead = async ({ userId }: GetAllLastReadParams) => {
+  try {
+    const result = await prisma.chatLastRead.findMany({
+      where: {
+        conversation: {
+          participants: {
+            some: {
+              userId
+            }
+          }
+        }
+      }
+    });
+
+    const formatted = result.map(r => {
+      return {
+        userId: r.userId,
+        conversationKey: r.conversationKey,
+        lastRead: r.lastRead.toISOString()
+      }
+    })
+
+    return formatted;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get last reads");
+  }
+}
+
+export const getConversationParticipantsAndKeys = async ({ conversationKey }: GetConversationParticipantsAndKeysParams) => {
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: { conversationKey },
+      include: {
+        participants: true
+      }
+    })
+
+    const participants = conversation?.participants.map(p => p.userId);
+
+    const publicKeys = await prisma.device.findMany({
+      where: {
+        userId: {
+          in: participants ?? []
+        }
+      },
+      include: {
+        user: true
+      }
+    })
+
+    const formatted = publicKeys.map(k => {
+      return {
+        userId: k.userId,
+        username: k.user.username,
+        ...(k.publicKey && { publicKey: JSON.parse(k.publicKey) }),
+        deviceId: k.deviceId
+      }
+    })
+
+    return formatted;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get conversation participants");
+  }
+}
+
+export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConversationParams) => {
+  try {
+    const gig = await prisma.gig.findUnique({
+      where: { id: gigId },
+      include: {
+        author: true
+      }
+    });
+
+    if (!gig) throw new NotFoundError("Gig");
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        gigId,
+        participants: {
+          some: {
+            userId: {
+              in: [userId, gig.authorId]
+            }
+          }
+        },
+      },
+    });
+
+    if (conversation) return { conversation, title: gig.title, gigAuthorUsername: gig.author.username };
+
+    const result = await prisma.conversation.create({
+      data: {
+        gigId,
+        participants: {
+          create: [
+            { userId },
+            { userId: gig.authorId }
+          ]
+        },
+      },
+    });
+    
+    return { conversation: result, title: gig.title, gigAuthorUsername: gig.author.username };
   } catch (err) {
-    throw new ServiceError("Prisma", "Failed to get updated read receipts from database");
+    if (err instanceof AppError) {
+      throw err;
+    }
+    console.log(err)
+    throw new ServiceError("Prisma", "Failed to find or create conversation");
+  }
+}
+
+export const getConversationMetaByKey = async ({ userId, conversationKey }: GetConversationMetaByKeyParams) => {
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        conversationKey,
+        participants: {
+          some: {
+            userId
+          }
+        }
+      },
+      include: {
+        gig: {
+          include: {
+            author: true
+          }
+        }
+      }
+    })
+
+    if (!conversation) throw new NotFoundError("Conversation")
+
+    return {
+      title: conversation.gig.title,
+      gigAuthorUsername: conversation.gig.author.username,
+      conversationKey
+    }
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get conversation meta");
   }
 }

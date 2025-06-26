@@ -1,22 +1,22 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 
 export const useIdempotencyKey = () => {
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const get = useCallback(() => {
-    const key = idempotencyKey ?? uuidv4();
+    const key = idempotencyKeyRef.current ?? uuidv4();
     
-    if (!idempotencyKey) {
-      setIdempotencyKey(key);
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = key;
     }
 
     return key;
-  }, [idempotencyKey]);
+  }, [])
 
   const clear = useCallback(() => {
-    setIdempotencyKey(null);
-  }, []);
+    idempotencyKeyRef.current = null;
+  }, [])
 
   return { get, clear };
 }

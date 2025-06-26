@@ -5,7 +5,7 @@ import { JwtPayload } from '../../types/jwt-payload';
 import { ExtWebSocket } from '../../types/ws';
 import { Clients } from '../Clients';
 
-export const handleAuth = async (accessToken: string, deviceId: string, ws: ExtWebSocket, clients: Clients) => {
+export const handleAuth = async (accessToken: string, ws: ExtWebSocket, clients: Clients) => {
   let decoded: JwtPayload;
 
   try {
@@ -19,9 +19,9 @@ export const handleAuth = async (accessToken: string, deviceId: string, ws: ExtW
     const user = await getUserById({ id: decoded.sub }); 
     if (user) {
       ws.userId = user.id;
-      ws.deviceId = deviceId;
-      clients.add(user.id, deviceId, ws);
-      console.log(`User ${user.id} connected on device ${deviceId}`);
+      ws.deviceId = decoded.deviceId;
+      clients.add(user.id, decoded.deviceId, ws);
+      console.log(`User ${user.id} connected on device ${decoded.deviceId}`);
       return;
     }
 

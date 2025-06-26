@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import jsonwebtoken from 'jsonwebtoken';
 import { keys } from '../config/keys';
 
-export const issueAccessToken = (user: User) => {
+export const issueAccessToken = (user: User, deviceId: string) => {
   const { id, username } = user;
 
   const expiresIn = '15m';
@@ -11,6 +11,7 @@ export const issueAccessToken = (user: User) => {
   const payload = {
     sub: id,
     username,
+    deviceId,
     iat: Date.now(),
     iss: process.env.JWT_ISSUER || 'localhost',
     aud: process.env.JWT_AUDIENCE || 'localhost'

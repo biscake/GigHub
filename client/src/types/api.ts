@@ -1,9 +1,15 @@
 import type { ApplicationStats, GigApplication } from "./application";
 import type { User } from "./auth";
-import type { StoredMessage } from "./chat";
+import type { Participant, StoredMessage } from "./chat";
+import type { PublicKey } from "./crypto";
 import type { Gig } from "./gig";
-import type { PublicKey } from "./key";
 import type { Profile } from "./profile";
+
+export type ApiInterceptorParams = {
+  accessToken: string | null;
+  setAccessToken: React.Dispatch<React.SetStateAction<string | null>>;
+  logout: () => void;
+}
 
 export type ValidationError = {
   msg: string;
@@ -14,8 +20,17 @@ export interface ApiResponse {
   success: boolean;
 }
 
+export interface PostRefreshTokenResponse extends ApiResponse {
+  accessToken: string;
+}
+
 export interface ApiErrorResponse extends ApiResponse {
   errors?: ValidationError[]; 
+}
+
+export interface GetConversationParticipantsResponse extends ApiResponse {
+  participants: Participant[];
+  conversationKey: string;
 }
 
 export interface GetPublicKeysResponse extends ApiResponse {
@@ -53,9 +68,55 @@ export interface GetChatMessagesResponse extends ApiResponse {
 }
 
 export interface GetReadReceiptResponse extends ApiResponse {
-  updatedReadReceipts: {
-    messageId: string;
-    readAt: string;
+  lastReads: {
+    userId: number;
+    lastRead: string;
   }[];
-  lastUpdatedISOString: string;
+  conversationKey: string;
+}
+
+export interface GetUsernameByUserIdResponse extends ApiResponse {
+  username: string;
+}
+
+export interface GetAllConversationKeysResponse extends ApiResponse {
+  conversations: {
+    conversationKey: string;
+    gigAuthorUsername: string;
+    title: string;
+  }[];
+}
+
+export interface GetAllLastReadResponse extends ApiResponse {
+  lastReads: {
+    userId: number;
+    conversationKey: string;
+    lastRead: string;
+  }[];
+}
+
+export interface GetSearchUserResponse extends ApiResponse {
+  users: {
+    username: string;
+    userId: number;
+    profilePictureUrl: string;
+    bio: string | null;
+  }[];
+}
+
+export interface GetAcceptedGigsResponse extends ApiResponse {
+  gigs: Gig[];
+  totalPages: number;
+}
+
+export interface GetGigConversationResponse extends ApiResponse {
+  conversationKey: string;
+  title: string;
+  gigAuthorUsername: string;
+}
+
+export interface GetConversationMetaResponse extends ApiResponse {
+  conversationKey: string;
+  title: string;
+  gigAuthorUsername: string;
 }

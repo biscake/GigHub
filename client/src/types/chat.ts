@@ -6,32 +6,27 @@ export interface ChatMessage {
 
 export interface ChatMessagePayload {
   type: 'Chat';
-  to: number;
+  conversationKey: string;
   messages: ChatMessage[];
 }
 
 export interface ChatRecipientPayload {
   type: 'Chat';
-  from: number;
-  timestamp: string;
+  conversationKey: string;
 }
 
-export interface ChatSenderPayload extends ChatRecipientPayload {
-  to: number;
-}
-
-export type WebSocketOnMessagePayload = ChatRecipientPayload | ChatSenderPayload | ReadReceiptPayload;
+export type WebSocketOnMessagePayload = ChatRecipientPayload | ReadReceiptPayload;
 
 export interface ReadPayload {
   type: 'Read';
-  messageIds: string[];
+  conversationKey: string;
+  lastRead: string;
 }
 
 export interface ReadReceiptPayload {
   type: 'Read-Receipt';
-  messageId: string;
-  readAt: string;
-  recipientId: number;
+  conversationKey: string;
+  lastRead: string;
 }
 
 export interface AuthPayload {
@@ -48,12 +43,8 @@ export interface StoredMessage {
     userId: number;
     deviceId: string;
   };
-  to: {
-    userId: number;
-  };
   ciphertext: string;
   sentAt: string;
-  readAt?: string;
   direction: "incoming" | "outgoing";
   localUserId: number;
   conversationKey: string;
@@ -61,17 +52,17 @@ export interface StoredMessage {
 
 export interface StoredConversationMeta {
   conversationKey: string;
+  title?: string;
+  otherUsername?: string;
   localUserId: number;
   lastFetchedAt?: string;
   oldestSyncedAt?: string;
   newestSyncedAt?: string;
-  lastReadReceiptUpdatedAt?: string;
 }
 
 export interface CachedDecryptedMessage {
   text: string;
   sentAt: string;
-  readAt?: string;
   direction: "incoming" | "outgoing";
   id: string;
 }
@@ -79,7 +70,38 @@ export interface CachedDecryptedMessage {
 export interface DecryptedChatMessage {
   id: string;
   sentAt: string;
-  readAt?: string;
   text: string;
   direction: string;
+}
+
+export interface LatestConversationMessage {
+  latestMessage: CachedDecryptedMessage;
+  conversationKey: string;
+}
+
+interface FetchResultOk {
+  status: 'ok',
+  messages: StoredMessage[]
+}
+
+interface FetchResultAlreadySynced {
+  status: 'already_synced',
+}
+
+interface FetchResultFailed {
+  status: 'failed'
+}
+
+export type FetchResult = FetchResultOk | FetchResultAlreadySynced | FetchResultFailed;
+
+export interface Participant {
+  userId: number;
+  username: string;
+  publicKey: JsonWebKey;
+  deviceId: string;
+}
+
+export interface CachedConversationMeta {
+  title?: string;
+  otherUsername?: string;
 }
