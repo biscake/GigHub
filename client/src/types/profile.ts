@@ -11,10 +11,6 @@ export type Profile = {
   username: string;
 }
 
-export type UserProfileResponse = {
-  profile: Profile;
-}
-
 export type ProfileCardProp = {
   profile: Profile;
   setIsEdit: (x: boolean) => void;

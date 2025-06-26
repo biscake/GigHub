@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom"
 import { useGetApi } from "../../hooks/useGetApi";
-import type { UserProfileResponse } from "../../types/profile";
 import { Spinner } from "../Spinner";
 import ProfileCard from "./ProfileCard";
 import { useState } from "react";
 import EditProfileForm from "./EditProfileForm";
 import UserReview from "./UserReview";
+import type { UserProfileResponse } from "../../types/api";
 
 const UserProfile = () => {
   const username = useParams().username;
