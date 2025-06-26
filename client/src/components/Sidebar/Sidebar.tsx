@@ -30,6 +30,11 @@ const Sidebar = () => {
               My Gigs
             </SidebarNavLink>
           }
+          {user &&
+            <SidebarNavLink to="/chat">
+              Chat
+            </SidebarNavLink>
+          }
           {user && location.pathname === '/' &&
             <CreateGigSidebarButton onClick={() => setIsCreateGigModalOpen(true)}/>
           }
