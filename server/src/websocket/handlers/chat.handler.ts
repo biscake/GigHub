@@ -1,12 +1,21 @@
-import { storeCiphertextInDb } from '../../services/chat.service';
-import { ChatMessagePayload, ChatRecipientPayload, ChatSenderPayload } from '../../types/websocket-payload';
+import { storeCiphertextInDbByConversationKey, storeCiphertextInDbNewConversation } from '../../services/chat.service';
+import { ChatMessagePayload, ChatRecipientPayload, NewConversationPayload } from '../../types/websocket-payload';
 import { Clients } from '../Clients';
 
-export const handleChat = async (userId: number, deviceId: string, payload: ChatMessagePayload, clients: Clients) => {
+export const handleChat = async (userId: number, deviceId: string, payload: ChatMessagePayload | NewConversationPayload, clients: Clients) => {
   const messages = payload.messages;
 
   try {
-    const result = await storeCiphertextInDb({ senderId: userId, senderDeviceId: deviceId, recipientId: payload.to, payloadMessages: messages });
+    let result: Awaited<ReturnType<typeof storeCiphertextInDbByConversationKey>> | Awaited<ReturnType<typeof storeCiphertextInDbNewConversation>>;
+    
+    if (payload.type === 'Chat') {
+      result = await storeCiphertextInDbByConversationKey({ senderId: userId, senderDeviceId: deviceId, conversationKey: payload.conversationKey, payloadMessages: messages });
+    }
+
+    if (payload.type === 'New-Conversation') {
+      result = await storeCiphertextInDbNewConversation({ senderId: userId, senderDeviceId: deviceId, recipientId: payload.to, payloadMessages: messages, gigId: payload.gigId });
+    }
+
     messages.forEach(msg => {
       const device = result.devices.find(d => d.recipientDevice.deviceId === msg.deviceId);
       if (!device) {
@@ -14,22 +23,10 @@ export const handleChat = async (userId: number, deviceId: string, payload: Chat
         return;
       }
   
-      // sync sender devices message
-      if (msg.recipientId === userId) {
-        clients.sendByUserId(userId, msg.deviceId, {
-          type: "Chat",
-          from: userId,
-          to: payload.to
-        } as ChatSenderPayload);
-      }
-  
-      // if receipient is online, send a message to receipient
-      if (payload.to === msg.recipientId) {
-        clients.sendByUserId(payload.to, msg.deviceId, {
-          type: "Chat",
-          from: userId
-        } as ChatRecipientPayload);
-      }
+      clients.sendByUserId(msg.recipientId, msg.deviceId, {
+        type: "Chat",
+        conversationKey: result.conversationKey
+      } as ChatRecipientPayload);
     })
   } catch (err) {
     console.error(err);

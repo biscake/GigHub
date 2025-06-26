@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createReview, editUserProfile, getProfileByUsername, getReceivedReviewsByUsername, getUserIdByUsername, getUsernameByUserId } from '../controllers/user.controller';
+import { searchUser, createReview, editUserProfile, getProfileByUsername, getReceivedReviewsByUsername, getUserIdByUsername, getUsernameByUserId } from '../controllers/user.controller';
 import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isAuthorizedToModifyUser } from '../middleware/user/is-authorize-modify-user';
@@ -9,6 +9,8 @@ import { validateRequest } from '../middleware/validate-request.middleware';
 import { isAuthorizedToReview } from '../middleware/user/is-authorize-review';
 
 const router = Router();
+
+router.get('/', searchUser);
 
 router.get('/:username/profile', getProfileByUsername);
 

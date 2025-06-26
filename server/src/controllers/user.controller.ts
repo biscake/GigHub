@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { createReviewInDatabase, getUserById, getUserByName, getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
+import { createReviewInDatabase, getUserById, getUserByName, getUserData, getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
 import { storeResponse } from '../services/idempotency.service';
 import { createId } from '@paralleldrive/cuid2';
 import { uploadSingleImageToR2 } from '../services/r2.service';
@@ -95,7 +95,7 @@ export const getUserIdByUsername = asyncHandler(async (req: Request, res: Respon
 export const createReview = asyncHandler(async (req: Request, res: Response) => {
   const idempotencyKey = req.idempotencyKey;
 
-  const review = await createReviewInDatabase({ 
+  const review = await createReviewInDatabase({
     ...req.body,
     reviewerId: req.user.id
   });
@@ -109,4 +109,33 @@ export const createReview = asyncHandler(async (req: Request, res: Response) => 
   await storeResponse({ responseBody, idempotencyKey });
 
   res.status(200).json(responseBody);
+})
+  
+export const getProfile = asyncHandler(async (req: Request, res: Response) => {
+  const username = req.params.username;
+
+  const user = await getUserWithNormalizedProfileByUsername({ username });
+
+  const profile = {
+    ...user.profile,
+    username: user.username
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Get profile successfully",
+    profile
+  })
+})
+
+export const searchUser = asyncHandler(async (req: Request, res: Response) => {
+  const search = req.query.search as string;
+
+  const result = await getUserData({ search });
+
+  res.status(200).json({
+    success: true,
+    message: "Get profile successfully",
+    users: result
+  })
 })
