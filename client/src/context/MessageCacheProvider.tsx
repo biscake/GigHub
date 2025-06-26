@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
-import type { CachedDecryptedMessage, LatestConversationMessage, StoredMessage } from "../types/chat";
-import { getMessagesByPage } from "../lib/indexeddb";
+import { type CachedConversationMeta, type CachedDecryptedMessage, type LatestConversationMessage, type StoredMessage } from "../types/chat";
+import { getConversationMeta, getMessagesByPage } from "../lib/indexeddb";
 import { useE2EE } from "../hooks/useE2EE";
 import { MessageCacheContext } from "./MessageCacheContext";
 import { useAuth } from "../hooks/useAuth";
@@ -15,7 +15,8 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const prevUser = useRef<User | null>(null);
   const [latestConversationMessage, setLatestConversationMessage] = useState<LatestConversationMessage[]>([]);
   const [lastRead, setLastRead] = useState(new Map<string, string>());
-
+  const [conversationMeta, setConversationMeta] = useState(new Map<string, CachedConversationMeta>());
+    
   useEffect(() => {
     if (!user) return;
 
@@ -25,6 +26,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       conversationOffSet.current = new Map<string, number>();
       msgIdMap.current = new Map<string, CachedDecryptedMessage>();
       prevUser.current = user;
+      setConversationMeta(new Map<string, CachedConversationMeta>());
       setLastRead(new Map<string, string>());
     }
   }, [user]);
@@ -32,14 +34,24 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const updateLatestConversation = useCallback((cacheMap: Map<string, CachedDecryptedMessage[]>) => {
     const result: LatestConversationMessage[] = [];
     cacheMap.forEach((messages, conversationKey) => {
-      result.push({
-        latestMessage: messages[0],
-        conversationKey
-      })
+      if (messages.length > 0) {
+        result.push({
+          latestMessage: messages[0],
+          conversationKey
+        })
+      }
     })
 
     setLatestConversationMessage(result.sort((a, b) => new Date(a.latestMessage.sentAt).getTime() - new Date(b.latestMessage.sentAt).getTime()));
   }, []);
+  
+  const cacheConversationMeta = useCallback((conversationKey: string, meta: CachedConversationMeta) => {
+    setConversationMeta(prev => {
+      const tmp = new Map(prev);
+      tmp.set(conversationKey, meta);
+      return tmp;
+    })
+  }, [])
 
   const decryptAndUpdateMap = useCallback(async (encryptedMessages: StoredMessage[]) => {
     return await Promise.all(encryptedMessages.map(async encrypted => {
@@ -59,7 +71,13 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const loadMessageFromDBByKey = useCallback(async (conversationKey: string) => {
     if (!user) return;
     const conversationOffsetMap = conversationOffSet.current;
+    const conversationMetaMap = conversationMeta;
     
+    if (!conversationMetaMap.has(conversationKey)) {
+      const conversationMeta = await getConversationMeta(user.id, conversationKey);
+      cacheConversationMeta(conversationKey, { title: conversationMeta?.title, otherUsername: conversationMeta?.otherUsername });
+    }
+
     const offset = conversationOffsetMap.get(conversationKey) ?? 0; // init first offset to 0
     const encryptedMessages: StoredMessage[] = await getMessagesByPage(user.id, conversationKey, offset, 30);
     const decryptedMessages = await decryptAndUpdateMap(encryptedMessages);
@@ -73,7 +91,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       updateLatestConversation(tmp);
       return tmp;
     })
-  }, [user, decryptAndUpdateMap, updateLatestConversation]);
+  }, [user, decryptAndUpdateMap, updateLatestConversation, conversationMeta, cacheConversationMeta]);
 
   const addNewMessagesByKey = useCallback(async (conversationKey: string, messages: StoredMessage[]) => {
     const decryptedMessages = await decryptAndUpdateMap(messages);
@@ -107,6 +125,14 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
     return lastRead.get(conversationKey) ?? "";
   }, [lastRead])
 
+  const getConversationMetaByKey = useCallback((conversationKey: string) => {
+    return conversationMeta.get(conversationKey);
+  }, [conversationMeta]);
+
+  const isConversationMetaLoaded = useCallback((conversationKey: string) => {
+    return conversationMeta.has(conversationKey);
+  }, [conversationMeta])
+
   return (
     <MessageCacheContext.Provider value={{
       loadMessageFromDBByKey,
@@ -115,7 +141,10 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       addNewMessagesByKey,
       cache,
       latestConversationMessage,
-      getLastReadByKey
+      getLastReadByKey,
+      getConversationMetaByKey,
+      isConversationMetaLoaded,
+      cacheConversationMeta
     }}>
       {children}
     </MessageCacheContext.Provider>

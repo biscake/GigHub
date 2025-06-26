@@ -1,7 +1,7 @@
 import type { User } from "./auth";
 import type { LoginFormInputs } from "./form";
 import type { DerivedSharedKey, ImportedPublicKey } from "./crypto";
-import type { CachedDecryptedMessage, FetchResult, LatestConversationMessage, StoredMessage } from "./chat";
+import type { CachedConversationMeta, CachedDecryptedMessage, FetchResult, LatestConversationMessage, StoredMessage } from "./chat";
 
 export type AuthContextType = {
   user: User | null;
@@ -19,7 +19,6 @@ export type ChatContextType = {
   fetchMessagesBefore: (conversationKey: string, beforeISOString: string, COUNT?: number) => Promise<FetchResult>;
   syncReadReceipt: (conversationKey: string) => Promise<void>;
   sendRead: (conversationKey: string) => void;
-  sendMessageNewConversation: (message: string, recipientId: number, gigId: number) => Promise<void>;
 }
 
 export type E2EEContextType = {
@@ -39,4 +38,7 @@ export type MessageCacheContextType = {
   cache: Map<string, CachedDecryptedMessage[]>;
   latestConversationMessage: LatestConversationMessage[];
   getLastReadByKey: (conversationKey: string) => string;
+  getConversationMetaByKey: (conversationKey: string) => CachedConversationMeta | undefined;
+  isConversationMetaLoaded: (conversationKey: string) => boolean;
+  cacheConversationMeta: (conversationKey: string, meta: CachedConversationMeta) => void;
 }

@@ -52,6 +52,8 @@ export interface StoredMessage {
 
 export interface StoredConversationMeta {
   conversationKey: string;
+  title?: string;
+  otherUsername?: string;
   localUserId: number;
   lastFetchedAt?: string;
   oldestSyncedAt?: string;
@@ -74,7 +76,7 @@ export interface DecryptedChatMessage {
 
 export interface LatestConversationMessage {
   latestMessage: CachedDecryptedMessage;
-  conversationKey: string
+  conversationKey: string;
 }
 
 interface FetchResultOk {
@@ -99,9 +101,7 @@ export interface Participant {
   deviceId: string;
 }
 
-export interface NewConversationPayload {
-  type: 'New-Conversation';
-  to: number;
-  messages: ChatMessage[];
-  gigId: number;
+export interface CachedConversationMeta {
+  title?: string;
+  otherUsername?: string;
 }

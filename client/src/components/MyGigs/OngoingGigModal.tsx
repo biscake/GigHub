@@ -2,9 +2,18 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/re
 import { useEffect, useState } from 'react';
 import { GigImage } from '../GigImage';
 import type { OngoingGigModalProps } from '../../types/mygigs';
+import api from '../../lib/api';
+import type { GetGigConversationResponse } from '../../types/api';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { storeConversationMeta } from '../../lib/indexeddb';
+import { useMessageCache } from '../../hooks/useMessageCache';
 
 const OngoingGigModal: React.FC<OngoingGigModalProps> = ({ gig, setSelectedGig }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const { cacheConversationMeta } = useMessageCache();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (gig) {
@@ -17,6 +26,26 @@ const OngoingGigModal: React.FC<OngoingGigModalProps> = ({ gig, setSelectedGig }
     const timeout = setTimeout(() => setSelectedGig(null), 500);
 
     return () => clearTimeout(timeout);
+  }
+
+  const startConversation = async () => {
+    try {
+      if (!gig || !user) return;
+      const res = await api.get<GetGigConversationResponse>(`/api/chat/conversations/gigs/${gig.id}`);
+      const { conversationKey, title, gigAuthorUsername } = res.data;
+
+      await storeConversationMeta({
+        title: title,
+        conversationKey: conversationKey,
+        localUserId: user.id,
+        otherUsername: gigAuthorUsername
+      })
+
+      cacheConversationMeta(conversationKey, { title, otherUsername: gigAuthorUsername });
+      navigate(`/chat?conversationKey=${conversationKey}`);
+    } catch (err) {
+      console.error("Failed to get conversation key", err);
+    }
   }
 
   return (
@@ -52,7 +81,7 @@ const OngoingGigModal: React.FC<OngoingGigModalProps> = ({ gig, setSelectedGig }
                   <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">
                     <button
                       type="button"
-                      onClick={handleClose}
+                      onClick={startConversation}
                       className="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-
                         900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     >
