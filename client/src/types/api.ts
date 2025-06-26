@@ -99,3 +99,8 @@ export interface GetSearchUserResponse extends ApiResponse {
     bio: string | null;
   }[];
 }
+
+export interface GetAcceptedGigsResponse extends ApiResponse {
+  gigs: Gig[];
+  totalPages: number;
+}

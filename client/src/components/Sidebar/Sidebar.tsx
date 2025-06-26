@@ -25,6 +25,11 @@ const Sidebar = () => {
               Applications
             </SidebarNavLink>
           }
+          {user && 
+            <SidebarNavLink to="/my-gigs">
+              My Gigs
+            </SidebarNavLink>
+          }
           {user && location.pathname === '/' &&
             <CreateGigSidebarButton onClick={() => setIsCreateGigModalOpen(true)}/>
           }
