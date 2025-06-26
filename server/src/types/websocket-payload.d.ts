@@ -10,13 +10,6 @@ export interface ChatMessagePayload {
   messages: ChatMessage[];
 }
 
-export interface NewConversationPayload {
-  type: 'New-Conversation';
-  to: number;
-  gigId: number;
-  messages: ChatMessage[];
-}
-
 export interface ChatRecipientPayload {
   type: 'Chat';
   conversationKey: string;

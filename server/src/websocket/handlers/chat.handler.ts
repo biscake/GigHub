@@ -1,8 +1,8 @@
 import { storeCiphertextInDbByConversationKey, storeCiphertextInDbNewConversation } from '../../services/chat.service';
-import { ChatMessagePayload, ChatRecipientPayload, NewConversationPayload } from '../../types/websocket-payload';
+import { ChatMessagePayload, ChatRecipientPayload } from '../../types/websocket-payload';
 import { Clients } from '../Clients';
 
-export const handleChat = async (userId: number, deviceId: string, payload: ChatMessagePayload | NewConversationPayload, clients: Clients) => {
+export const handleChat = async (userId: number, deviceId: string, payload: ChatMessagePayload, clients: Clients) => {
   const messages = payload.messages;
 
   try {
@@ -10,10 +10,6 @@ export const handleChat = async (userId: number, deviceId: string, payload: Chat
     
     if (payload.type === 'Chat') {
       result = await storeCiphertextInDbByConversationKey({ senderId: userId, senderDeviceId: deviceId, conversationKey: payload.conversationKey, payloadMessages: messages });
-    }
-
-    if (payload.type === 'New-Conversation') {
-      result = await storeCiphertextInDbNewConversation({ senderId: userId, senderDeviceId: deviceId, recipientId: payload.to, payloadMessages: messages, gigId: payload.gigId });
     }
 
     messages.forEach(msg => {
