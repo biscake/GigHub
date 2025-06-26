@@ -6,7 +6,7 @@ import { NavLink } from "react-router-dom"
 
 
 export const Card : React.FC<GigCardProp> = ({ authorId, imgUrl, title, price, description, onClick }) => {
-  const { data } = useGetApi<GetGigAuthorResponse>(`/api/users/${ authorId }`);
+  const { data } = useGetApi<GetGigAuthorResponse>(`/api/users/userid/${ authorId }`);
 
 
   return (
