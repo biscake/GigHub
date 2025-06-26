@@ -4,7 +4,7 @@ import { useE2EE } from "../hooks/useE2EE";
 import { useMessageCache } from "../hooks/useMessageCache";
 import api from "../lib/api";
 import { getAllConversationMeta, getConversationMeta, storeChatMessages, storeConversationMeta } from "../lib/indexeddb";
-import { type GetAllConversationKeysResponse, type GetAllLastReadResponse, type GetChatMessagesResponse, type GetReadReceiptResponse } from "../types/api";
+import { type GetAllConversationKeysResponse, type GetAllLastReadResponse, type GetChatMessagesResponse, type GetConversationMetaResponse, type GetReadReceiptResponse } from "../types/api";
 import type { AuthPayload, ChatMessage, ChatMessagePayload, FetchResult, ReadPayload, StoredConversationMeta, StoredMessage, WebSocketOnMessagePayload } from "../types/chat";
 import { encryptMessage } from "../utils/crypto";
 import { ChatContext } from "./ChatContext";
@@ -13,7 +13,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { accessToken, user, deviceIdRef } = useAuth();
   const { deriveSharedKeys, getAllPublicKeysConversation } = useE2EE();
   const socketRef = useRef<WebSocket | null>(null);
-  const { addNewMessagesByKey, updateReadReceipt, loadMessageFromDBByKey, isConversationMetaLoaded } = useMessageCache();
+  const { addNewMessagesByKey, updateReadReceipt, loadMessageFromDBByKey, isConversationMetaLoaded, cacheConversationMeta } = useMessageCache();
   const loadingCache = useRef(false);
 
   const sendMessageToConversation = useCallback(async (message: string, conversationKey: string) => {
@@ -204,6 +204,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     socketRef.current.onmessage = async (event) => {
       const data: WebSocketOnMessagePayload = JSON.parse(event.data);
       if (data.type === 'Chat') {
+        const isConversationMetaCached = isConversationMetaLoaded(data.conversationKey);
+        if (!isConversationMetaCached) {
+          try {
+            const res = await api.get<GetConversationMetaResponse>(`/api/chat/conversations/${data.conversationKey}/meta`);
+            const { conversationKey, title, gigAuthorUsername } = res.data;
+      
+            await storeConversationMeta({
+              title: title,
+              conversationKey: conversationKey,
+              localUserId: user.id,
+              otherUsername: gigAuthorUsername
+            })
+      
+            cacheConversationMeta(conversationKey, { title, otherUsername: gigAuthorUsername });
+          } catch (err) {
+            console.error("Failed to fetch conversation meta", err);
+          }
+        }
         const result = await fetchNewMessages(data.conversationKey);
 
         if (result.status === 'ok') {
@@ -219,7 +237,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       socketRef.current?.close();
     };
-  }, [accessToken, deviceIdRef, user, addNewMessagesByKey, fetchNewMessages, updateReadReceipt, isConversationMetaLoaded, loadMessageFromDBByKey])
+  }, [accessToken, deviceIdRef, user, addNewMessagesByKey, fetchNewMessages, updateReadReceipt, isConversationMetaLoaded, loadMessageFromDBByKey, cacheConversationMeta])
 
   // fetches all conversations on load and load messages onto cache
   useEffect(() => {

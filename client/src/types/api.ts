@@ -114,3 +114,9 @@ export interface GetGigConversationResponse extends ApiResponse {
   title: string;
   gigAuthorUsername: string;
 }
+
+export interface GetConversationMetaResponse extends ApiResponse {
+  conversationKey: string;
+  title: string;
+  gigAuthorUsername: string;
+}
