@@ -21,7 +21,9 @@ export const setupWebSocket = (app: Application) => {
         case 'Chat':
           if (!userId || !deviceId) return;
           return handleChat(userId, deviceId, payload, clients);
-        
+        case 'New-Conversation': 
+          if (!userId || !deviceId) return;
+          return handleChat(userId, deviceId, payload, clients);
         case 'Read':
           if (!userId) return;
           return handleRead(userId, payload, clients);

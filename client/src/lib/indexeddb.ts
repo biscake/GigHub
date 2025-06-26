@@ -134,7 +134,7 @@ export const deleteEncryptedE2eeKey = async (userId: number): Promise<void> => {
         ...data,
         encryptedPrivateKey: null,
         iv: null,
-        keySalt: null
+        salt: null
       })
 
       deleteRequest.onsuccess = () => {
@@ -277,35 +277,6 @@ export const getMessagesByPage = async (localUserId: number, conversationKey: st
   })
 }
 
-export const updateMessageReadAt = async (messageId: string, readAtISOString: string): Promise<void> => {
-  const db = await getDB();
-  const transaction = db.transaction("chat-history", "readwrite");
-  const store = transaction.objectStore("chat-history");
-
-  return new Promise((resolve, reject) => {
-    const getRequest = store.get(messageId);
-    getRequest.onsuccess = () => {
-      const updateRequest = store.put({
-        ...getRequest.result,
-        readAt: new Date(readAtISOString)
-      })
-
-      updateRequest.onsuccess = () => {
-        console.log(`ReadAt for message ${messageId} updated`);
-        resolve();
-      }
-
-      updateRequest.onerror = () => {
-        reject(updateRequest.error);
-      }
-    };
-
-    getRequest.onerror = () => {
-      reject(getRequest.error)
-    }
-  })
-}
-
 export const clearChatMessages = async (): Promise<void> => {
   const db = await getDB();
   const transaction = db.transaction("chat-history", "readwrite");
@@ -346,13 +317,12 @@ export const storeConversationMeta = async (meta: StoredConversationMeta): Promi
   })
 }
 
-export const getConversationMeta = async (fromUserId: number, toUserId: number): Promise<StoredConversationMeta | undefined> => {
-  const conversationKey = `${fromUserId}-${toUserId}`;
+export const getConversationMeta = async (localUserId: number, conversationKey: string): Promise<StoredConversationMeta | undefined> => {
   const db = await getDB();
   const transaction = db.transaction("conversation-meta");
   const store = transaction.objectStore("conversation-meta");
   const index = store.index("localUserId");
-  const range = IDBKeyRange.only(fromUserId);
+  const range = IDBKeyRange.only(localUserId);
 
   return new Promise((resolve) => {
     const request = index.openCursor(range);

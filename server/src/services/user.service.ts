@@ -3,7 +3,7 @@ import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { GetUserByIdParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { GetNormalizedProfilesParams, GetUserByIdParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -112,5 +112,43 @@ export const getUserById = async ({ id }: GetUserByIdParams) => {
     return user;
   } catch {
     throw new ServiceError("Primsa", "Failed to get user from database");
+  }
+}
+
+export const getUserData = async ({ search }: GetNormalizedProfilesParams) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        username: {
+          contains: search,
+          mode: 'insensitive'
+        }
+      },
+      include: {
+        profile: true,
+      },
+      take: 30
+    });
+
+    const formatted = users.map(user => {
+      const profile = user.profile ?? {
+        bio: null,
+        averageRating: null,
+        numberOfGigsCompleted: 0,
+        numberOfGigsPosted: 0,
+        profilePictureKey: "default/Default_pfp.svg"
+      }
+    
+      return {
+        username: user.username,
+        userId: user.id,
+        profilePictureUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${profile.profilePictureKey}`,
+        bio: profile.bio
+      }
+    })
+
+    return formatted;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }

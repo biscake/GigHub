@@ -16,3 +16,7 @@ export interface updateUserByProfileParams {
 export interface GetUserByIdParams {
   id: number;
 }
+
+export interface GetNormalizedProfilesParams {
+  search: string;
+}

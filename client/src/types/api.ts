@@ -1,8 +1,8 @@
 import type { ApplicationStats, GigApplication } from "./application";
 import type { User } from "./auth";
-import type { StoredMessage } from "./chat";
-import type { Gig } from "./gig";
+import type { Participant, StoredMessage } from "./chat";
 import type { PublicKey } from "./crypto";
+import type { Gig } from "./gig";
 import type { Profile } from "./profile";
 
 export type ApiInterceptorParams = {
@@ -26,6 +26,11 @@ export interface PostRefreshTokenResponse extends ApiResponse {
 
 export interface ApiErrorResponse extends ApiResponse {
   errors?: ValidationError[]; 
+}
+
+export interface GetConversationParticipantsResponse extends ApiResponse {
+  participants: Participant[];
+  conversationKey: string;
 }
 
 export interface GetPublicKeysResponse extends ApiResponse {
@@ -63,9 +68,34 @@ export interface GetChatMessagesResponse extends ApiResponse {
 }
 
 export interface GetReadReceiptResponse extends ApiResponse {
-  updatedReadReceipts: {
-    messageId: string;
-    readAt: string;
+  lastReads: {
+    userId: number;
+    lastRead: string;
   }[];
-  lastUpdatedISOString: string;
+  conversationKey: string;
+}
+
+export interface GetUsernameByUserIdResponse extends ApiResponse {
+  username: string;
+}
+
+export interface GetAllConversationKeysResponse extends ApiResponse {
+  conversationKeys: string[];
+}
+
+export interface GetAllLastReadResponse extends ApiResponse {
+  lastReads: {
+    userId: number;
+    conversationKey: string;
+    lastRead: string;
+  }[];
+}
+
+export interface GetSearchUserResponse extends ApiResponse {
+  users: {
+    username: string;
+    userId: number;
+    profilePictureUrl: string;
+    bio: string | null;
+  }[];
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import { getUserById, getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
+import { getUserById, getUserData, getUserWithNormalizedProfileByUsername, getUserWithReviewsByUsername, updateUserByUsername } from '../services/user.service';
 import { storeResponse } from '../services/idempotency.service';
 import { createId } from '@paralleldrive/cuid2';
 import { uploadSingleImageToR2 } from '../services/r2.service';
@@ -77,5 +77,34 @@ export const getUsernameByUserId = asyncHandler(async (req: Request, res: Respon
     success: true,
     message: "Get user successfully",
     username: user?.username
+  })
+})
+
+export const getProfile = asyncHandler(async (req: Request, res: Response) => {
+  const username = req.params.username;
+
+  const user = await getUserWithNormalizedProfileByUsername({ username });
+
+  const profile = {
+    ...user.profile,
+    username: user.username
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Get profile successfully",
+    profile
+  })
+})
+
+export const searchUser = asyncHandler(async (req: Request, res: Response) => {
+  const search = req.query.search as string;
+
+  const result = await getUserData({ search });
+
+  res.status(200).json({
+    success: true,
+    message: "Get profile successfully",
+    users: result
   })
 })
