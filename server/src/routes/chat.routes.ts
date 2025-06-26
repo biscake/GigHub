@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllReadReceipts, getConversationParticipants, getConversations, getOrElseCreateConversation, syncMessages, syncReadReceipt } from '../controllers/chat.controller';
+import { getAllReadReceipts, getConversationMeta, getConversationParticipants, getConversations, getOrElseCreateConversation, syncMessages, syncReadReceipt } from '../controllers/chat.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 
 const router = Router();
@@ -11,6 +11,8 @@ router.get('/conversations/gigs/:gigId', authenticateJWT, getOrElseCreateConvers
 router.get('/conversations/read-receipt', authenticateJWT, getAllReadReceipts);
 
 router.get('/conversations/:conversationKey', authenticateJWT, getConversationParticipants)
+
+router.get('/conversations/:conversationKey/meta', authenticateJWT, getConversationMeta);
 
 router.get('/conversations/:conversationKey/messages', authenticateJWT, syncMessages);
 

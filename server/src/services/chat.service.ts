@@ -7,6 +7,7 @@ import {
   GetChatMessagesParams,
   GetChatMessagesRes,
   GetConversationByConversationKey,
+  GetConversationMetaByKeyParams,
   GetConversationParticipantsAndKeysParams,
   GetExistingConversationsParams,
   GetLastReadParams,
@@ -487,5 +488,37 @@ export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConve
     }
     console.log(err)
     throw new ServiceError("Prisma", "Failed to find or create conversation");
+  }
+}
+
+export const getConversationMetaByKey = async ({ userId, conversationKey }: GetConversationMetaByKeyParams) => {
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        conversationKey,
+        participants: {
+          some: {
+            userId
+          }
+        }
+      },
+      include: {
+        gig: {
+          include: {
+            author: true
+          }
+        }
+      }
+    })
+
+    if (!conversation) throw new NotFoundError("Conversation")
+
+    return {
+      title: conversation.gig.title,
+      gigAuthorUsername: conversation.gig.author.username,
+      conversationKey
+    }
+  } catch {
+    throw new ServiceError("Prisma", "Failed to get conversation meta");
   }
 }
