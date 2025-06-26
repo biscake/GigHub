@@ -1,7 +1,7 @@
 import type { User } from "./auth";
 import type { LoginFormInputs } from "./form";
 import type { DerivedSharedKey, ImportedPublicKey } from "./crypto";
-import type { CachedDecryptedMessage, StoredMessage } from "./chat";
+import type { CachedDecryptedMessage, FetchResult, LatestConversationMessage, StoredMessage } from "./chat";
 
 export type AuthContextType = {
   user: User | null;
@@ -15,25 +15,28 @@ export type AuthContextType = {
 }
 
 export type ChatContextType = {
-  sendMessageToUser: (message: string, receipientId: number) => Promise<void>;
-  syncMessages: (targetUserId: number) => Promise<StoredMessage[]>;
-  syncReadReceipt: (recipientId: number) => Promise<void>;
-  sendRead: (messageIds: string[]) => void;
+  sendMessageToConversation: (message: string, conversationKey: string) => Promise<void>;
+  fetchMessagesBefore: (conversationKey: string, beforeISOString: string, COUNT?: number) => Promise<FetchResult>;
+  syncReadReceipt: (conversationKey: string) => Promise<void>;
+  sendRead: (conversationKey: string) => void;
+  sendMessageNewConversation: (message: string, recipientId: number, gigId: number) => Promise<void>;
 }
 
 export type E2EEContextType = {
   deriveSharedKeys: (publicKeys: ImportedPublicKey[]) => Promise<DerivedSharedKey[]>;
-  getAllUserPublicKeys: (userId: number) => Promise<ImportedPublicKey[]>;
-  getUserDevicePublicKey: (userId: number, deviceId: string) => Promise<ImportedPublicKey[]>
+  getAllPublicKeysConversation: (conversationKey: string) => Promise<ImportedPublicKey[]>;
+  getUserDevicePublicKey: (userId: number, deviceId: string) => Promise<ImportedPublicKey[]>;
   decryptCiphertext: (data: StoredMessage) => Promise<string>;
   privateKey: React.RefObject<CryptoKey | null>;
+  getUserPublicKeys: (userId: number, deviceId?: string) => Promise<ImportedPublicKey[]>;
 }
 
 export type MessageCacheContextType = {
   loadMessageFromDBByKey: (conversationKey: string) => Promise<void>;
   addNewMessagesByKey: (conversationKey: string, messages: StoredMessage[]) => void;
   getMessagesByKey: (conversationKey: string) => CachedDecryptedMessage[];
-  updateReadReceipt: (msgId: string, readAt: string) => void;
+  updateReadReceipt: (conversationKey: string, lastReadDate: string) => void;
   cache: Map<string, CachedDecryptedMessage[]>;
-  latestConversationMessage: { otherUserId: number, latestMessage: CachedDecryptedMessage }[];
+  latestConversationMessage: LatestConversationMessage[];
+  getLastReadByKey: (conversationKey: string) => string;
 }

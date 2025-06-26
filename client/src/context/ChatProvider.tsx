@@ -1,42 +1,65 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
-import api from "../lib/api";
-import { type GetChatMessagesResponse, type GetReadReceiptResponse } from "../types/api";
-import { encryptMessage } from "../utils/crypto";
 import { useE2EE } from "../hooks/useE2EE";
-import { ChatContext } from "./ChatContext";
-import type { AuthPayload, ChatMessage, ChatMessagePayload, WebSocketOnMessagePayload, StoredConversationMeta, ReadPayload, StoredMessage } from "../types/chat";
-import { getAllConversationMeta, getConversationMeta, getGlobalSyncMeta, setGlobalSyncMeta, storeChatMessages, storeConversationMeta, updateAllConversationMetaSyncDate, updateMessageReadAt } from "../lib/indexeddb";
 import { useMessageCache } from "../hooks/useMessageCache";
+import api from "../lib/api";
+import { getAllConversationMeta, getConversationMeta, storeChatMessages, storeConversationMeta } from "../lib/indexeddb";
+import { type GetAllConversationKeysResponse, type GetAllLastReadResponse, type GetChatMessagesResponse, type GetReadReceiptResponse } from "../types/api";
+import type { AuthPayload, ChatMessage, ChatMessagePayload, FetchResult, NewConversationPayload, ReadPayload, StoredConversationMeta, StoredMessage, WebSocketOnMessagePayload } from "../types/chat";
+import { encryptMessage } from "../utils/crypto";
+import { ChatContext } from "./ChatContext";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { accessToken, user, deviceIdRef } = useAuth();
-  const { deriveSharedKeys, getAllUserPublicKeys } = useE2EE();
+  const { deriveSharedKeys, getAllPublicKeysConversation, getUserPublicKeys } = useE2EE();
   const socketRef = useRef<WebSocket | null>(null);
   const { addNewMessagesByKey, updateReadReceipt, loadMessageFromDBByKey } = useMessageCache();
-  const updateGlobalSync = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadingCache = useRef(false);
 
-  const updateGlobalSyncMeta = () => {
-    const timer = updateGlobalSync.current;
-    if (timer) {
-      clearTimeout(timer);
-    }
-
-    updateGlobalSync.current = setTimeout(async () => {
-      await setGlobalSyncMeta(new Date().toISOString());
-    }, 2000);
-  }
-
-  const sendMessageToUser = useCallback(async (message: string, receipientId: number) => {
+  const sendMessageNewConversation = useCallback(async (message: string, recipientId: number, gigId: number) => {
     try {
       if (!user) throw new Error("User not logged in");
       if (!socketRef.current) throw new Error("WebSocket not connected");
       
       const socket = socketRef.current;
-      const receipientPublicKeys = await getAllUserPublicKeys(receipientId);
-      const senderPublicKeys = await getAllUserPublicKeys(user.id);
-      const sharedKeys = await deriveSharedKeys([...receipientPublicKeys, ...senderPublicKeys]);
+      const allUser = [user.id, recipientId];
+      const allRecipientPublicKeysNested = await Promise.all(
+        allUser.map(userId => getUserPublicKeys(userId))
+      );
+      const allRecipientPublicKeys = allRecipientPublicKeysNested.flat();
+      const sharedKeys = await deriveSharedKeys(allRecipientPublicKeys);
+      const messages = await Promise.all(sharedKeys.map(async key => {
+        const ciphertext = await encryptMessage(message, key.sharedKey);
+        const chatMessage: ChatMessage = {
+          ciphertext,
+          deviceId: key.deviceId,
+          recipientId: key.userId
+        }
+
+        return chatMessage;
+      }));
+
+      const payload: NewConversationPayload = {
+        type: 'New-Conversation',
+        to: recipientId,
+        messages,
+        gigId
+      }
+
+      socket.send(JSON.stringify(payload));
+    } catch (err) {
+      console.error("Failed to send message", err);
+    }
+  }, [deriveSharedKeys, getUserPublicKeys, user])
+
+  const sendMessageToConversation = useCallback(async (message: string, conversationKey: string) => {
+    try {
+      if (!user) throw new Error("User not logged in");
+      if (!socketRef.current) throw new Error("WebSocket not connected");
+      
+      const socket = socketRef.current;
+      const allPublicKeys = await getAllPublicKeysConversation(conversationKey);
+      const sharedKeys = await deriveSharedKeys(allPublicKeys);
       const messages = await Promise.all(sharedKeys.map(async key => {
         const ciphertext = await encryptMessage(message, key.sharedKey);
         const chatMessage: ChatMessage = {
@@ -50,7 +73,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
       const payload: ChatMessagePayload = {
         type: 'Chat',
-        to: receipientId,
+        conversationKey,
         messages
       }
 
@@ -58,107 +81,121 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error("Failed to send message", err);
     }
-  }, [deriveSharedKeys, user, getAllUserPublicKeys])
+  }, [deriveSharedKeys, user, getAllPublicKeysConversation])
 
-  const syncMessages = useCallback(async (otherUserId: number, fetchNew?: boolean): Promise<StoredMessage[]> => {
+  const fetchMessagesBefore = useCallback(async (conversationKey: string, beforeISOString: string, COUNT = 30): Promise<FetchResult> => {
+    try {
+      const deviceId = deviceIdRef.current;
+      if (!user || !deviceId) throw new Error("Invalid user");
+      const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, conversationKey);
+      const before = conversationMeta?.oldestSyncedAt ?? null;
+      const newestSynced = conversationMeta?.newestSyncedAt ?? null;
+
+      if (before && new Date(beforeISOString).getTime() > new Date(before).getTime()) {
+        return { status: 'already_synced' };
+      }
+
+      const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/${conversationKey}/messages`, {
+        params: {
+          count: COUNT,
+          before: before
+        }
+      })
+        
+      const messages = res.data.chatMessages;
+      if (messages.length === 0) return { status: 'ok', messages };
+
+      const oldest = messages[messages.length - 1].sentAt;
+      const newest = messages[0].sentAt;
+
+      if (!oldest) throw new Error("Error getting synced date");
+      await storeChatMessages(messages);
+
+      await storeConversationMeta({
+        ...conversationMeta,
+        conversationKey: conversationMeta?.conversationKey ?? conversationKey,
+        localUserId: user.id,
+        oldestSyncedAt: oldest,
+        ...((!newestSynced || newest > newestSynced) && { newestSyncedAt: newest }),
+        lastFetchedAt: new Date().toISOString()
+      });
+
+      if (newestSynced && new Date(oldest).getTime() <= new Date(newestSynced).getTime()) {
+        const filtered = messages.filter(msg => new Date(msg.sentAt).getTime() <= new Date(newestSynced).getTime())
+        return { status: 'ok', messages: filtered };
+      } else {
+        return { status: 'ok', messages };
+      }
+    } catch (err) {
+      console.error("Failed to sync conversation", err);
+      return { status: 'failed' };
+    }
+  }, [deviceIdRef, user]);
+
+  const fetchNewMessages = useCallback(async (conversationKey: string): Promise<FetchResult> => {
     try {
       const COUNT = 30;
       const deviceId = deviceIdRef.current;
       if (!user || !deviceId) throw new Error("Invalid user");
-      const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, otherUserId);
-      let before = conversationMeta?.oldestSyncedAt ?? null;
-      let after = conversationMeta?.newestSyncedAt ?? null;
+      const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, conversationKey);
+      const after = conversationMeta?.newestSyncedAt ?? null;
 
       let result: StoredMessage[] = [];
   
       while (true) {
-        let params: { count: number, since?: string | null, before?: string | null };
-  
-        if (fetchNew) {
-          params = {
+        const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/${conversationKey}/messages`, {
+          params: {
             count: COUNT,
             since: after
           }
-        } else {
-          params = {
-            count: COUNT,
-            before: before
-          }
-        }
-  
-        const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/${otherUserId}/messages`, { params })
+        })
         
         const messages = res.data.chatMessages;
         if (messages.length === 0) break;
 
         result = [...messages, ...result];
 
-        before = messages[messages.length - 1].sentAt;
-        after = messages[messages.length - 1].sentAt;
+        const newest = messages[0].sentAt;
   
-        if (!before || !after) throw new Error("Error getting synced date");
+        if (!newest) throw new Error("Error getting synced date");
         await storeChatMessages(messages);
   
         await storeConversationMeta({
           ...conversationMeta,
-          conversationKey: conversationMeta?.conversationKey ?? `${user.id}-${otherUserId}`,
+          conversationKey: conversationMeta?.conversationKey ?? conversationKey,
           localUserId: user.id,
-          ...(fetchNew ? { newestSyncedAt: after } : { oldestSyncedAt: before }),
+          newestSyncedAt: newest,
           lastFetchedAt: new Date().toISOString()
         });
-        
-        if (!fetchNew && conversationMeta?.oldestSyncedAt && new Date(before) <= new Date(conversationMeta.oldestSyncedAt)) {
-          break;
-        }
 
         if (messages.length < COUNT) {
           break;
         }
       }
-  
-      if (!fetchNew) {
-        return [...(await syncMessages(otherUserId, true)), ...result];
-      }
 
-      return result;
+      return { status: 'ok', messages: result };
     } catch (err) {
-      console.error("Failed to sync conversation", err);
-      return [];
+      console.error("Failed to fetch new messages", err);
+      return { status: 'failed' };
     }
   }, [deviceIdRef, user]);
 
-  const syncReadReceipt = useCallback(async (recipientId: number) => {
+  const syncReadReceipt = useCallback(async (conversationKey: string) => {
     try {
       if (!user) throw new Error("Invalid user");
-      const conversationMeta: StoredConversationMeta | undefined = await getConversationMeta(user.id, recipientId);
-      const lastUpdated = conversationMeta?.lastReadReceiptUpdatedAt ?? null;
+      const res = await api.get<GetReadReceiptResponse>(`api/chat/conversations/${conversationKey}/read-receipt`);
 
-      const res = await api.get<GetReadReceiptResponse>(`api/chat/conversations/${recipientId}/read-receipt`, {
-        params: {
-          since: lastUpdated
-        }
-      });
-
-      const { updatedReadReceipts, lastUpdatedISOString } = res.data;
-
-      await Promise.all(
-        updatedReadReceipts.map(async msg => {
-          await updateMessageReadAt(msg.messageId, msg.readAt);
-        })
-      )
-
-      await storeConversationMeta({
-        ...conversationMeta,
-        conversationKey: conversationMeta?.conversationKey ?? `${user.id}-${recipientId}`,
-        localUserId: user.id,
-        lastReadReceiptUpdatedAt: lastUpdatedISOString
-      });
+      const { lastReads } = res.data;
+      const filtered = lastReads.filter(l => l.userId !== user.id);
+      filtered.forEach(l => {
+        updateReadReceipt(conversationKey, l.lastRead);
+      })
     } catch (err) {
       console.error("Failed to sync read receipt", err);
     }
-  }, [user])
+  }, [updateReadReceipt, user])
 
-  const sendRead = useCallback((messageIds: string[]) => {
+  const sendRead = useCallback((conversationKey: string) => {
     try {
       if (!user) throw new Error("User not logged in");
       if (!socketRef.current) throw new Error("WebSocket not connected");
@@ -167,7 +204,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
       const payload: ReadPayload = {
         type: 'Read',
-        messageIds
+        conversationKey,
+        lastRead: new Date().toISOString()
       }
 
       socket.send(JSON.stringify(payload));
@@ -202,80 +240,65 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     socketRef.current.onmessage = async (event) => {
       const data: WebSocketOnMessagePayload = JSON.parse(event.data);
       if (data.type === 'Chat') {
-        const isSender = 'to' in data;
+        const result = await fetchNewMessages(data.conversationKey);
 
-        let messages: StoredMessage[];
-        if (isSender) {
-          messages = await syncMessages(data.to, true);
-        } else {
-          messages = await syncMessages(data.from, true);
+        if (result.status === 'ok') {
+          addNewMessagesByKey(result.messages[0].conversationKey, result.messages);
         }
-
-        addNewMessagesByKey(messages[0].conversationKey, messages);
-
       }
 
       if (data.type === 'Read-Receipt') {
-        await updateMessageReadAt(data.messageId, data.readAt);
-        updateReadReceipt(data.messageId, data.readAt);
+        updateReadReceipt(data.conversationKey, data.lastRead);
       }
-
-      updateGlobalSyncMeta();
     }
 
     return () => {
       socketRef.current?.close();
     };
-  }, [accessToken, deviceIdRef, user, syncMessages, addNewMessagesByKey, updateReadReceipt])
+  }, [accessToken, deviceIdRef, user, addNewMessagesByKey, fetchNewMessages, updateReadReceipt])
 
-  // fetches new messages on load and load messages onto cache
+  // fetches all conversations on load and load messages onto cache
   useEffect(() => {
     if (!user || loadingCache.current) return;
     loadingCache.current = true;
 
     const fetchNewMessages = async () => {
       try {
-        const since = await getGlobalSyncMeta() ?? null;
+        const res = await api.get<GetAllConversationKeysResponse>(`api/chat/conversations`);
         
-        const res = await api.get<GetChatMessagesResponse>(`api/chat/conversations/messages`, {
-          params: {
-            since
-          }
-        });
-        
-        const messages = res.data.chatMessages;
-
-        updateGlobalSyncMeta();
-        if (messages.length === 0) return;
+        const conversationKeys = res.data.conversationKeys;
         const dateNow = new Date().toISOString();
-        await storeChatMessages(messages);
-        await updateAllConversationMetaSyncDate(dateNow);
-
-        const fetchedConversationKeys = [... new Set(messages.map(msg => msg.conversationKey))];
-        const allConversationMetasKeys = (await getAllConversationMeta()).map(meta => meta.conversationKey);
-
-        const filteredConversationKeys = fetchedConversationKeys.filter(id => !(id in allConversationMetasKeys));
-        filteredConversationKeys.forEach(async key => {
-          await storeConversationMeta({
-            conversationKey: key,
-            localUserId: user.id,
-            newestSyncedAt: dateNow,
-            lastFetchedAt: dateNow
-          });
+        
+        conversationKeys?.forEach(async (key) => {
+          await fetchMessagesBefore(key, dateNow);
         })
-      } catch {
-        console.error("Failed to fetch new messages");
+      } catch (err) {
+        console.error("Failed to fetch new messages", err);
       }
     }
 
     const loadMessagesToCache = async () => {
       try {
         const allConversationMetas = await getAllConversationMeta();
-        allConversationMetas.forEach(async meta => {
+        allConversationMetas?.forEach(async meta => {
           await loadMessageFromDBByKey(meta.conversationKey);
         });
-      } catch {
-        console.error("Error loading messages into cache");
+      } catch (err) {
+        console.error("Error loading messages into cache", err);
+      } 
+    }
+
+    const fetchAndLoadLastReads = async () => {
+      try {
+        const res = await api.get<GetAllLastReadResponse>(`api/chat/conversations/read-receipt`);
+
+        const lastReads = res.data.lastReads;
+
+        lastReads.forEach(l => {
+          updateReadReceipt(l.conversationKey, l.lastRead);
+        })
+      } catch (err) {
+        console.error("Error loading last reads", err)
       } finally {
         loadingCache.current = false;
       }
@@ -283,10 +306,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
     fetchNewMessages();
     loadMessagesToCache();
-  }, [user, loadMessageFromDBByKey])
+    fetchAndLoadLastReads();
+  }, [user, loadMessageFromDBByKey, fetchMessagesBefore, updateReadReceipt])
 
   return (
-    <ChatContext.Provider value={{ sendMessageToUser, syncMessages, syncReadReceipt, sendRead }}>
+    <ChatContext.Provider value={{ sendMessageToConversation, fetchMessagesBefore, syncReadReceipt, sendRead, sendMessageNewConversation }}>
       {children}
     </ChatContext.Provider>
   )

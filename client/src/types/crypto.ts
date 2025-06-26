@@ -17,9 +17,9 @@ export interface StoredE2EEEntry {
   userId: number;
   wrappedDerivedKey: ArrayBuffer;
   deviceSecret: CryptoKey;
-  salt: Uint8Array;
-  iv: Uint8Array;
-  encryptedPrivateKey: ArrayBuffer;
+  salt: Uint8Array | null;
+  iv: Uint8Array | null;
+  encryptedPrivateKey: ArrayBuffer | null;
 }
 
 export type PublicKey = {

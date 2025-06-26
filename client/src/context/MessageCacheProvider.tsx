@@ -14,6 +14,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const msgIdMap = useRef(new Map<string, CachedDecryptedMessage>()); // to find msg to update read receipt in cache
   const prevUser = useRef<User | null>(null);
   const [latestConversationMessage, setLatestConversationMessage] = useState<LatestConversationMessage[]>([]);
+  const [lastRead, setLastRead] = useState(new Map<string, string>());
 
   useEffect(() => {
     if (!user) return;
@@ -24,6 +25,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       conversationOffSet.current = new Map<string, number>();
       msgIdMap.current = new Map<string, CachedDecryptedMessage>();
       prevUser.current = user;
+      setLastRead(new Map<string, string>());
     }
   }, [user]);
 
@@ -45,7 +47,6 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       const toCache: CachedDecryptedMessage = {
         text: text,
         sentAt: encrypted.sentAt,
-        readAt: encrypted.readAt,
         direction: encrypted.direction,
         id: encrypted.id
       }
@@ -75,8 +76,6 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   }, [user, decryptAndUpdateMap, updateLatestConversation]);
 
   const addNewMessagesByKey = useCallback(async (conversationKey: string, messages: StoredMessage[]) => {
-    if (!user) return;
-
     const decryptedMessages = await decryptAndUpdateMap(messages);
     const conversationOffsetMap = conversationOffSet.current;
     const offset = conversationOffsetMap.get(conversationKey) ?? 0;
@@ -90,24 +89,34 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       updateLatestConversation(tmp);
       return tmp;
     })
-  }, [user, decryptAndUpdateMap, updateLatestConversation]);
+  }, [decryptAndUpdateMap, updateLatestConversation]);
 
   const getMessagesByKey = useCallback((conversationKey: string): CachedDecryptedMessage[] => {
-    if (!user) return [];
     return cache.get(conversationKey) ?? [];
-  }, [cache, user]);
+  }, [cache]);
 
-  const updateReadReceipt = useCallback((msgId: string, readAt: string) => {
-    if (!user) return;
-    if (!msgIdMap.current.has(msgId)) throw new Error("Message not found to update read receipt");
-    const msg = msgIdMap.current.get(msgId);
+  const updateReadReceipt = useCallback((conversationKey: string, lastReadDate: string) => {
+    setLastRead(prev => {
+      const tmp = new Map(prev);
+      tmp.set(conversationKey, lastReadDate);
+      return tmp;
+    })
+  }, []);
 
-    msg!.readAt = readAt;
-    setCache(prev => new Map(prev)); // force a re-render
-  }, [user]);
+  const getLastReadByKey = useCallback((conversationKey: string) => {
+    return lastRead.get(conversationKey) ?? "";
+  }, [lastRead])
 
   return (
-    <MessageCacheContext.Provider value={{ loadMessageFromDBByKey, getMessagesByKey, updateReadReceipt, addNewMessagesByKey, cache, latestConversationMessage }}>
+    <MessageCacheContext.Provider value={{
+      loadMessageFromDBByKey,
+      getMessagesByKey,
+      updateReadReceipt,
+      addNewMessagesByKey,
+      cache,
+      latestConversationMessage,
+      getLastReadByKey
+    }}>
       {children}
     </MessageCacheContext.Provider>
   )
