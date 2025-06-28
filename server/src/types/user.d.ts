@@ -31,3 +31,7 @@ export interface createReviewInDatabaseParams {
 export interface GetNormalizedProfilesParams {
   search: string;
 }
+
+export interface deleteReviewInDatabaseParams {
+  id: number;
+}

@@ -4,7 +4,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { BadRequestError } from "../errors/bad-request-error";
-import { GetNormalizedProfilesParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -184,5 +184,19 @@ export const getUserData = async ({ search }: GetNormalizedProfilesParams) => {
     return formatted;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to get user from database");
+  }
+}
+
+export const deleteReviewInDatabase = async ({ id }: deleteReviewInDatabaseParams) => {
+  try {
+    const result = await prisma.review.delete({
+      where: {
+        id: id
+      }
+    })
+
+    return result;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to delete review from database");
   }
 }
