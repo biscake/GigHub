@@ -15,7 +15,6 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const prevUser = useRef<User | null>(null);
   const [latestConversationMessage, setLatestConversationMessage] = useState<LatestConversationMessage[]>([]);
   const [lastRead, setLastRead] = useState(new Map<string, string>());
-  // const [conversationMeta, setConversationMeta] = useState(new Map<string, CachedConversationMeta>());
   const conversationMetaMap = useRef(new Map<string, CachedConversationMeta>());
     
   useEffect(() => {
@@ -27,7 +26,6 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       conversationOffSet.current = new Map<string, number>();
       msgIdMap.current = new Map<string, CachedDecryptedMessage>();
       prevUser.current = user;
-      // setConversationMeta(new Map<string, CachedConversationMeta>());
       conversationMetaMap.current = new Map<string, CachedConversationMeta>();
       setLastRead(new Map<string, string>());
     }
@@ -48,11 +46,6 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const cacheConversationMeta = useCallback((conversationKey: string, meta: CachedConversationMeta) => {
-    // setConversationMeta(prev => {
-    //   const tmp = new Map(prev);
-    //   tmp.set(conversationKey, meta);
-    //   return tmp;
-    // })
     conversationMetaMap.current.set(conversationKey, meta);
   }, [])
 

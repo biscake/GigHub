@@ -34,7 +34,8 @@ const MessageInput = ({ conversationKey }: MessageInputProps) => {
   const { sendMessageToConversation } = useChat();
   const [message, setMessage] = useState("");
 
-  const handleSendMessage = () => {
+  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const toSend = message.trim();
     if (!toSend) return;
 
@@ -43,14 +44,17 @@ const MessageInput = ({ conversationKey }: MessageInputProps) => {
   }
 
   return (
-    <div className="flex w-full mt-auto p-5 gap-3 bg-main border-main border-t-2">
+    <form
+      className="flex w-full mt-auto p-5 gap-3 bg-main border-main border-t-2"
+      onSubmit={handleSendMessage}
+    >
       <input
         value={message}
         onChange={e => setMessage(e.target.value)}
         className="bg-white rounded-xl border-black flex-1 h-12 px-2 py-1"
       />
-      <button onClick={handleSendMessage}>Send</button>
-    </div>
+      <button type="submit">Send</button>
+    </form>
   )
 }
 
