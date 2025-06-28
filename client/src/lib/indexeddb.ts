@@ -76,19 +76,16 @@ export const updateEncryptedE2EEKey = async (userId: number, key: EncryptedE2EEK
         const updateRequest = store.put(data)
         
         updateRequest.onsuccess = () => {
-          console.log("Encrypted e2ee key updated");
           resolve();
         }
 
         updateRequest.onerror = () => {
-          console.log("Failed to update encrypted e2ee key in indexedDB");
           reject(updateRequest.error);
         }
       }
     }
 
     getRequest.onerror = () => {
-      console.log("Error retrieving entries from indexedDB");
       reject(getRequest.error);
     }
   })
@@ -103,12 +100,10 @@ export const getEncryptedE2EEEntry = async (userId: number): Promise<StoredE2EEE
     const request = store.get(userId);
 
     request.onerror = () => {
-      console.error("Failed to get entry from indexedDB");
       reject(request.error);
     }
 
     request.onsuccess = () => {
-      console.log("Successfully retrieved encrypted e2ee key from indexedDB");
       const data: StoredE2EEEntry = request.result;
       resolve(data);
     }
@@ -138,18 +133,15 @@ export const deleteEncryptedE2eeKey = async (userId: number): Promise<void> => {
       })
 
       deleteRequest.onsuccess = () => {
-        console.log("Encrypted E2EE key successfully deleted from indexedDB");
         resolve();
       }
 
       deleteRequest.onerror = () => {
-        console.log("Failed to delete encrypted E2EE key fom indexedDB");
         reject(deleteRequest.error);
       }
     };
 
     getRequest.onerror = () => {
-      console.log("Failed to retrieve entries from indexedDB");
       reject(getRequest.error);
     }
   })
@@ -164,12 +156,10 @@ export const storeEncryptedE2EEKey = async (data: StoredE2EEEntry): Promise<void
     const request = store.put(data);
 
     request.onsuccess = () => {
-      console.log("E2EE entry successfully stored in indexedDB");
       resolve();
     }
 
     request.onerror = () => {
-      console.log("Failed to store E2EE entry in indexedDB");
       reject();
     }
   })
@@ -186,12 +176,10 @@ export const storeChatMessages = async (messages: StoredMessage[]): Promise<void
     }
 
     transaction.oncomplete = () => {
-      console.log("All chat messages successfully stored in IndexedDB");
       resolve();
     };
 
     transaction.onerror = () => {
-      console.log("Failed to store one or more chat messages in IndexedDB");
       reject(transaction.error);
     };
   })
@@ -271,7 +259,6 @@ export const getMessagesByPage = async (localUserId: number, conversationKey: st
     }
 
     request.onerror = () => {
-      console.error("Failed to get messages by page");
       reject(request.error);
     }
   })
@@ -286,12 +273,10 @@ export const clearChatMessages = async (): Promise<void> => {
     const request = store.clear();
 
     request.onsuccess = () => {
-      console.log("Chat messages cleared successfully");
       resolve();
     }
 
     request.onerror = () => {
-      console.log("Failed to clear chat messages");
       reject(request.error);
     }
   })
@@ -306,12 +291,10 @@ export const storeConversationMeta = async (meta: StoredConversationMeta): Promi
     const request = store.put(meta);
 
     request.onsuccess = () => {
-      console.log("Conversation meta saved successfully");
       resolve();
     }
 
     request.onerror = () => {
-      console.log("Failed to save conversation meta chat messages");
       reject(request.error);
     }
   })
@@ -430,12 +413,10 @@ export const storeE2EEPublicKey = async (data: StoredE2EEPublicKey): Promise<voi
     const request = store.put(data);
 
     request.onsuccess = () => {
-      console.log("E2EE public key successfully stored in indexedDB");
       resolve();
     }
 
     request.onerror = () => {
-      console.log("Failed to store E2EE public key in indexedDB");
       reject(request.error);
     }
   })

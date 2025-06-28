@@ -8,7 +8,7 @@ export interface ConversationTabProps {
   latestMessage: string;
   conversationKey: string;
   title?: string;
-  otherUsername?: string;
+  participants?: string[];
 }
 
 export interface ConversationsProps {

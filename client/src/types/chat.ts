@@ -53,7 +53,7 @@ export interface StoredMessage {
 export interface StoredConversationMeta {
   conversationKey: string;
   title?: string;
-  otherUsername?: string;
+  participants?: string[];
   localUserId: number;
   lastFetchedAt?: string;
   oldestSyncedAt?: string;
@@ -61,7 +61,7 @@ export interface StoredConversationMeta {
 }
 
 export interface CachedDecryptedMessage {
-  text: string;
+  text: string | null;
   sentAt: string;
   direction: "incoming" | "outgoing";
   id: string;
@@ -103,5 +103,5 @@ export interface Participant {
 
 export interface CachedConversationMeta {
   title?: string;
-  otherUsername?: string;
+  participants?: string[];
 }

@@ -9,7 +9,6 @@ import AppLayout from "./layouts/AppLayout";
 import UserProfile from "./components/User/UserProfile";
 import GigApplicationPage from "./pages/GigApplicationPage";
 import "./styles/App.css";
-import WebSocketComponent from "./components/WebSocket";
 import MyGigsPage from "./pages/MyGigPage";
 import Chat from "./components/Chat/Chat";
 
@@ -33,8 +32,6 @@ const App = () => {
       <Route path=":username" element={<AppLayout />}>
         <Route path="profile" element={<UserProfile />} />
       </Route>
-
-      <Route path="socket" element={<WebSocketComponent />} />
     </Routes>
   )
 }

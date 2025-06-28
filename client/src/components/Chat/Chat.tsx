@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ConversationsPanel from "./ConversationsPanel";
 import { useSearchParams } from "react-router-dom";
-import ConversationMessage from "./ConversationMessager";
+import ConversationMessage from "./ConversationMessages";
 
 const Chat = () => {
   const [searchParams] = useSearchParams();

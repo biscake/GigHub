@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useE2EE } from "../hooks/useE2EE";
 import { useMessageCache } from "../hooks/useMessageCache";
@@ -8,6 +8,7 @@ import { type GetAllConversationKeysResponse, type GetAllLastReadResponse, type 
 import type { AuthPayload, ChatMessage, ChatMessagePayload, FetchResult, ReadPayload, StoredConversationMeta, StoredMessage, WebSocketOnMessagePayload } from "../types/chat";
 import { encryptMessage } from "../utils/crypto";
 import { ChatContext } from "./ChatContext";
+import { Spinner } from "../components/Spinner";
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { accessToken, user, deviceIdRef } = useAuth();
@@ -15,6 +16,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const socketRef = useRef<WebSocket | null>(null);
   const { addNewMessagesByKey, updateReadReceipt, loadMessageFromDBByKey, isConversationMetaLoaded, cacheConversationMeta } = useMessageCache();
   const loadingCache = useRef(false);
+  const [loading, setLoading] = useState(true);
 
   const sendMessageToConversation = useCallback(async (message: string, conversationKey: string) => {
     try {
@@ -208,16 +210,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         if (!isConversationMetaCached) {
           try {
             const res = await api.get<GetConversationMetaResponse>(`/api/chat/conversations/${data.conversationKey}/meta`);
-            const { conversationKey, title, gigAuthorUsername } = res.data;
+            const { conversationKey, title, participants } = res.data;
       
             await storeConversationMeta({
               title: title,
               conversationKey: conversationKey,
               localUserId: user.id,
-              otherUsername: gigAuthorUsername
+              participants
             })
       
-            cacheConversationMeta(conversationKey, { title, otherUsername: gigAuthorUsername });
+            cacheConversationMeta(conversationKey, { title, participants });
           } catch (err) {
             console.error("Failed to fetch conversation meta", err);
           }
@@ -237,11 +239,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       socketRef.current?.close();
     };
-  }, [accessToken, deviceIdRef, user, addNewMessagesByKey, fetchNewMessages, updateReadReceipt, isConversationMetaLoaded, loadMessageFromDBByKey, cacheConversationMeta])
+  }, [accessToken, deviceIdRef, user, addNewMessagesByKey, fetchNewMessages, updateReadReceipt, cacheConversationMeta, isConversationMetaLoaded])
 
   // fetches all conversations on load and load messages onto cache
   useEffect(() => {
-    if (!user || loadingCache.current) return;
+    if (!user || loadingCache.current || loading) {
+      setLoading(false);
+      return;
+    };
+
+    setLoading(true);
     loadingCache.current = true;
 
     const fetchNewMessages = async () => {
@@ -256,7 +263,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             title: c.title,
             conversationKey: c.conversationKey,
             localUserId: user.id,
-            otherUsername: c.gigAuthorUsername
+            participants: c.participants
           })
           await fetchMessagesBefore(c.conversationKey, dateNow);
         })
@@ -265,7 +272,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    const loadMessagesToCache = async () => {
+    const loadToCache = async () => {
       try {
         const allConversationMetas = await getAllConversationMeta();
         allConversationMetas?.forEach(async meta => {
@@ -292,14 +299,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    fetchNewMessages();
-    loadMessagesToCache();
-    fetchAndLoadLastReads();
-  }, [user, loadMessageFromDBByKey, fetchMessagesBefore, updateReadReceipt])
+    fetchNewMessages()
+      .then(() => loadToCache().then(() => fetchAndLoadLastReads()))
+      .finally(() => {
+        loadingCache.current = false;
+        setLoading(false);
+      });
+  }, [user, loadMessageFromDBByKey, fetchMessagesBefore, updateReadReceipt, loading])
 
   return (
     <ChatContext.Provider value={{ sendMessageToConversation, fetchMessagesBefore, syncReadReceipt, sendRead }}>
-      {children}
+      {loading ? <Spinner /> : children}
     </ChatContext.Provider>
   )
 }

@@ -288,7 +288,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  const decryptCiphertext = useCallback(async (data: StoredMessage): Promise<string> => {
+  const decryptCiphertext = useCallback(async (data: StoredMessage): Promise<string | null> => {
     try {
       const publicKeys = await getUserDevicePublicKey(data.from.userId, data.from.deviceId);
       const sharedKeys = await deriveSharedKeys(publicKeys);
@@ -297,9 +297,8 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
 
       const text = await decryptMessage(ciphertext, sharedKeys[0].sharedKey);
       return text;
-    } catch (err) {
-      console.error("Failed to decrypt message", err);
-      throw err;
+    } catch {
+      return null;
     }
   }, [deriveSharedKeys, getUserDevicePublicKey])
 

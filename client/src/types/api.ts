@@ -82,7 +82,7 @@ export interface GetUsernameByUserIdResponse extends ApiResponse {
 export interface GetAllConversationKeysResponse extends ApiResponse {
   conversations: {
     conversationKey: string;
-    gigAuthorUsername: string;
+    participants: string[];
     title: string;
   }[];
 }
@@ -112,11 +112,11 @@ export interface GetAcceptedGigsResponse extends ApiResponse {
 export interface GetGigConversationResponse extends ApiResponse {
   conversationKey: string;
   title: string;
-  gigAuthorUsername: string;
+  participants: string[];
 }
 
 export interface GetConversationMetaResponse extends ApiResponse {
   conversationKey: string;
   title: string;
-  gigAuthorUsername: string;
+  participants: string[];
 }
