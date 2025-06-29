@@ -3,6 +3,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import {
+  FindIfNotCreateConversationParams,
   GetAllLastReadParams,
   GetChatMessagesParams,
   GetChatMessagesRes,
@@ -15,7 +16,6 @@ import {
   StoreCiphertextInDbByConversationKeyParams,
   StoreCiphertextInDbNewConversationParams,
   UpdateReadReceiptParams,
-  UpsertConversationParams
 } from "../types/chat";
 
 export const storeCiphertextInDbNewConversation = async ({ senderId, senderDeviceId, recipientId, payloadMessages, gigId }: StoreCiphertextInDbNewConversationParams) => {
@@ -450,7 +450,7 @@ export const getConversationParticipantsAndKeys = async ({ conversationKey }: Ge
   }
 }
 
-export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConversationParams) => {
+export const findIfNotCreateConversation = async ({ gigId, userId, otherUserId }: FindIfNotCreateConversationParams) => {
   try {
     const gig = await prisma.gig.findUnique({
       where: { id: gigId },
@@ -467,7 +467,7 @@ export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConve
         participants: {
           some: {
             userId: {
-              in: [userId, gig.authorId]
+              in: [userId, otherUserId]
             }
           }
         },
@@ -482,7 +482,7 @@ export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConve
         participants: {
           create: [
             { userId },
-            { userId: gig.authorId }
+            { userId: otherUserId }
           ]
         },
       },

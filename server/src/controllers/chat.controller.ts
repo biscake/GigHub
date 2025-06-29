@@ -94,9 +94,10 @@ export const getConversationParticipants = asyncHandler(
 export const getOrElseCreateConversation = asyncHandler(
   async (req: Request, res: Response) => {
     const gigId = parseInt(req.params.gigId);
+    const otherUserId = parseInt(req.params.otherUserId);
     const userId = req.user.id;
 
-    const result = await findIfNotCreateConversation({ gigId, userId });
+    const result = await findIfNotCreateConversation({ gigId, userId, otherUserId });
 
     res.status(200).json({
       success: true,
