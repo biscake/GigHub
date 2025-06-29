@@ -25,7 +25,7 @@ const ConversationsPanel = () => {
               )
             })}
           </>
-        : "No messages, click + to start a new conversation"
+        : "Start a new conversation in My Gigs page"
       }
       <div className="text-2xl font-bold">Conversations</div>
     </div>
