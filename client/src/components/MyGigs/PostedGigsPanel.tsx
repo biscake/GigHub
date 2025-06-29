@@ -27,7 +27,7 @@ const PostedGigPanel: React.FC<PostedGigPanelProps> = memo(({ page, setTotalPage
   }
 
   return (
-    <GigPanel title="Ongoing" error={error} loading={loading}>
+    <GigPanel title="Posted" error={error} loading={loading}>
       {data && data.gigs && data.gigs.length > 0
         ? data.gigs.map((gig, i) =>
           <Card key={i} {...gig} onClick={() => openModal(gig, gig.applications)}/>

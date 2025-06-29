@@ -464,13 +464,22 @@ export const findIfNotCreateConversation = async ({ gigId, userId, otherUserId }
     const conversation = await prisma.conversation.findFirst({
       where: {
         gigId,
-        participants: {
-          some: {
-            userId: {
-              in: [userId, otherUserId]
-            }
-          }
-        },
+        AND: [
+          {
+            participants: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+          {
+            participants: {
+              some: {
+                userId: otherUserId,
+              },
+            },
+          },
+        ],
       },
     });
 

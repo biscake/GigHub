@@ -28,6 +28,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       prevUser.current = user;
       conversationMetaMap.current = new Map<string, CachedConversationMeta>();
       setLastRead(new Map<string, string>());
+      setLatestConversationMessage([]);
     }
   }, [user]);
 
