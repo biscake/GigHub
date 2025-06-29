@@ -25,7 +25,7 @@ export type E2EEContextType = {
   deriveSharedKeys: (publicKeys: ImportedPublicKey[]) => Promise<DerivedSharedKey[]>;
   getAllPublicKeysConversation: (conversationKey: string) => Promise<ImportedPublicKey[]>;
   getUserDevicePublicKey: (userId: number, deviceId: string) => Promise<ImportedPublicKey[]>;
-  decryptCiphertext: (data: StoredMessage) => Promise<string>;
+  decryptCiphertext: (data: StoredMessage) => Promise<string | null>;
   privateKey: React.RefObject<CryptoKey | null>;
   getUserPublicKeys: (userId: number, deviceId?: string) => Promise<ImportedPublicKey[]>;
 }

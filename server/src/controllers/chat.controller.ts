@@ -52,12 +52,12 @@ export const getConversations = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user.id;
     
-    const conversationKeys = await getExistingConversations({ userId });
+    const conversations = await getExistingConversations({ userId });
     
     res.status(200).json({
       success: true,
       message: `New messages fetched successfully`,
-      conversationKeys,
+      conversations,
     })
   },
 )
@@ -94,16 +94,17 @@ export const getConversationParticipants = asyncHandler(
 export const getOrElseCreateConversation = asyncHandler(
   async (req: Request, res: Response) => {
     const gigId = parseInt(req.params.gigId);
+    const otherUserId = parseInt(req.params.otherUserId);
     const userId = req.user.id;
 
-    const result = await findIfNotCreateConversation({ gigId, userId });
+    const result = await findIfNotCreateConversation({ gigId, userId, otherUserId });
 
     res.status(200).json({
       success: true,
       message: `Get last read successfully`,
       conversationKey: result.conversation.conversationKey,
       title: result.title,
-      gigAuthorUsername: result.gigAuthorUsername
+      participants: result.participants
     })
   }
 )
@@ -120,7 +121,7 @@ export const getConversationMeta = asyncHandler(
       message: `Get last read successfully`,
       conversationKey: result.conversationKey,
       title: result.title,
-      gigAuthorUsername: result.gigAuthorUsername
+      participants: result.participants
     })
   }
 )

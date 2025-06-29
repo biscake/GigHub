@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { acceptGigApplication, createGig, deleteApplication, deleteGig, editApplication, getGigs, getGigWithId, getUserAcceptedGigs, getUserApplicationStats, getUserReceivedApplications, getUserSentApplications, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
+import { acceptGigApplication, createGig, deleteApplication, deleteGig, editApplication, getGigs, getGigWithId, getUserAcceptedGigs, getUserApplicationStats, getUserPostedGigs, getUserReceivedApplications, getUserSentApplications, postGigApplication, rejectGigApplication } from '../controllers/gig.controller';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isOwnerOfGig } from '../middleware/gig/is-authorize-accept-gig.middleware';
 import { isAuthorizedToApplyGig } from '../middleware/gig/is-authorize-apply-gig.middleware';
@@ -15,6 +15,8 @@ import { isAuthorizedToModifyApplication } from '../middleware/gig/is-authorize-
 const router = Router();
 
 router.get('/', getGigs);
+
+router.get('/posted', authenticateJWT, getUserPostedGigs);
 
 router.post('/create',
   idempotencyKey,              // Ensure HTTP requests are only processed once

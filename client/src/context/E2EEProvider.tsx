@@ -74,7 +74,6 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       if (data?.deviceSecret && data?.wrappedDerivedKey && data?.userId) {
         try {
           const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${deviceId}`);
-          console.log("frm server", res)
 
           data.encryptedPrivateKey = base64ToArrayBuffer(res.data.encryptedPrivateKey);
           data.salt = base64ToUint8(res.data.salt);
@@ -288,7 +287,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  const decryptCiphertext = useCallback(async (data: StoredMessage): Promise<string> => {
+  const decryptCiphertext = useCallback(async (data: StoredMessage): Promise<string | null> => {
     try {
       const publicKeys = await getUserDevicePublicKey(data.from.userId, data.from.deviceId);
       const sharedKeys = await deriveSharedKeys(publicKeys);
@@ -297,9 +296,8 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
 
       const text = await decryptMessage(ciphertext, sharedKeys[0].sharedKey);
       return text;
-    } catch (err) {
-      console.error("Failed to decrypt message", err);
-      throw err;
+    } catch {
+      return null;
     }
   }, [deriveSharedKeys, getUserDevicePublicKey])
 

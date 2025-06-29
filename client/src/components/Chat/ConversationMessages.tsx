@@ -2,18 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import { useChat } from "../../hooks/useChat";
 import type { ConversationMessageContainerProps, MessageInputProps, MessageProps, MessagesContainerProps } from "../../types/chatUI";
 import { useMessageCache } from "../../hooks/useMessageCache";
+import { useAuth } from "../../hooks/useAuth";
 
 const ConversationMessage = ({ conversationKey }: ConversationMessageContainerProps) => {
   const { getConversationMetaByKey } = useMessageCache();
   const [title, setTitle] = useState("");
   const [otherUsername, setOtherUsername] = useState("");
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!conversationKey) return;
     const meta = getConversationMetaByKey(conversationKey);
     setTitle(meta?.title ?? "");
-    setOtherUsername(meta?.otherUsername ?? "")
-  }, [conversationKey, getConversationMetaByKey])
+    setOtherUsername(meta?.participants?.filter(p => p !== user!.username).join("") ?? "")
+  }, [conversationKey, getConversationMetaByKey, user])
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -32,7 +34,8 @@ const MessageInput = ({ conversationKey }: MessageInputProps) => {
   const { sendMessageToConversation } = useChat();
   const [message, setMessage] = useState("");
 
-  const handleSendMessage = () => {
+  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const toSend = message.trim();
     if (!toSend) return;
 
@@ -41,14 +44,17 @@ const MessageInput = ({ conversationKey }: MessageInputProps) => {
   }
 
   return (
-    <div className="flex w-full mt-auto p-5 gap-3 bg-main border-main border-t-2">
+    <form
+      className="flex w-full mt-auto p-5 gap-3 bg-main border-main border-t-2"
+      onSubmit={handleSendMessage}
+    >
       <input
         value={message}
         onChange={e => setMessage(e.target.value)}
         className="bg-white rounded-xl border-black flex-1 h-12 px-2 py-1"
       />
-      <button onClick={handleSendMessage}>Send</button>
-    </div>
+      <button type="submit">Send</button>
+    </form>
   )
 }
 
@@ -94,7 +100,7 @@ const Message = ({ message, otherUsername }: MessageProps) => {
         </div>
       }
       <div className="flex gap-4">
-        <div className="font-semibold">{message.text}</div>
+        <div className={`${!message.text ? "italic" : "font-semibold"}`}>{message.text ?? "Failed to get message"}</div>
         <div className="font-medium text-xs self-end">
           {new Date(message.sentAt).toLocaleTimeString([], {
             hour: '2-digit',

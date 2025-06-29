@@ -2,7 +2,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getAcceptedApplicationsByUserId, getApplicationStatByUserId, getGigsFromDatabase, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getAcceptedApplicationsByUserId, getApplicationStatByUserId, getGigsFromDatabase, getPostedGigsWithApplications, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
@@ -287,6 +287,33 @@ export const getUserAcceptedGigs = asyncHandler(async (req: Request, res: Respon
     success: true,
     message: "Get gigs successfully",
     gigs: gigsWithImgUrl,
+    totalPages: totalPages
+  })
+})
+
+export const getUserPostedGigs = asyncHandler(async (req: Request, res: Response) => {
+  const COUNT = 48;
+  const { id } = req.user;
+  const page = parseInt(req.query.page as string) || 1;
+
+  const { gigs, totalCount } = await getPostedGigsWithApplications({ userId: id, page, COUNT });
+  const formatted = gigs.map(gig => {
+    const imgUrl = `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`;
+    const applications = gig.GigApplication.map(({ user, ...rest }) => ({ user: { username: user.username, id: user.id }, ...rest }));
+
+    return {
+      ...gig,
+      imgUrl,
+      applications
+    }
+  });
+
+  const totalPages = Math.ceil(totalCount / COUNT);
+
+  res.status(200).json({
+    success: true,
+    message: "Get gigs successfully",
+    gigs: formatted,
     totalPages: totalPages
   })
 })

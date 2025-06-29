@@ -1,3 +1,4 @@
+import { useAuth } from "../../hooks/useAuth";
 import { useMessageCache } from "../../hooks/useMessageCache";
 import type { ConversationTabProps } from "../../types/chatUI";
 import { Link } from "react-router-dom";
@@ -18,7 +19,7 @@ const ConversationsPanel = () => {
                   key={i}
                   latestMessage={message?.text ?? ""}
                   conversationKey={conversation.conversationKey}
-                  otherUsername={meta?.otherUsername}
+                  participants={meta?.participants}
                   title={meta?.title}
                 />
               )
@@ -31,14 +32,16 @@ const ConversationsPanel = () => {
   )
 }
 
-const ConversationTab = ({ latestMessage, conversationKey, otherUsername, title }: ConversationTabProps) => {
+const ConversationTab = ({ latestMessage, conversationKey, participants, title }: ConversationTabProps) => {
+  const { user } = useAuth();
+
   return (
     <Link
       to={`/chat?conversationKey=${conversationKey}`}
       className="flex flex-col w-full bg-white px-4 py-2 cursor-pointer rounded-xl border-main border-2"
     >
       <div className="truncate font-bold text-xl">{title}</div>
-      <div className="truncate font-semibold text-l">{otherUsername}</div>
+      <div className="truncate font-semibold text-l">{participants?.filter(p => p !== user!.username).join(", ")}</div>
       <div className="truncate">{latestMessage}</div>
     </Link>
   )

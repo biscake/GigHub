@@ -1,29 +1,36 @@
 import { memo, useEffect, useMemo } from "react";
 import { useGetApi } from "../../hooks/useGetApi";
+import type { GetPostedGigsResponse } from "../../types/api";
 import { Card } from "../Card";
 import { Spinner } from "../Spinner";
-import type { GigPanelProps, OngoingGigPanelProps } from "../../types/mygigs";
-import type { GetAcceptedGigsResponse } from "../../types/api";
+import type { GigPanelProps, PostedGigPanelProps } from "../../types/mygigs";
+import type { Gig } from "../../types/gig";
+import type { GigApplication } from "../../types/application";
 
-const OngoingGigsPanel: React.FC<OngoingGigPanelProps> = memo(({ page, setTotalPages, setSelectedGig }) => {
+const PostedGigPanel: React.FC<PostedGigPanelProps> = memo(({ page, setTotalPages, setSelectedGig, setApplications }) => {
   const opts = useMemo(() => ({
     params: {
       page
     }
   }), [page]);
 
-  const { data, loading, error } = useGetApi<GetAcceptedGigsResponse>('/api/gigs/applications/accepted', opts);
+  const { data, loading, error } = useGetApi<GetPostedGigsResponse>('/api/gigs/posted', opts);
 
   useEffect(() => {
     if (!data) return;
     setTotalPages(data.totalPages);
   }, [setTotalPages, data]);
 
+  const openModal = (gig: Gig, applications: GigApplication[]) => {
+    setSelectedGig(gig);
+    setApplications(applications);
+  }
+
   return (
     <GigPanel title="Ongoing" error={error} loading={loading}>
       {data && data.gigs && data.gigs.length > 0
         ? data.gigs.map((gig, i) =>
-          <Card key={i} {...gig} onClick={() => setSelectedGig(gig)}/>
+          <Card key={i} {...gig} onClick={() => openModal(gig, gig.applications)}/>
         )
         : <span>No Applications Found</span>
       }
@@ -57,4 +64,4 @@ const GigPanel = ({ children, title, loading, error }: GigPanelProps) => {
 }
 
 
-export default OngoingGigsPanel;
+export default PostedGigPanel;

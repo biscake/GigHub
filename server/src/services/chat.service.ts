@@ -3,6 +3,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import {
+  FindIfNotCreateConversationParams,
   GetAllLastReadParams,
   GetChatMessagesParams,
   GetChatMessagesRes,
@@ -15,7 +16,6 @@ import {
   StoreCiphertextInDbByConversationKeyParams,
   StoreCiphertextInDbNewConversationParams,
   UpdateReadReceiptParams,
-  UpsertConversationParams
 } from "../types/chat";
 
 export const storeCiphertextInDbNewConversation = async ({ senderId, senderDeviceId, recipientId, payloadMessages, gigId }: StoreCiphertextInDbNewConversationParams) => {
@@ -309,17 +309,24 @@ export const getExistingConversations = async ({ userId }: GetExistingConversati
           include: {
             author: true
           }
-        }
+        },
+        participants: true
       }
     })
 
-    const formatted = result.map(c => {
+    const formatted = await Promise.all(result.map(async c => {
       return {
         conversationKey: c.conversationKey,
-        gigAuthorUsername: c.gig.author.username,
+        participants: (await prisma.user.findMany({
+          where: {
+            id: {
+              in: c.participants.map(p => p.userId)
+            }
+          }
+        })).map(u => u.username),
         title: c.gig.title
       }
-    });
+    }));
 
     return formatted;
   } catch {
@@ -443,7 +450,7 @@ export const getConversationParticipantsAndKeys = async ({ conversationKey }: Ge
   }
 }
 
-export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConversationParams) => {
+export const findIfNotCreateConversation = async ({ gigId, userId, otherUserId }: FindIfNotCreateConversationParams) => {
   try {
     const gig = await prisma.gig.findUnique({
       where: { id: gigId },
@@ -460,7 +467,7 @@ export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConve
         participants: {
           some: {
             userId: {
-              in: [userId, gig.authorId]
+              in: [userId, otherUserId]
             }
           }
         },
@@ -475,13 +482,24 @@ export const findIfNotCreateConversation = async ({ gigId, userId }: UpsertConve
         participants: {
           create: [
             { userId },
-            { userId: gig.authorId }
+            { userId: otherUserId }
           ]
         },
       },
+      include: {
+        participants: true
+      }
     });
+
+    const participantUsers = await prisma.user.findMany({
+      where: { 
+        id: {
+          in: result.participants.map(p => p.userId)
+        }
+      }
+    })
     
-    return { conversation: result, title: gig.title, gigAuthorUsername: gig.author.username };
+    return { conversation: result, title: gig.title, participants: participantUsers.map(p => p.username) };
   } catch (err) {
     if (err instanceof AppError) {
       throw err;
@@ -507,15 +525,24 @@ export const getConversationMetaByKey = async ({ userId, conversationKey }: GetC
           include: {
             author: true
           }
-        }
+        },
+        participants: true
       }
     })
 
     if (!conversation) throw new NotFoundError("Conversation")
+    
+    const participantUsers = await prisma.user.findMany({
+      where: {
+        id: {
+          in: conversation.participants.map(p => p.userId)
+        }
+      }
+    })
 
     return {
       title: conversation.gig.title,
-      gigAuthorUsername: conversation.gig.author.username,
+      participants: participantUsers.map(p => p.username),
       conversationKey
     }
   } catch {

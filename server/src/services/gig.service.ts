@@ -302,3 +302,48 @@ export const getAcceptedApplicationsByUserId = async ({ userId, page = 1, COUNT 
     throw new ServiceError("Prisma", "Failed to get user's received applications from database");
   }
 }
+
+export const getPostedGigsWithApplications = async ({ userId, page = 1, COUNT }: { userId: number; page: number; COUNT: number; }) => {
+  try {
+    const result = await prisma.gig.findMany({
+      where: {
+        authorId: userId,
+        GigApplication: {
+          some: {
+            status: Status.ACCEPTED
+          }
+        }
+      },
+      include: {
+        GigApplication: {
+          where: {
+            status: Status.ACCEPTED
+          },
+          include: {
+            user: true
+          }
+        }
+      },
+      skip: (page - 1) * COUNT,
+      take: COUNT,
+      orderBy: {
+        createdAt: 'desc'
+      },
+    })
+
+    const totalGigs = await prisma.gig.count({
+      where: {
+        authorId: userId,
+        GigApplication: {
+          some: {
+            status: Status.ACCEPTED
+          }
+        }
+      },
+    });
+
+    return { gigs: result, totalCount: totalGigs};
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to get user's posted gigs from database");
+  }
+}

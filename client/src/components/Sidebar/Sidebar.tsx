@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import CreateGigFormModal from "../createGig/CreateGigModal";
 import SidebarNavLink from "./SidebarNavLink";
@@ -9,6 +9,12 @@ const Sidebar = () => {
   const { user, logout } = useAuth();
   const [isCreateGigModalOpen, setIsCreateGigModalOpen] = useState<boolean>(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  }
 
   return (
     <aside className="w-[15vw] min-w-[350px] hidden md:block text-[1rem] font-mono font-bold border-r border-white/50 bg-[#fff8f2]">
@@ -45,7 +51,7 @@ const Sidebar = () => {
             <SidebarNavLink to={`/${user.username}/profile`}>
               {user.username}
             </SidebarNavLink>
-            <button onClick={logout} className="text-2xl hover:link-hover">Log out</button>
+            <button onClick={handleLogout} className="text-2xl hover:link-hover">Log out</button>
           </div>
         ) : (
           <div className="space-x-4 flex flex-col gap-5 items-start">

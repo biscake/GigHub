@@ -15,7 +15,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const prevUser = useRef<User | null>(null);
   const [latestConversationMessage, setLatestConversationMessage] = useState<LatestConversationMessage[]>([]);
   const [lastRead, setLastRead] = useState(new Map<string, string>());
-  const [conversationMeta, setConversationMeta] = useState(new Map<string, CachedConversationMeta>());
+  const conversationMetaMap = useRef(new Map<string, CachedConversationMeta>());
     
   useEffect(() => {
     if (!user) return;
@@ -26,7 +26,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       conversationOffSet.current = new Map<string, number>();
       msgIdMap.current = new Map<string, CachedDecryptedMessage>();
       prevUser.current = user;
-      setConversationMeta(new Map<string, CachedConversationMeta>());
+      conversationMetaMap.current = new Map<string, CachedConversationMeta>();
       setLastRead(new Map<string, string>());
     }
   }, [user]);
@@ -46,11 +46,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const cacheConversationMeta = useCallback((conversationKey: string, meta: CachedConversationMeta) => {
-    setConversationMeta(prev => {
-      const tmp = new Map(prev);
-      tmp.set(conversationKey, meta);
-      return tmp;
-    })
+    conversationMetaMap.current.set(conversationKey, meta);
   }, [])
 
   const decryptAndUpdateMap = useCallback(async (encryptedMessages: StoredMessage[]) => {
@@ -71,11 +67,10 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   const loadMessageFromDBByKey = useCallback(async (conversationKey: string) => {
     if (!user) return;
     const conversationOffsetMap = conversationOffSet.current;
-    const conversationMetaMap = conversationMeta;
     
-    if (!conversationMetaMap.has(conversationKey)) {
+    if (!conversationMetaMap.current.has(conversationKey)) {
       const conversationMeta = await getConversationMeta(user.id, conversationKey);
-      cacheConversationMeta(conversationKey, { title: conversationMeta?.title, otherUsername: conversationMeta?.otherUsername });
+      cacheConversationMeta(conversationKey, { title: conversationMeta?.title, participants: conversationMeta?.participants });
     }
 
     const offset = conversationOffsetMap.get(conversationKey) ?? 0; // init first offset to 0
@@ -91,7 +86,7 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
       updateLatestConversation(tmp);
       return tmp;
     })
-  }, [user, decryptAndUpdateMap, updateLatestConversation, conversationMeta, cacheConversationMeta]);
+  }, [user, decryptAndUpdateMap, updateLatestConversation, cacheConversationMeta]);
 
   const addNewMessagesByKey = useCallback(async (conversationKey: string, messages: StoredMessage[]) => {
     const decryptedMessages = await decryptAndUpdateMap(messages);
@@ -126,12 +121,12 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
   }, [lastRead])
 
   const getConversationMetaByKey = useCallback((conversationKey: string) => {
-    return conversationMeta.get(conversationKey);
-  }, [conversationMeta]);
+    return conversationMetaMap.current.get(conversationKey);
+  }, []);
 
   const isConversationMetaLoaded = useCallback((conversationKey: string) => {
-    return conversationMeta.has(conversationKey);
-  }, [conversationMeta])
+    return conversationMetaMap.current.has(conversationKey);
+  }, [])
 
   return (
     <MessageCacheContext.Provider value={{

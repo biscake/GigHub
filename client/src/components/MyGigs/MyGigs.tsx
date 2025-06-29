@@ -1,16 +1,19 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import { useState } from 'react';
-import type { AppTabProps } from '../../types/application';
+import type { GigApplication, AppTabProps } from '../../types/application';
 import { PageSelector } from '../PageSelector';
 import OngoingGigsPanel from './OngoingGigsPanel';
 import type { Gig } from '../../types/gig';
 import OngoingGigModal from './OngoingGigModal';
+import PostedGigPanel from './PostedGigsPanel';
+import PostedGigsModal from './PostedGigModal';
 
 const MyGigs = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
+  const [applications, setApplications] = useState<GigApplication[] | null>(null);
   
   const handleChange = (idx: number) => {
     setSelectedIndex(idx);
@@ -30,7 +33,8 @@ const MyGigs = () => {
             {selectedIndex === 0 && <OngoingGigsPanel page={page} setTotalPages={setTotalPages} setSelectedGig={setSelectedGig} />}
           </TabPanel>
           <TabPanel className="flex flex-col flex-1 w-full justify-center items-center">
-            {/* {selectedIndex === 1 && <SentApplicationsPanel page={page} setTotalPages={setTotalPages}/>} */}
+            <PostedGigsModal gig={selectedGig} setSelectedGig={setSelectedGig} applications={applications} setApplications={setApplications}/>
+            {selectedIndex === 1 && <PostedGigPanel page={page} setTotalPages={setTotalPages} setSelectedGig={setSelectedGig} setApplications={setApplications} />}
           </TabPanel>
         </TabPanels>
       </TabGroup>
