@@ -7,10 +7,6 @@ export type ApplicationStats = {
   sent: number;
 }
 
-export type ApplicationStatsResponse = {
-  stats: ApplicationStats;
-}
-
 export type GigApplication = {
   id: number;
   createdAt: Date;
@@ -25,15 +21,11 @@ type Status = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
 export type ApplicationListItemProps = {
   application: GigApplication;
   key: number;
-  refetch: () => Promise<void>;
-}
-
-export type GetApplicationResponse = {
-  applications: GigApplication[];
-  pageSize: number;
-  page: number;
-  totalPages: number;
-  total: number;
+  handleAccept?: () => void;
+  handleReject?: () => void;
+  handleEditMessage?: (message: string, applicationId: number) => void;
+  handleViewGig?: () => void;
+  handleCancelApplication?: () => void;
 }
 
 export type ApplicationPanelProps = {
@@ -57,4 +49,8 @@ export type ReceivedApplicationsPanelProps = {
 export type SentApplicationsPanelProps = {
   page: number;
   setTotalPages: React.Dispatch<SetStateAction<number>>;
+}
+
+export type EditApplicationFormInput = {
+  message: string;
 }

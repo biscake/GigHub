@@ -33,6 +33,6 @@ describe("Auth: logout", () => {
   it("Failure to update refresh token in database should throw error", async () => {
     prisma.refreshToken.update.mockRejectedValue(new Error("Database error"));
 
-    await expect(logout({ token: mockToken })).rejects.toThrow("Database error");
+    await expect(logout({ token: mockToken })).rejects.toThrow("LogoutService error: Failed to logout user");
   })
 })

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useGetApi } from "../../hooks/useGetApi";
-import type { ApplicationStatsResponse } from "../../types/application";
+import type { ApplicationStatsResponse } from "../../types/api";
 
 const GigApplicationStats = ({ className = "" }: { className?: string; }) => {
   const { data } = useGetApi<ApplicationStatsResponse>('/api/gigs/applications/stats');

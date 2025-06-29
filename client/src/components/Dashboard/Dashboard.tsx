@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGetApi } from "../../hooks/useGetApi";
-import type { Gig, GigFilters, GigsResponse } from "../../types/gig";
+import type { Gig, GigFilters } from "../../types/gig";
 import { PageSelector } from "../PageSelector";
 import { SearchBar } from "./SearchBar";
 import DashboardGigs from "./DashboardGigs";
 import GigModal from "../GigModal/GigModal";
+import { clearDashboardRefetch, setDashboardRefetch } from "../../utils/dashboardRefetch";
+import type { GigsResponse } from "../../types/api";
 
 const Dashboard = () => {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
@@ -22,7 +24,14 @@ const Dashboard = () => {
     }
   }), [filters.category, filters.search, filters.page]);
 
-  const { data, error, loading } = useGetApi<GigsResponse>('/api/gigs', apiOptions)
+  const { data, error, loading, refetch } = useGetApi<GigsResponse>('/api/gigs', apiOptions);
+
+  useEffect(() => {
+    setDashboardRefetch(refetch);
+    return () => {
+      clearDashboardRefetch();
+    };
+  }, [refetch]);
 
   const handleSearchChange = (value: string) => {
     setFilters(prev => ({

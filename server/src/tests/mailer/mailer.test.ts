@@ -73,7 +73,7 @@ describe("Mailer: reset request", () => {
   it("Failure to find user in database should throw error", async () => {
     prisma.user.findUnique.mockRejectedValue(new Error("Database error"));
 
-    await expect(resetRequest({ email: mockUser.email })).rejects.toThrow("Database error");
+    await expect(resetRequest({ email: mockUser.email })).rejects.toThrow("Nodemailer error: Failed to send reset request email");
   })
 
   
@@ -81,13 +81,13 @@ describe("Mailer: reset request", () => {
     prisma.user.findUnique.mockResolvedValue(mockUser);
     prisma.resetToken.create.mockRejectedValue(new Error("Database error"));
 
-    await expect(resetRequest({ email: mockUser.email })).rejects.toThrow("Database error");
+    await expect(resetRequest({ email: mockUser.email })).rejects.toThrow("Nodemailer error: Failed to send reset request email");
   })
 
   it("Failure to revoke old reset token in database should throw error", async () => {
     prisma.user.findUnique.mockResolvedValue(mockUser);
     prisma.resetToken.updateMany.mockRejectedValue(new Error("Database error"));
 
-    await expect(resetRequest({ email: mockUser.email })).rejects.toThrow("Database error");
+    await expect(resetRequest({ email: mockUser.email })).rejects.toThrow("Nodemailer error: Failed to send reset request email");
   })
 })

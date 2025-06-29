@@ -2,15 +2,15 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/re
 import type { AxiosError } from 'axios';
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../lib/api';
 import type { ApiErrorResponse } from '../../types/api';
 import type { ApplyGigFormData, ApplyGigModalProp } from '../../types/gig';
+import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
 
 const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyModal }) => {
   const [error, setError] = useState<string | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const idempotencyKey = useIdempotencyKey();
 
   const { handleSubmit, formState: { errors } } = useForm<ApplyGigFormData>({ mode: 'onChange' });
   const { user } = useAuth();
@@ -22,15 +22,9 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
     }
 
     try {
-      const key = idempotencyKey ?? uuidv4();
-
-      if (!idempotencyKey) {
-        setIdempotencyKey(key);
-      }
-
       await api.post(`/api/gigs/${gig?.id}/apply`, data, {
         headers: {
-          'Idempotency-Key': key
+          'Idempotency-Key': idempotencyKey.get()
         }
       });
 
@@ -41,7 +35,7 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
 
       setError(errorMessage || "Something went wrong. Please try again");
     } finally {
-      setIdempotencyKey(null);
+      idempotencyKey.clear();
     }
   }
 
