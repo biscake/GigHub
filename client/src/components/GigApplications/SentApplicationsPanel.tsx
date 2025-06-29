@@ -5,7 +5,7 @@ import { useIdempotencyKey } from "../../hooks/useIdempotencyKey";
 import api from "../../lib/api";
 import type { ApiErrorResponse, GetApplicationResponse } from "../../types/api";
 import type { ApplicationListItemProps, SentApplicationsPanelProps } from "../../types/application";
-import type { Gig } from "../../types/gig";
+import type { GetGigAuthorResponse, Gig } from "../../types/gig";
 import { timeAgo } from "../../utils/timeAgo";
 import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationListButton from "./ApplicationListButton";
@@ -89,6 +89,10 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState(application?.message ?? "");
 
+  const { data } = useGetApi<GetGigAuthorResponse>(`/api/users/userid/${ application.gig.authorId }`);
+
+  const author = data ? data.username : application.gig.authorId;
+
   const handleCancelEdit = () => {
     setMessage(application?.message ?? "");
     setIsEditing(false);
@@ -110,7 +114,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
           }
         </ApplicationListContent>
         <ApplicationListContent title="Gig Author">
-          {application.gig.author.username}
+          {author}
         </ApplicationListContent>
         <span>Sent {timeAgo(application.createdAt)}</span>
         <div className="flex items-center">

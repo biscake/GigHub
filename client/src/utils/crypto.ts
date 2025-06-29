@@ -164,7 +164,7 @@ export const deriveECDHSharedKey = async (privateKey: CryptoKey, publicKey: Cryp
 }
 
 // encrypt message using a CryptoKey
-export const encryptMessage = async (message: string, sharedKey: CryptoKey): Promise<string> => {
+export const encryptMessage = async (message: string, sharedKey: CryptoKey): Promise<string | null> => {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const messageBuffer = new TextEncoder().encode(message);
   const ciphertext = await crypto.subtle.encrypt(
@@ -182,8 +182,13 @@ export const encryptMessage = async (message: string, sharedKey: CryptoKey): Pro
 }
 
 // decrypt message using a CryptoKey
-export const decryptMessage = async (encryptedMessage: string, sharedKey: CryptoKey): Promise<string> => {
+export const decryptMessage = async (encryptedMessage: string, sharedKey: CryptoKey): Promise<string | null> => {
   const encryptedBytes = base64ToUint8(encryptedMessage); 
+
+  if (!encryptedBytes) {
+    return null;
+  }
+  
   const iv = encryptedBytes.slice(0, 12);
   const ciphertext = encryptedBytes.slice(12);
 
