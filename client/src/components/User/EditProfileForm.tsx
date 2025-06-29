@@ -11,7 +11,7 @@ import getCroppedImg from "../../utils/cropImage";
 import blobUrlToFile from "../../utils/blobToImage";
 import { UploadProfileImage } from "./UploadProfileImage";
 
-const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
+const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit, refetch }) => {
   const [apiErr, setApiErr] = useState<string | ValidationError[] | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [croppedImagePixels, setCroppedImagePixels] = useState<Area | null>(null);
@@ -73,9 +73,12 @@ const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
 
       setApiErr(errorMessage || "Something went wrong. Please try again");
     } finally {
+      refetch();
+      setIsEdit(false);
       idempotencyKey.clear();
     }
   }
+
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full p-5">
@@ -106,7 +109,6 @@ const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
             <button
               className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto cursor-pointer"
               type="submit"
-              onClick={() => setIsEdit(false)}
             >
               Submit
             </button>

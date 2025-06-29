@@ -14,6 +14,7 @@ export type Profile = {
 export type ProfileCardProp = {
   profile: Profile;
   setIsEdit: (x: boolean) => void;
+  refetch: () => void;
 }
 
 export type ProfileImageProp = {
