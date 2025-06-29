@@ -74,7 +74,6 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
       if (data?.deviceSecret && data?.wrappedDerivedKey && data?.userId) {
         try {
           const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${deviceId}`);
-          console.log("frm server", res)
 
           data.encryptedPrivateKey = base64ToArrayBuffer(res.data.encryptedPrivateKey);
           data.salt = base64ToUint8(res.data.salt);

@@ -120,3 +120,12 @@ export interface GetConversationMetaResponse extends ApiResponse {
   title: string;
   participants: string[];
 }
+
+export interface GetPostedGigsResponse extends ApiResponse {
+  gigs: GigWithApplications[];
+  totalPages: number;
+}
+
+type GigWithApplications = Gig & {
+  applications: GigApplication[];
+};
