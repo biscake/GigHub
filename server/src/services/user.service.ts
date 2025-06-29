@@ -4,7 +4,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { BadRequestError } from "../errors/bad-request-error";
-import { GetNormalizedProfilesParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -86,13 +86,12 @@ export const getUserWithReviewsByUsername = async ({ username, NUMBER_OF_REVIEWS
 }
 
 export const updateUserByUsername = async (params: updateUserByProfileParams) => {
-  const { profileName, bio, profilePictureKey } = params;
+  const { id, profileName, bio, profilePictureKey } = params;
 
-  const user = await getUserWithNormalizedProfileByUsername({ username: profileName });
   try {
     await prisma.userProfile.update({
       where: {
-        userId: user.id
+        userId: id
       },
       data: {
         bio: bio,
@@ -112,7 +111,7 @@ export const getUserById = async ({ id }: GetUserByIdParams) => {
     
     return user;
   } catch {
-    throw new ServiceError("Primsa", "Failed to get user from database");
+    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }
 
@@ -124,7 +123,7 @@ export const getUserByName = async ({ username }: GetUserByNameParams) => {
     
     return user;
   } catch {
-    throw new ServiceError("Primsa", "Failed to get user from database");
+    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }
 
@@ -184,5 +183,19 @@ export const getUserData = async ({ search }: GetNormalizedProfilesParams) => {
     return formatted;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to get user from database");
+  }
+}
+
+export const deleteReviewInDatabase = async ({ id }: deleteReviewInDatabaseParams) => {
+  try {
+    const result = await prisma.review.delete({
+      where: {
+        id: id
+      }
+    })
+
+    return result;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to delete review from database");
   }
 }

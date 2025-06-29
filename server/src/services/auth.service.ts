@@ -172,6 +172,10 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
       throw err;
     }
 
+    if (err instanceof Error && err.message === "Missing user to create refresh token") {
+      throw err;
+    }
+
     throw new ServiceError("RotateTokenService", "Failed to rotate token");
   }
 }
@@ -218,6 +222,10 @@ export const resetPassword = async ({ resetToken, pwHash }: resetPasswordInput) 
     })
   } catch (err) {
     if (err instanceof BadRequestError) {
+      throw err;
+    }
+
+    if (err instanceof NotFoundError) {
       throw err;
     }
 

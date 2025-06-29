@@ -8,6 +8,7 @@ export interface GetUserWithReviewsByUsernameParams {
 }
 
 export interface updateUserByProfileParams {
+  id: number;
   profileName: string;
   bio: string | null;
   profilePictureKey: string;
@@ -30,4 +31,8 @@ export interface createReviewInDatabaseParams {
 
 export interface GetNormalizedProfilesParams {
   search: string;
+}
+
+export interface deleteReviewInDatabaseParams {
+  id: number;
 }

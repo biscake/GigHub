@@ -41,7 +41,23 @@ describe("Auth: register", () => {
             passwordHash: mockPasswordHash,
           },
         },
+        profile: {
+          create: {
+            bio: null,
+            averageRating: null,
+            numberOfGigsCompleted: 0,
+            numberOfGigsPosted: 0,
+            profilePictureKey: "default/Default_pfp.svg"
+          }
+        },
+        applicationStats: {
+          create: {}
+        }
       },
+      include: {
+        profile: true,
+        applicationStats: true
+      }
     });
 
     expect(result).toEqual({
@@ -54,6 +70,6 @@ describe("Auth: register", () => {
   it("Failure to create user in database should throw error", async () => {
     prisma.user.create.mockRejectedValue(new Error("Database error"));
 
-    await expect(register({ username: mockUser.username, email: mockUser.email, pwHash: mockPasswordHash })).rejects.toThrow("Database error");
+    await expect(register({ username: mockUser.username, email: mockUser.email, pwHash: mockPasswordHash })).rejects.toThrow("Prisma error: Failed to create user");
   })
 })
