@@ -1,3 +1,5 @@
+import { Gig } from "@prisma/client";
+
 export interface CreateGigInDatabaseParams {
   imgKey: string;
   title: string;
@@ -25,7 +27,7 @@ export interface GetGigFromDatabaseByIdParams {
 }
 
 export interface AcceptGigByIdParams {
-  gigId: number;
+  gig: Gig;
   userId: number;
   message?: string;
 }

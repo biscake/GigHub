@@ -12,6 +12,7 @@ import ApplicationListButton from "./ApplicationListButton";
 import ApplicationListContent from "./ApplicationListContent";
 import ApplicationPanel from "./ApplicationPanel";
 import GigModal from "../GigModal/GigModal";
+import { callApplicationStatsRefetch } from "../../utils/applicationStatsRefetch";
 
 const SentApplicationsPanel: React.FC<SentApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
   const idempotencyKey = useIdempotencyKey();
@@ -40,9 +41,9 @@ const SentApplicationsPanel: React.FC<SentApplicationsPanelProps> = memo(({ page
       });
 
       refetch();
+      callApplicationStatsRefetch();
     } catch (err) {
-      const error = err as AxiosError<ApiErrorResponse>;
-      console.log(error);
+      console.error(err);
     } finally {
       idempotencyKey.clear();
     }
