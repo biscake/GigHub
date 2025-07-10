@@ -95,7 +95,7 @@ export const postGigApplication = asyncHandler(async (req: Request, res: Respons
   const userId = req.user.id;
   const idempotencyKey = req.idempotencyKey;
 
-  const application = await createGigApplicationById({ gigId: gig.id, userId, message });
+  const application = await createGigApplicationById({ gig, userId, message });
 
   const responseBody = {
     success: true,
@@ -210,6 +210,7 @@ export const getUserApplicationStats = asyncHandler(async (req: Request, res: Re
 export const acceptGigApplication = asyncHandler(async (req: Request, res: Response) => {
   const applicationId = req.application.id;
   const idempotencyKey = req.idempotencyKey;
+  const user = req.user;
 
   await acceptGigApplicationById({ applicationId });
 
@@ -243,7 +244,7 @@ export const deleteApplication = asyncHandler(async (req: Request, res: Response
   const application = req.application;
   const idempotencyKey = req.idempotencyKey;
 
-  await deleteApplicationByApplicationId({ applicationId: application.id });
+  await deleteApplicationByApplicationId({ application: application });
 
   const responseBody = {
     success: true,

@@ -1,9 +1,17 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useGetApi } from "../../hooks/useGetApi";
 import type { ApplicationStatsResponse } from "../../types/api";
+import { clearApplicationStatsRefetch, setApplicationStatsRefetch } from "../../utils/applicationStatsRefetch";
 
 const GigApplicationStats = ({ className = "" }: { className?: string; }) => {
-  const { data } = useGetApi<ApplicationStatsResponse>('/api/gigs/applications/stats');
+  const { data, refetch } = useGetApi<ApplicationStatsResponse>('/api/gigs/applications/stats');
+
+  useEffect(() => {
+    setApplicationStatsRefetch(refetch);
+    return () => {
+      clearApplicationStatsRefetch();
+    };
+  }, [refetch]);
 
   return (
     <div className={`flex flex-row justify-center sm:justify-start w-full gap-5 ${className}`}>

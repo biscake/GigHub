@@ -1,9 +1,10 @@
-import { Prisma, Status } from "@prisma/client";
+import { GigApplication, Prisma, Status } from "@prisma/client";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams } from "../types/gig";
 import { AppError } from "../errors/app-error";
+import { NotFoundError } from "../errors/not-found-error";
 
 export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
   try {
@@ -104,25 +105,57 @@ export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParam
   }
 }
 
-export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdParams) => {
+export const createGigApplicationById = async ({ gig, userId, message }: AcceptGigByIdParams) => {
   try {
     const isExist = await prisma.gigApplication.findFirst({
       where: {
-        gigId,
-        userId
+        gigId: gig.id,
+        userId,
+        status: {
+          in: [Status.PENDING, Status.ACCEPTED]
+        }
       }
     });
 
     if (isExist) throw new BadRequestError("Already applied for this gig.");
 
-    const application = await prisma.gigApplication.create({
-      data: {
-        gigId: gigId,
-        userId: userId
-      }
-    })
+    const result = await prisma.$transaction([
+      prisma.gigApplication.create({
+        data: {
+          gigId: gig.id,
+          userId: userId,
+          message
+        }
+      }),
+      prisma.applicationStats.upsert({
+        where: {
+          userId,
+        },
+        update: {
+          sent: {
+            increment: 1
+          }
+        },
+        create: {
+          userId
+        }
+      }),
+      prisma.applicationStats.upsert({
+        where: {
+          userId: gig.authorId
+        },
+        update: {
+          received: {
+            increment: 1
+          }
+        },
+        create: {
+          userId: gig.authorId
+        }
+      })
+    ])
 
-    return application;
+    return result[0];
   } catch (err) {
     if (err instanceof AppError) {
       throw err;
@@ -134,30 +167,110 @@ export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdP
 
 export const acceptGigApplicationById = async ({ applicationId }: UpdateApplicationStatusByIdParams) => {
   try {
-    await prisma.gigApplication.update({
+    const application = await prisma.gigApplication.findFirst({
       where: {
         id: applicationId
       },
-      data: {
-        status: Status.ACCEPTED
+      include: {
+        gig: true
       }
-    })
+    });
+
+    if (!application) throw new NotFoundError("Gig application");
+
+    await prisma.$transaction([
+      prisma.gigApplication.update({
+        where: {
+          id: applicationId
+        },
+        data: {
+          status: Status.ACCEPTED
+        },
+        include: {
+          gig: true
+        }
+      }),
+      prisma.applicationStats.update({
+        where: {
+          userId: application.userId,
+        },
+        data: {
+          sent: {
+            decrement: 1
+          }
+        }
+      }),
+      prisma.applicationStats.update({
+        where: {
+          userId: application.gig.authorId
+        },
+        data: {
+          received: {
+            decrement: 1
+          }
+        }
+      })
+    ])
   } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+
     throw new ServiceError("Prisma", "Failed to update status of application in database");
   }
 }
 
 export const rejectGigApplicationById = async ({ applicationId }: UpdateApplicationStatusByIdParams) => {
   try {
-    await prisma.gigApplication.update({
+    const application = await prisma.gigApplication.findFirst({
       where: {
         id: applicationId
       },
-      data: {
-        status: Status.REJECTED
+      include: {
+        gig: true
       }
-    })
+    });
+
+    if (!application) throw new NotFoundError("Gig application");
+
+    await prisma.$transaction([
+      prisma.gigApplication.update({
+        where: {
+          id: applicationId
+        },
+        data: {
+          status: Status.REJECTED
+        },
+        include: {
+          gig: true
+        }
+      }),
+      prisma.applicationStats.update({
+        where: {
+          userId: application.userId,
+        },
+        data: {
+          sent: {
+            decrement: 1
+          }
+        }
+      }),
+      prisma.applicationStats.update({
+        where: {
+          userId: application.gig.authorId
+        },
+        data: {
+          received: {
+            decrement: 1
+          }
+        }
+      })
+    ])
   } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+
     throw new ServiceError("Prisma", "Failed to update status of application in database");
   }
 }
@@ -256,14 +369,48 @@ export const getApplicationStatByUserId = async ({ userId }: { userId: number; }
   }
 }
 
-export const deleteApplicationByApplicationId = async ({ applicationId }: { applicationId: number; }) => {
+export const deleteApplicationByApplicationId = async ({ application }: { application: GigApplication; }) => {
   try {
-    await prisma.gigApplication.delete({
-      where: {
-        id: applicationId
+    const gig = await prisma.gig.findUnique({
+      where: { 
+        id: application.gigId
       }
     })
+
+    if (!gig) throw new NotFoundError("Gig");;
+
+    await prisma.$transaction([
+      prisma.gigApplication.delete({
+        where: {
+          id: application.id
+        }
+      }),
+      prisma.applicationStats.update({
+        where: {
+          userId: application.userId,
+        },
+        data: {
+          sent: {
+            decrement: 1
+          }
+        }
+      }),
+      prisma.applicationStats.update({
+        where: {
+          userId: gig.authorId
+        },
+        data: {
+          received: {
+            decrement: 1
+          }
+        }
+      })
+    ])
   } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+
     throw new ServiceError("Prisma", "Failed to delete application from database");
   }
 }
