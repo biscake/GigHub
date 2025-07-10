@@ -36,6 +36,7 @@ export type ApplyGigModalProp = {
   gig: Gig | null;
   applyModal: boolean;
   setApplyModal: React.Dispatch<React.SetStateAction<boolean>>;
+  closeModal: () => void;
 }
 
 export type ApplyGigFormData = {
