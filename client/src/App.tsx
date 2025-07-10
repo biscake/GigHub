@@ -9,6 +9,8 @@ import AppLayout from "./layouts/AppLayout";
 import UserProfile from "./components/User/UserProfile";
 import GigApplicationPage from "./pages/GigApplicationPage";
 import "./styles/App.css";
+import MyGigsPage from "./pages/MyGigPage";
+import Chat from "./components/Chat/Chat";
 
 const App = () => {
   return (
@@ -16,6 +18,8 @@ const App = () => {
       <Route path='/' element={<AppLayout />}>
         <Route index element={<Dashboard />} />
         <Route path='applications' element={<GigApplicationPage />} />
+        <Route path='chat' element={<Chat />} />
+        <Route path='my-gigs' element={<MyGigsPage />} />
       </Route>
 
       <Route path="accounts" element={<AccountsLayout />}>
@@ -28,7 +32,6 @@ const App = () => {
       <Route path=":username" element={<AppLayout />}>
         <Route path="profile" element={<UserProfile />} />
       </Route>
-
     </Routes>
   )
 }

@@ -73,14 +73,14 @@ describe("Auth: reset password", () => {
     prisma.resetToken.findUnique.mockResolvedValue(mockResetTokenRecord);
     prisma.user.findUnique.mockRejectedValue(new Error("Database error"));
 
-    await expect(resetPassword({ resetToken: mockResetToken, pwHash: mockPwHash })).rejects.toThrow("Database error");
+    await expect(resetPassword({ resetToken: mockResetToken, pwHash: mockPwHash })).rejects.toThrow("ResetPasswordService error: Failed to reset user password");
   })
 
   it("Failure to find reset token record in database should throw error", async () => {
     prisma.resetToken.findUnique.mockRejectedValue(new Error("Database error"));
     prisma.user.findUnique.mockResolvedValue(mockUser);
 
-    await expect(resetPassword({ resetToken: mockResetToken, pwHash: mockPwHash })).rejects.toThrow("Database error");
+    await expect(resetPassword({ resetToken: mockResetToken, pwHash: mockPwHash })).rejects.toThrow("ResetPasswordService error: Failed to reset user password");
   })
 
   it("Failure to update user password hash in database should throw error", async () => {
@@ -88,6 +88,6 @@ describe("Auth: reset password", () => {
     prisma.user.findUnique.mockResolvedValue(mockUser);
     prisma.account.updateMany.mockRejectedValue(new Error("Database error"));
 
-    await expect(resetPassword({ resetToken: mockResetToken, pwHash: mockPwHash })).rejects.toThrow("Database error");
+    await expect(resetPassword({ resetToken: mockResetToken, pwHash: mockPwHash })).rejects.toThrow("ResetPasswordService error: Failed to reset user password");
   })
 })

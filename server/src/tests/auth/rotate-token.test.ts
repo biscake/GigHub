@@ -10,7 +10,7 @@ const mockNewRefreshToken = "new_refresh_token";
 const mockNewAccessToken = "new_access_token";
 
 const mockNewToken = {
-  id: '2',
+  id: 2,
   token: mockNewRefreshToken,
   revoked: false,
   createdAt: new Date(),
@@ -93,7 +93,7 @@ describe("Auth: Rotate refresh token", () => {
 
     prisma.$transaction.mockRejectedValue(new Error("Database error"));
 
-    await expect(rotateToken({ refreshToken: mockOldRefreshToken })).rejects.toThrow("Database error");
+    await expect(rotateToken({ refreshToken: mockOldRefreshToken })).rejects.toThrow("RotateTokenService error: Failed to rotate token");
   })
 
   it("Refresh token missing should throw error", async () => {

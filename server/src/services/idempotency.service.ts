@@ -19,10 +19,12 @@ export const storeResponse = async ({responseBody, idempotencyKey}: StoreRespons
       }
     })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return;
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2025") {
+        throw new BadRequestError("Invalid idempotency key");
+      }
     }
-
+    
     throw new ServiceError("Prisma", "Failed to create idempotency record");
   }
 }

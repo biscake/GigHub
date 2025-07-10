@@ -20,7 +20,8 @@ export const useGetApi = <T,>(url: string, opts?: AxiosRequestConfig) => {
 
       abortControllerRef.current = new AbortController();
 
-      const res = await api.get(url, {...opts });
+      const res = await api.get(url, opts);
+      
       setData(res.data);
     } catch (err) {
       const error = err as AxiosError<ApiErrorResponse>;

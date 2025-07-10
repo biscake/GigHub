@@ -7,6 +7,7 @@ export type registerInput = {
 export type loginInput = {
   username: string;
   password: string;
+  deviceId: string;
 }
 
 export type rotateTokenInput = {

@@ -27,7 +27,7 @@ const strategy = new JwtStrategy(
       });
 
       if (user) {
-        return done(null, user);
+        return done(null, { ...user, deviceId: payload.deviceId });
       } else {
         return done(null, false);
       }
