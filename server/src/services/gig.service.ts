@@ -3,6 +3,7 @@ import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams } from "../types/gig";
+import { AppError } from "../errors/app-error";
 
 export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
   try {
@@ -105,6 +106,15 @@ export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParam
 
 export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdParams) => {
   try {
+    const isExist = await prisma.gigApplication.findFirst({
+      where: {
+        gigId,
+        userId
+      }
+    });
+
+    if (isExist) throw new BadRequestError("Already applied for this gig.");
+
     const application = await prisma.gigApplication.create({
       data: {
         gigId: gigId,
@@ -114,6 +124,10 @@ export const createGigApplicationById = async ({ gigId, userId }: AcceptGigByIdP
 
     return application;
   } catch (err) {
+    if (err instanceof AppError) {
+      throw err;
+    }
+
     throw new ServiceError("Prisma", "Failed to create gig application");
   }
 }
