@@ -1,9 +1,8 @@
-import type { AxiosError } from "axios";
 import { memo, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useGetApi } from "../../hooks/useGetApi";
 import api from "../../lib/api";
-import type { ApiErrorResponse, GetApplicationResponse } from "../../types/api";
+import type { GetApplicationResponse } from "../../types/api";
 import type { ApplicationListItemProps, ReceivedApplicationsPanelProps } from "../../types/application";
 import { timeAgo } from "../../utils/timeAgo";
 import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
@@ -11,6 +10,7 @@ import ApplicationListButton from "./ApplicationListButton";
 import ApplicationListContent from "./ApplicationListContent";
 import ApplicationPanel from "./ApplicationPanel";
 import { useIdempotencyKey } from "../../hooks/useIdempotencyKey";
+import { callApplicationStatsRefetch } from "../../utils/applicationStatsRefetch";
 
 const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
   const idempotencyKey = useIdempotencyKey();
@@ -37,9 +37,9 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
       });
 
       refetch();
+      callApplicationStatsRefetch();
     } catch (err) {
-      const error = err as AxiosError<ApiErrorResponse>;
-      console.log(error);
+      console.error(err);
     } finally {
       idempotencyKey.clear();
     }
@@ -54,9 +54,9 @@ const ReceivedApplicationsPanel: React.FC<ReceivedApplicationsPanelProps> = memo
       });
 
       refetch();
+      callApplicationStatsRefetch();
     } catch (err) {
-      const error = err as AxiosError<ApiErrorResponse>;
-      console.log(error);
+      console.error(err);
     } finally {
       idempotencyKey.clear();
     }

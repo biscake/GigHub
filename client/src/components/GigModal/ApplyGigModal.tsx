@@ -8,11 +8,11 @@ import type { ApiErrorResponse } from '../../types/api';
 import type { ApplyGigFormData, ApplyGigModalProp } from '../../types/gig';
 import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
 
-const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyModal }) => {
+const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyModal, closeModal }) => {
   const [error, setError] = useState<string | null>(null);
   const idempotencyKey = useIdempotencyKey();
 
-  const { handleSubmit, formState: { errors } } = useForm<ApplyGigFormData>({ mode: 'onChange' });
+  const { handleSubmit, formState: { errors }, register } = useForm<ApplyGigFormData>({ mode: 'onChange' });
   const { user } = useAuth();
 
   const handleApplyGig: SubmitHandler<ApplyGigFormData> = async (data) => {
@@ -27,8 +27,9 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
           'Idempotency-Key': idempotencyKey.get()
         }
       });
-
+      
       setApplyModal(false);
+      closeModal();
     } catch (e) {
       const err = e as AxiosError<ApiErrorResponse>;
       const errorMessage = err.response?.data?.message;
@@ -68,9 +69,10 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
                 <input
                   type="text"
                   id="message"
-                  name="message"
                   className="border-gray-400 border rounded-lg px-2 py-1"
-                  placeholder="Short description" />
+                  placeholder="Message (Optional)"
+                  {...register("message")}
+                />
                 {errors.message && <p className="text-center text-red-500 text-sm">{errors.message.message}</p>}
                 {error && <p className="text-center text-red-500 text-sm">{error}</p>}
                 <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">

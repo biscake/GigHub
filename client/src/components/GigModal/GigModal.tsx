@@ -76,7 +76,7 @@ const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = fa
           </div>
         </div>
       </Dialog>
-      <ApplyGigModal gig={gig} applyModal={applyModal} setApplyModal={setApplyModal}/>
+      <ApplyGigModal gig={gig} applyModal={applyModal} setApplyModal={setApplyModal} closeModal={handleClose} />
     </>
 
   )
