@@ -125,9 +125,9 @@ export const MessageCacheProvider = ({ children }: { children: ReactNode }) => {
     return conversationMetaMap.current.get(conversationKey);
   }, []);
 
-  const isConversationMetaLoaded = useCallback((conversationKey: string) => {
+  const isConversationMetaLoaded = (conversationKey: string) => {
     return conversationMetaMap.current.has(conversationKey);
-  }, [])
+  }
 
   return (
     <MessageCacheContext.Provider value={{

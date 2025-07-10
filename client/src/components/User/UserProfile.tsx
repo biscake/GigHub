@@ -16,7 +16,7 @@ const UserProfile = () => {
     return <div className="w-full h-full bg-main text-center py-6">User not found.</div>;
   }
 
-  const { data, error, loading } = useGetApi<UserProfileResponse>(`/api/users/${username}/profile`)
+  const { data, error, loading, refetch } = useGetApi<UserProfileResponse>(`/api/users/${username}/profile`)
 
   if (!data) {
     return <>{error && <p>{error}</p>}</>
@@ -28,10 +28,10 @@ const UserProfile = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between bg-main w-full p-5">
-      {isEdit ? <EditProfileForm profile={data.profile} setIsEdit={setIsEdit} />
+      {isEdit ? <EditProfileForm profile={data.profile} setIsEdit={setIsEdit} refetch={refetch} />
               : (
                   <div className="w-full">
-                    <ProfileCard profile={data.profile} setIsEdit={setIsEdit} />
+                    <ProfileCard profile={data.profile} setIsEdit={setIsEdit} refetch={refetch} />
                     <UserReview username={username} />
                   </div>
                 )}

@@ -184,7 +184,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!accessToken || !user) return;
 
-    socketRef.current = new WebSocket(`ws://localhost:3000/ws`);
+    socketRef.current = new WebSocket(import.meta.env.VITE_WEB_SOCKET_URL);
 
     socketRef.current.onopen = () => {
       console.log("WebSocket connected");

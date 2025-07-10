@@ -178,12 +178,17 @@ export const encryptMessage = async (message: string, sharedKey: CryptoKey): Pro
   concatenated.set(new Uint8Array(ciphertext), iv.byteLength);
 
   // convert uint8 to base64
-  return Uint8ToBase64(concatenated);
+  return Uint8ToBase64(concatenated) ?? "";
 }
 
 // decrypt message using a CryptoKey
 export const decryptMessage = async (encryptedMessage: string, sharedKey: CryptoKey): Promise<string> => {
   const encryptedBytes = base64ToUint8(encryptedMessage); 
+
+  if (!encryptedBytes) {
+    return "";
+  }
+
   const iv = encryptedBytes.slice(0, 12);
   const ciphertext = encryptedBytes.slice(12);
 
