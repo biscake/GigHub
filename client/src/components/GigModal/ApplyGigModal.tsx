@@ -8,7 +8,7 @@ import type { ApiErrorResponse } from '../../types/api';
 import type { ApplyGigFormData, ApplyGigModalProp } from '../../types/gig';
 import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
 
-const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyModal }) => {
+const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyModal, closeModal }) => {
   const [error, setError] = useState<string | null>(null);
   const idempotencyKey = useIdempotencyKey();
 
@@ -27,8 +27,9 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
           'Idempotency-Key': idempotencyKey.get()
         }
       });
-
+      
       setApplyModal(false);
+      closeModal();
     } catch (e) {
       const err = e as AxiosError<ApiErrorResponse>;
       const errorMessage = err.response?.data?.message;
