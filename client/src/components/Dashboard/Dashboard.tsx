@@ -6,7 +6,7 @@ import { SearchBar } from "./SearchBar";
 import DashboardGigs from "./DashboardGigs";
 import GigModal from "../GigModal/GigModal";
 import { clearDashboardRefetch, setDashboardRefetch } from "../../utils/dashboardRefetch";
-import type { GigsResponse } from "../../types/api";
+import type { GetGigsResponse } from "../../types/api";
 
 const Dashboard = () => {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
@@ -24,7 +24,7 @@ const Dashboard = () => {
     }
   }), [filters.category, filters.search, filters.page]);
 
-  const { data, error, loading, refetch } = useGetApi<GigsResponse>('/api/gigs', apiOptions);
+  const { data, error, loading, refetch } = useGetApi<GetGigsResponse>('/api/gigs', apiOptions);
 
   useEffect(() => {
     setDashboardRefetch(refetch);

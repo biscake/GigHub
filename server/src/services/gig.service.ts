@@ -69,7 +69,14 @@ export const getGigsFromDatabase = async (params: GetGigsFromDatabaseParams) => 
         createdAt: 'desc',
       },
       take: NUMBER_OF_GIGS,
-      skip: (page - 1) * NUMBER_OF_GIGS
+      skip: (page - 1) * NUMBER_OF_GIGS,
+      include: {
+        author: {
+          select: {
+            username: true
+          }
+        }
+      }
     });
 
     const totalGigs = await prisma.gig.count({

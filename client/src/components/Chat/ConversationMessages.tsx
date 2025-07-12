@@ -53,7 +53,7 @@ const MessageInput = ({ conversationKey }: MessageInputProps) => {
         onChange={e => setMessage(e.target.value)}
         className="bg-white rounded-xl border-black flex-1 h-12 px-2 py-1"
       />
-      <button type="submit">Send</button>
+      <button type="submit" className="cursor-pointer">Send</button>
     </form>
   )
 }

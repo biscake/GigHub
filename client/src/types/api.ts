@@ -49,7 +49,7 @@ export interface GetApplicationResponse extends ApiResponse {
   total: number;
 }
 
-export interface GigsResponse extends ApiResponse {
+export interface GetGigsResponse extends ApiResponse {
   gigs: Gig[];
   totalPages: number;
 }

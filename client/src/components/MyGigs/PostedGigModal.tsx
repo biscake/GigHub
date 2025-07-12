@@ -66,8 +66,8 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
                 sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
             >
               <div className="sm:flex sm:flex-col sm:items-start p-5 sm:gap-1">                
-                <div className="w-full flex flex-row justify-between items-center rounded-xl bg-gray-50 px-4 py-3">
-                  <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">
+                <div className="w-full flex flex-row justify-between items-center px-4 py-3">
+                  <div className="w-full">
                     {
                       applications && applications.map((app, i) => <ApplicationListItem key={i} username={app.user.username} onClick={() => startConversation(app.user.id)} />)
                     }
@@ -86,7 +86,7 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
 const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ username, onClick }) => {
   return (
     <div className='flex'>
-      <div>{username}</div>
+      <div className='flex-1'>{username}</div>
       <button
         type="button"
         onClick={onClick}
