@@ -127,5 +127,5 @@ export interface GetPostedGigsResponse extends ApiResponse {
 }
 
 type GigWithApplications = Gig & {
-  applications: GigApplication[];
+  GigApplication: GigApplication[];
 };

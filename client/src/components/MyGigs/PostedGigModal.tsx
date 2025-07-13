@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { ApplicationListItemProps, PostedGigsModalProps } from '../../types/mygigs';
 import api from '../../lib/api';
 import type { GetGigConversationResponse } from '../../types/api';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getConversationMeta, storeConversationMeta } from '../../lib/indexeddb';
 import { useMessageCache } from '../../hooks/useMessageCache';
@@ -69,7 +69,9 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
                 <div className="w-full flex flex-row justify-between items-center px-4 py-3">
                   <div className="w-full">
                     {
-                      applications && applications.map((app, i) => <ApplicationListItem key={i} username={app.user.username} onClick={() => startConversation(app.user.id)} />)
+                      applications && applications.length > 0
+                        ? applications.map((app, i) => <ApplicationListItem key={i} username={app.user.username} onClick={() => startConversation(app.user.id)} />)
+                        : "No ongoing applicants."
                     }
                   </div>
                 </div>
@@ -86,7 +88,9 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
 const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ username, onClick }) => {
   return (
     <div className='flex'>
-      <div className='flex-1'>{username}</div>
+      <div className='flex-1'>
+        <NavLink to={`/${username}/profile`} className='flex-1'>{username}</NavLink>
+      </div>
       <button
         type="button"
         onClick={onClick}

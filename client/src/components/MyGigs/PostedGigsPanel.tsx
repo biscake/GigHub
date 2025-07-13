@@ -6,6 +6,7 @@ import { Spinner } from "../Spinner";
 import type { GigPanelProps, PostedGigPanelProps } from "../../types/mygigs";
 import type { Gig } from "../../types/gig";
 import type { GigApplication } from "../../types/application";
+import PostedGigsDropdownMenu from "./PostedGigsDropdownMenu";
 
 const PostedGigPanel: React.FC<PostedGigPanelProps> = memo(({ page, setTotalPages, setSelectedGig, setApplications }) => {
   const opts = useMemo(() => ({
@@ -14,7 +15,7 @@ const PostedGigPanel: React.FC<PostedGigPanelProps> = memo(({ page, setTotalPage
     }
   }), [page]);
 
-  const { data, loading, error } = useGetApi<GetPostedGigsResponse>('/api/gigs/posted', opts);
+  const { data, loading, error, refetch } = useGetApi<GetPostedGigsResponse>('/api/gigs/posted', opts);
 
   useEffect(() => {
     if (!data) return;
@@ -30,7 +31,10 @@ const PostedGigPanel: React.FC<PostedGigPanelProps> = memo(({ page, setTotalPage
     <GigPanel title="Posted" error={error} loading={loading}>
       {data && data.gigs && data.gigs.length > 0
         ? data.gigs.map((gig, i) =>
-          <Card key={i} {...gig} onClick={() => openModal(gig, gig.applications)}/>
+          <div className="relative">
+            <Card key={i} {...gig} onClick={() => openModal(gig, gig.GigApplication)}/>
+            <PostedGigsDropdownMenu refetch={refetch} gig={gig} />
+          </div>
         )
         : <div className="col-span-full text-center text-gray-400">No Applications Found</div>
       }

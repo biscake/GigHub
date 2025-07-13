@@ -37,3 +37,15 @@ export interface ApplicationListItemProps {
   username: string;
   onClick: () => void;
 }
+
+export interface PostedGigsDropdownMenuProps {
+  gig: Gig;
+  refetch: () => void;
+}
+
+export interface ConfirmDeleteGigModalProps {
+  handleDelete: () => Promise<void>;
+  showWarning: boolean;
+  handleClose: () => void;
+  errorMessage?: string;
+}
