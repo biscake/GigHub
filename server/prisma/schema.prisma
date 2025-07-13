@@ -80,7 +80,7 @@ model GigApplication {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   status    Status   @default(PENDING)
   gig       Gig      @relation(fields: [gigId], references: [id], onDelete: Cascade)
   gigId     Int
@@ -130,13 +130,13 @@ model ChatMessage {
   sentAt          DateTime            @default(now())
   devices         ChatMessageDevice[]
   conversationKey String
-  conversation    Conversation        @relation(fields: [conversationKey], references: [conversationKey])
+  conversation    Conversation        @relation(fields: [conversationKey], references: [conversationKey], onDelete: Cascade)
 }
 
 model ChatMessageDevice {
   id                String      @id @default(uuid())
   messageId         String
-  message           ChatMessage @relation(fields: [messageId], references: [id])
+  message           ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
   recipientDeviceId Int
   recipientDevice   Device      @relation("recipientMessage", fields: [recipientDeviceId], references: [id])
   senderDeviceId    Int
@@ -152,14 +152,14 @@ model Conversation {
   createdAt       DateTime       @default(now())
   lastReads       ChatLastRead[]
   gigId           Int
-  gig             Gig            @relation(fields: [gigId], references: [id])
+  gig             Gig            @relation(fields: [gigId], references: [id], onDelete: Cascade)
 }
 
 model Participant {
   id             String       @id @default(uuid())
   userId         Int
   conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, conversationId])
 }
@@ -169,7 +169,7 @@ model ChatLastRead {
   userId          Int
   lastRead        DateTime
   conversationKey String
-  conversation    Conversation @relation(fields: [conversationKey], references: [conversationKey])
+  conversation    Conversation @relation(fields: [conversationKey], references: [conversationKey], onDelete: Cascade)
 
   @@unique([userId, conversationKey])
 }

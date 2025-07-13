@@ -11,6 +11,7 @@ import { uploadSingleImage } from '../middleware/upload-assets.middleware';
 import { validateRequest } from '../middleware/validate-request.middleware';
 import { createGigValidators } from '../validators/gig.validator';
 import { isAuthorizedToModifyApplication } from '../middleware/gig/is-authorize-modify-application.middleware';
+import { isOngoingApplications } from '../middleware/gig/is-ongoing-applications.middleware';
 
 const router = Router();
 
@@ -30,7 +31,8 @@ router.post('/create',
 router.delete('/:gigId/',
   idempotencyKey,           
   authenticateJWT,          
-  isValidGigId,                // Gets GigId from params and check for valid gig in database, throws any error found
+  isValidGigId,
+  isOngoingApplications,       // Gets GigId from params and check for valid gig in database, throws any error found
   isAuthorizedToDeleteGig,     // Checks if user is authorised to delete the gig
   deleteGig                    // Controller to handle the delete gig request
 );

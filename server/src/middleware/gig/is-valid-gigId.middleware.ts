@@ -18,7 +18,7 @@ export const isValidGigId = asyncHandler(async (
   const gig = await getGigFromDatabaseById({ id: gigId });
 
   if (!gig) {
-    throw new NotFoundError("Gig not found");
+    throw new NotFoundError("Gig");
   }
 
   req.gig = gig;
