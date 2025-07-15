@@ -89,7 +89,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ username, onC
   return (
     <div className='flex'>
       <div className='flex-1'>
-        <NavLink to={`/${username}/profile`} className='flex-1'>{username}</NavLink>
+        <NavLink to={`/${username}/profile`} className='flex-1 hover:underline'>{username}</NavLink>
       </div>
       <button
         type="button"
