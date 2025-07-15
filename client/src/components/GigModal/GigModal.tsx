@@ -54,7 +54,7 @@ const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = fa
                 <div className="w-full flex flex-row justify-between items-center bg-gray-50 px-4 py-3">
                   <p className="text-center">${gig?.price}</p>
                   <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">
-                    {user && !isViewMode &&
+                    {user && user.id !== gig?.authorId && !isViewMode &&
                       <button
                         type="button"
                         onClick={() => setApplyModal(true)}
