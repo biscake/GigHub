@@ -23,12 +23,6 @@ const UserReview: React.FC<UserReviewProps> = ({ username }) => {
     return <Spinner />
   }
 
-  const editButton = "w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-xs sm:ml-3 sm:w-auto" 
-    + (user ? " bg-green-600 text-white hover:bg-green-500 cursor-pointer" 
-            : " bg-gray-300 text-gray-500 cursor-not-allowed");
-
-  console.log(editButton)
-
   return (
     <>
       {isReview ? (
@@ -40,7 +34,9 @@ const UserReview: React.FC<UserReviewProps> = ({ username }) => {
             <button
               onClick={() => setIsReview(true)}
               disabled={!user}
-              className={editButton}
+              className={`w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-xs sm:ml-3 sm:w-auto
+                ${user ? "bg-green-600 text-white hover:bg-green-500 cursor-pointer" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`
+              }
             >Review {username}</button>
           </div>
           <div className="w-full flex flex-col overflow-x-auto flex-shrink-0">
