@@ -62,9 +62,9 @@ const Dashboard = () => {
       <DashboardGigs gigs={data?.gigs} loading={loading} error={error} onClick={setSelectedGig} />
       <GigModal gig={selectedGig} setSelectedGig={setSelectedGig} />
       <PageSelector 
-        currentPage={ filters.page } 
-        totalPages={ data?.totalPages ?? 1} 
-        handlePageChange={ handlePageChange }
+        currentPage={filters.page} 
+        totalPages={data?.totalPages ?? 1} 
+        handlePageChange={handlePageChange}
       />
     </div>
   )
