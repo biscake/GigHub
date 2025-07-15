@@ -6,7 +6,8 @@ import { SearchBar } from "./SearchBar";
 import DashboardGigs from "./DashboardGigs";
 import GigModal from "../GigModal/GigModal";
 import { clearDashboardRefetch, setDashboardRefetch } from "../../utils/dashboardRefetch";
-import type { GigsResponse } from "../../types/api";
+import type { GetGigsResponse } from "../../types/api";
+import { ArrowPathRoundedSquareIcon } from "@heroicons/react/24/solid";
 
 const Dashboard = () => {
   const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
@@ -24,7 +25,7 @@ const Dashboard = () => {
     }
   }), [filters.category, filters.search, filters.page]);
 
-  const { data, error, loading, refetch } = useGetApi<GigsResponse>('/api/gigs', apiOptions);
+  const { data, error, loading, refetch } = useGetApi<GetGigsResponse>('/api/gigs', apiOptions);
 
   useEffect(() => {
     setDashboardRefetch(refetch);
@@ -51,13 +52,18 @@ const Dashboard = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full">
-      <SearchBar placeholder="Search All Gigs" handleSearch={handleSearchChange} />
+      <div
+        className="flex justify-between w-full border-b-2 border-[#ebe0d5]"
+      >
+        <SearchBar placeholder="Search All Gigs" handleSearch={handleSearchChange}/>
+        <ArrowPathRoundedSquareIcon className="w-10 mr-5 cursor-pointer" onClick={refetch}/>
+      </div>
       <DashboardGigs gigs={data?.gigs} loading={loading} error={error} onClick={setSelectedGig} />
       <GigModal gig={selectedGig} setSelectedGig={setSelectedGig} />
       <PageSelector 
-        currentPage={ filters.page } 
-        totalPages={ data?.totalPages ?? 1} 
-        handlePageChange={ handlePageChange }
+        currentPage={filters.page} 
+        totalPages={data?.totalPages ?? 1} 
+        handlePageChange={handlePageChange}
       />
     </div>
   )

@@ -49,7 +49,7 @@ export interface GetApplicationResponse extends ApiResponse {
   total: number;
 }
 
-export interface GigsResponse extends ApiResponse {
+export interface GetGigsResponse extends ApiResponse {
   gigs: Gig[];
   totalPages: number;
 }
@@ -127,5 +127,5 @@ export interface GetPostedGigsResponse extends ApiResponse {
 }
 
 type GigWithApplications = Gig & {
-  applications: GigApplication[];
+  GigApplication: GigApplication[];
 };

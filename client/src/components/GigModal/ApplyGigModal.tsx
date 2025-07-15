@@ -51,25 +51,24 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
         transition
         className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
       />
-      <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div className="fixed inset-0 z-10 w-screen overflow-y-auto text-main">
         <div className="flex min-h-full items-end justify-center text-center sm:items-center sm:p-0">
           <DialogPanel
             transition
             className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all data-closed:translate-y-4 
-              data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-[85%] min-w-[300px] sm:w-full 
-              sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+              data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-[75%] min-w-[300px] sm:w-full 
+              sm:max-w-xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
           >
-            <div className="sm:flex sm:flex-col sm:items-start p-5 sm:gap-2">
-              <div className="text-center sm:mt-0 bg-gray-200 w-full py-2">
-                <DialogTitle as="h3" className="text-lg font-semibold text-gray-900">
+            <div className="sm:flex sm:flex-col sm:items-start sm:gap-2">
+              <div className="text-center sm:mt-0 bg-[#b58880]/70 w-full py-2">
+                <DialogTitle as="h3" className="text-lg font-semibold">
                   Apply for {gig?.title}
                 </DialogTitle>
               </div>
-              <form className="flex flex-col w-full gap-3" onSubmit={handleSubmit(handleApplyGig)}>
-                <input
-                  type="text"
+              <form className="flex flex-col w-full gap-3 p-4 pt-2" onSubmit={handleSubmit(handleApplyGig)}>
+                <textarea
                   id="message"
-                  className="border-gray-400 border rounded-lg px-2 py-1"
+                  className="border-gray-400 border rounded-lg px-2 py-1 resize-none h-32"
                   placeholder="Message (Optional)"
                   {...register("message")}
                 />
@@ -78,9 +77,9 @@ const ApplyGigModal: React.FC<ApplyGigModalProp> = ({ gig, applyModal, setApplyM
                 <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="submit"
-                    className="cursor-pointer inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
+                    className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#77D077] px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-[#8fe381] sm:ml-3 sm:w-auto shadow-xs ring-1 ring-gray-300 ring-inset"
                   >
-                    Apply
+                    Send
                   </button>
                   <button
                     type="button"

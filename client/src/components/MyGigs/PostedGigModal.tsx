@@ -1,12 +1,12 @@
-import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useEffect, useState } from 'react';
-import type { ApplicationListItemProps, PostedGigsModalProps } from '../../types/mygigs';
-import api from '../../lib/api';
-import type { GetGigConversationResponse } from '../../types/api';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { getConversationMeta, storeConversationMeta } from '../../lib/indexeddb';
 import { useMessageCache } from '../../hooks/useMessageCache';
+import api from '../../lib/api';
+import { getConversationMeta, storeConversationMeta } from '../../lib/indexeddb';
+import type { GetGigConversationResponse } from '../../types/api';
+import type { ApplicationListItemProps, PostedGigsModalProps } from '../../types/mygigs';
 
 const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, applications, setApplications }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,8 +22,10 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
 
   const handleClose = () => {
     setIsOpen(false);
-    setApplications(null);
-    const timeout = setTimeout(() => setSelectedGig(null), 500);
+    const timeout = setTimeout(() => {
+      setSelectedGig(null);
+      setApplications(null);
+    }, 500);
 
     return () => clearTimeout(timeout);
   }
@@ -52,7 +54,7 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
 
   return (
     <>
-      <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
+      <Dialog open={isOpen} onClose={handleClose} className="relative z-50 text-main">
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -65,11 +67,16 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
                 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-[85%] min-w-[300px] sm:w-full 
                 sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
             >
+              <DialogTitle className="pt-6 px-6 font-bold text-xl"> 
+                Current Gig Takers
+              </DialogTitle>
               <div className="sm:flex sm:flex-col sm:items-start p-5 sm:gap-1">                
-                <div className="w-full flex flex-row justify-between items-center rounded-xl bg-gray-50 px-4 py-3">
-                  <div className="w-full sm:flex sm:flex-row-reverse sm:px-6">
+                <div className="w-full flex flex-row justify-between items-center px-4 py-3">
+                  <div className="w-full">
                     {
-                      applications && applications.map((app, i) => <ApplicationListItem key={i} username={app.user.username} onClick={() => startConversation(app.user.id)} />)
+                      applications && applications.length > 0
+                        ? applications.map((app, i) => <ApplicationListItem key={i} username={app.user.username} onClick={() => startConversation(app.user.id)} />)
+                        : "No ongoing applicants."
                     }
                   </div>
                 </div>
@@ -86,7 +93,9 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
 const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ username, onClick }) => {
   return (
     <div className='flex'>
-      <div>{username}</div>
+      <div className='flex-1'>
+        <NavLink to={`/${username}/profile`} className='flex-1 hover:underline'>{username}</NavLink>
+      </div>
       <button
         type="button"
         onClick={onClick}

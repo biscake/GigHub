@@ -1,8 +1,8 @@
-import { FormProvider } from 'react-hook-form';
+import { FormProvider, useFormContext, type FieldError } from 'react-hook-form';
 import type { CreateGigFormProps } from '../../types/form';
+import type { InputProps } from '../../types/inputProps';
 import { descriptionValidator, priceValidation, titleValidation } from '../../validators/createGigValidators';
-import { FormInput } from '../forms/FormInput';
-import { Textarea } from './Textarea';
+import { Textarea } from '../Textarea';
 import { UploadFile } from './UploadFile';
 
 const CreateGigForm: React.FC<CreateGigFormProps> = ({ apiErr, methods, image, setImage, setCroppedImagePixels }) => {
@@ -22,7 +22,7 @@ const CreateGigForm: React.FC<CreateGigFormProps> = ({ apiErr, methods, image, s
           setCroppedImagePixels={setCroppedImagePixels}
         />
 
-        <div className='p-5 flex flex-col gap-5'>
+        <div className='p-5 flex flex-col gap-1'>
           <FormInput {...titleValidation} />
           <FormInput {...priceValidation} />
           <Textarea {...descriptionValidator}/>
@@ -43,5 +43,29 @@ const CreateGigForm: React.FC<CreateGigFormProps> = ({ apiErr, methods, image, s
     </FormProvider>
   )
 }
+
+export const FormInput: React.FC<InputProps> = (props) => {
+  const { register, formState: { errors } } = useFormContext();
+
+  const inputError = errors[props.name] as FieldError | undefined;
+
+  return (
+    <div className='relative'>
+      <label className="flex flex-row">
+        <input
+          {...props}
+          {...(props.className 
+            ? { className: props.className } 
+            : { className: "autofill:shadow-[inset_0_0_0px_1000px_rgb(255,209,220)] w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40"})}
+          {...register(props.name, props.validation)}
+        />
+      </label>
+        <div className="text-rose-400 text-xs min-h-[1lh]">
+          {inputError?.message}
+        </div>
+    </div>
+  )
+}
+
 
 export default CreateGigForm;
