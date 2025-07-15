@@ -1,5 +1,5 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GigImage } from '../GigImage';
 import type { OngoingGigModalProps } from '../../types/mygigs';
 import api from '../../lib/api';
@@ -14,18 +14,24 @@ const OngoingGigModal: React.FC<OngoingGigModalProps> = ({ gig, setSelectedGig }
   const { user } = useAuth();
   const { cacheConversationMeta } = useMessageCache();
   const navigate = useNavigate();
-
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+  
   useEffect(() => {
     if (gig) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setIsOpen(true);
     }
   }, [gig]);
 
   const handleClose = () => {
-    setIsOpen(false);
-    const timeout = setTimeout(() => setSelectedGig(null), 500);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-    return () => clearTimeout(timeout);
+    setIsOpen(false);
+    timeoutRef.current = setTimeout(() => setSelectedGig(null), 500);
   }
 
   const startConversation = async () => {
