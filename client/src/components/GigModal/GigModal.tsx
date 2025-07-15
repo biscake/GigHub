@@ -1,5 +1,5 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { GigModalProp } from '../../types/gig';
 import { GigImage } from '../GigImage';
 import ApplyGigModal from './ApplyGigModal';
@@ -8,19 +8,25 @@ import { useAuth } from '../../hooks/useAuth';
 const GigModal: React.FC<GigModalProp> = ({ gig, setSelectedGig, isViewMode = false }) => {
   const [applyModal, setApplyModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     if (gig) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setIsOpen(true);
     }
   }, [gig]);
 
   const handleClose = () => {
-    setIsOpen(false);
-    const timeout = setTimeout(() => setSelectedGig(null), 500);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-    return () => clearTimeout(timeout);
+    setIsOpen(false);
+    timeoutRef.current = setTimeout(() => setSelectedGig(null), 500);
   }
 
   return (
