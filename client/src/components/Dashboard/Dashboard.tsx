@@ -54,10 +54,9 @@ const Dashboard = () => {
     <div className="flex-1 flex flex-col items-center justify-between bg-[#fef8f2] w-full">
       <div
         className="flex justify-between w-full border-b-2 border-[#ebe0d5]"
-        onClick={refetch}
       >
         <SearchBar placeholder="Search All Gigs" handleSearch={handleSearchChange}/>
-        <ArrowPathRoundedSquareIcon className="w-10 mr-5 cursor-pointer"/>
+        <ArrowPathRoundedSquareIcon className="w-10 mr-5 cursor-pointer" onClick={refetch}/>
       </div>
       <DashboardGigs gigs={data?.gigs} loading={loading} error={error} onClick={setSelectedGig} />
       <GigModal gig={selectedGig} setSelectedGig={setSelectedGig} />
