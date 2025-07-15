@@ -27,7 +27,7 @@ const MyGigs = () => {
           <AppTab className='rounded-tl-lg rounded-bl-lg' setPage={setPage}>Ongoing Gigs</AppTab>
           <AppTab className='rounded-tr-lg rounded-br-lg' setPage={setPage}>Posted Gigs</AppTab>
         </TabList>
-        <TabPanels className="flex-1 flex flex-col">
+        <TabPanels className="flex-1 flex flex-col scrollbar-minimal overflow-y-auto">
           <TabPanel className="flex flex-col flex-1 w-full justify-center items-center">
             <OngoingGigModal gig={selectedGig} setSelectedGig={setSelectedGig} />
             {selectedIndex === 0 && <OngoingGigsPanel page={page} setTotalPages={setTotalPages} setSelectedGig={setSelectedGig} />}
