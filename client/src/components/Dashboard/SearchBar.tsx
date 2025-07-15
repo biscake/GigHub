@@ -2,7 +2,7 @@ import type { SearchBarProp } from "../../types/inputProps";
 
 export const SearchBar = ({ placeholder, handleSearch } : SearchBarProp) => {
   return (
-    <div className="w-full p-4 border-b-2 border-[#ebe0d5]">
+    <div className="w-full p-4">
       <div className="w-full min-w-[400px] sm:w-2/5 flex items-center bg-white p-2 rounded-3xl">
         <label htmlFor="search-input">
           <svg
