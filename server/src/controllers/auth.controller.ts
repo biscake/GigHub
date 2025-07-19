@@ -16,7 +16,10 @@ export const registerUser = asyncHandler(
     const responseBody = {
       success: true,
       message: 'User successfully registered',
-      user,
+      user: {
+        username: user.username,
+        email: user.email
+      },
     };
 
     await storeResponse({responseBody, idempotencyKey});
