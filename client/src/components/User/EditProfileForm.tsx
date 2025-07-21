@@ -89,7 +89,7 @@ const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit, refetc
           <form
             method='post'
             onSubmit={methods.handleSubmit(handleEditProfile)}
-            className="w-full max-w-sm flex flex-col gap-5 text-center text-sm text-black"
+            className="w-full max-w-xl flex flex-col gap-5 text-center text-sm text-black"
           >
             <UploadProfileImage
               register={methods.register}
@@ -99,15 +99,20 @@ const EditProfileForm: React.FC<ProfileCardProp> = ({ profile, setIsEdit, refetc
               setImage={setImage}
               setCroppedImagePixels={setCroppedImagePixels}
             />
-            <textarea {...methods.register("bio")} name="bio" id="bio"></textarea>
+            <textarea 
+              {...methods.register("bio")} 
+              name="bio" 
+              id="bio"
+              className="w-full resize-none rounded-md border border-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-300 p-3 text-sm placeholder:text-gray-400"
+            ></textarea>
             <button
-              className="w-full justify-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-black shadow-xs hover:bg-gray-400 sm:ml-3 sm:w-auto cursor-pointer"
+              className="w-full justify-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-black shadow-xs hover:bg-gray-400 sm:w-auto cursor-pointer"
               onClick={() => setIsEdit(false)}
             >
               Cancel
             </button>
             <button
-              className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto cursor-pointer"
+              className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:w-auto cursor-pointer"
               type="submit"
             >
               Submit

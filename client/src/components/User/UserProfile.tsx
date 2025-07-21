@@ -28,7 +28,13 @@ const UserProfile = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between bg-main w-full p-5">
-      {isEdit ? <EditProfileForm profile={data.profile} setIsEdit={setIsEdit} refetch={refetch} />
+      {isEdit ? <div className="flex flex-col items-center justify-start w-full">
+                  <div className="flex flex-row items-center justify-start w-full gap-5">
+                    <button className="rounded-md p-2 font-semibold shadow-xs hover:bg-gray-200 sm:ml-3 sm:w-auto cursor-pointer" onClick={() => setIsEdit(false)}>back</button>
+                    <h1 className="text-xl font-bold">Edit Profile</h1>
+                  </div>
+                  <EditProfileForm profile={data.profile} setIsEdit={setIsEdit} refetch={refetch} />
+                </div>
               : (
                   <div className="w-full">
                     <ProfileCard profile={data.profile} setIsEdit={setIsEdit} refetch={refetch} />

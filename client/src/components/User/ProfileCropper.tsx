@@ -13,7 +13,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({ image, setCroppedImagePixel
 
   return (
     <>
-      <div className="relative w-full max-w-[900px] aspect-[4/3] mx-auto"> {/* cropper container */}
+      <div className="relative w-full max-w-[500px] sm:max-w-[600px] md:max-w-[700px] aspect-square mx-auto h-[300px] sm:h-[400px] md:h-[500px]"> {/* cropper container */}
         <Cropper 
           image={image}
           crop={crop}
