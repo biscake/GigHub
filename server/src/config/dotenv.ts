@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, process.env.NODE_ENV === 'test' ? '../../.env.test' : '../../.env') });
 
 const envVariables = [
   "ACCESS_PUBLIC_KEY_PATH",

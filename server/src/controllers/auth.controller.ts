@@ -64,7 +64,10 @@ export const refreshToken = asyncHandler(
     const responseBody = {
       success: true,
       message: 'Access token refreshed',
-      user,
+      user: {
+        username: user.username,
+        email: user.email
+      },
       accessToken: newAccessToken,
     }
 
