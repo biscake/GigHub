@@ -6,6 +6,7 @@ import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
+import { updateNumberPostedGigByUsername } from '../services/user.service';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -23,6 +24,7 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
   };
 
   const gig = await createGigInDatabase(gigDetails);
+  await updateNumberPostedGigByUsername({ id: req.user.id });
   
   if (file) {
     await uploadSingleImageToR2({

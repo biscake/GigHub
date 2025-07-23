@@ -24,7 +24,7 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
     if (err instanceof BadRequestError) {
       throw err;
     }
-console.log(err)
+    console.log(err)
     throw new ServiceError("Prisma", "Failed to create gig in database");
   }
 }

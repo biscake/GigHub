@@ -199,3 +199,22 @@ export const deleteReviewInDatabase = async ({ id }: deleteReviewInDatabaseParam
     throw new ServiceError("Prisma", "Failed to delete review from database");
   }
 }
+
+export const updateNumberPostedGigByUsername = async ({ id }: GetUserByIdParams) => {
+  try {
+    const result = await prisma.userProfile.update({
+      where: {
+        userId: id
+      },
+      data: {
+        numberOfGigsPosted: {
+          increment: 1
+        }
+      }
+    });
+    
+    return result;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to update user profile in database");
+  }
+}
