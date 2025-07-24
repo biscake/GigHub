@@ -24,17 +24,51 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
     if (err instanceof BadRequestError) {
       throw err;
     }
-
+console.log(err)
     throw new ServiceError("Prisma", "Failed to create gig in database");
   }
 }
 
 export const deleteGigFromDatabase = async ({ id }: DeleteGigFromDatabaseParams) => {
   try {
-    const result = await prisma.gig.delete({
-      where: {
-        id: id
-      }
+    const result = await prisma.$transaction(async (tx) => {
+      const incomingApplications = await tx.gigApplication.findMany({
+        where: {
+          gigId: id
+        }
+      })
+
+      const deleted = await tx.gig.delete({
+        where: {
+          id
+        }
+      })
+
+      await tx.applicationStats.updateMany({
+        where: {
+          userId: {
+            in: incomingApplications.map(a => a.userId),
+          }
+        },
+        data: {
+          sent: {
+            decrement: 1
+          }
+        }
+      })
+
+      await tx.applicationStats.update({
+        where: {
+          userId: deleted.authorId
+        },
+        data: {
+          received: {
+            decrement: incomingApplications.length
+          }
+        }
+      })
+
+      return deleted;
     })
 
     return result;
@@ -69,7 +103,14 @@ export const getGigsFromDatabase = async (params: GetGigsFromDatabaseParams) => 
         createdAt: 'desc',
       },
       take: NUMBER_OF_GIGS,
-      skip: (page - 1) * NUMBER_OF_GIGS
+      skip: (page - 1) * NUMBER_OF_GIGS,
+      include: {
+        author: {
+          select: {
+            username: true
+          }
+        }
+      }
     });
 
     const totalGigs = await prisma.gig.count({
@@ -445,7 +486,11 @@ export const getAcceptedApplicationsByUserId = async ({ userId, page = 1, COUNT 
       include: {
         gig: {
           include: {
-            author: true,
+            author: {
+              select: {
+                username: true
+              }
+            },
           }
         }
       }
@@ -469,11 +514,6 @@ export const getPostedGigsWithApplications = async ({ userId, page = 1, COUNT }:
     const result = await prisma.gig.findMany({
       where: {
         authorId: userId,
-        GigApplication: {
-          some: {
-            status: Status.ACCEPTED
-          }
-        }
       },
       include: {
         GigApplication: {
@@ -481,7 +521,17 @@ export const getPostedGigsWithApplications = async ({ userId, page = 1, COUNT }:
             status: Status.ACCEPTED
           },
           include: {
-            user: true
+            user: {
+              select: {
+                username: true,
+                id: true
+              }
+            },
+          }
+        },
+        author: {
+          select: {
+            username: true
           }
         }
       },
@@ -506,5 +556,20 @@ export const getPostedGigsWithApplications = async ({ userId, page = 1, COUNT }:
     return { gigs: result, totalCount: totalGigs};
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to get user's posted gigs from database");
+  }
+}
+
+export const getAcceptedApplicationsByGigId = async ({ gigId }: { gigId: number }) => {
+  try {
+    const applications = await prisma.gigApplication.findMany({
+      where: {
+        gigId,
+        status: Status.ACCEPTED
+      }
+    })
+
+    return applications;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to get accepted applications");
   }
 }

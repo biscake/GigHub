@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,11 +7,17 @@ import { Checkbox } from '../Checkbox';
 import { FormInput } from './FormInput';
 
 const LoginForm = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [apiErr, setApiErr] = useState<string | null>(null);
 
   const methods = useForm<LoginFormInputs>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate])
 
   const submitCredential: SubmitHandler<LoginFormInputs> = async (data) => {
     const result = await login(data);

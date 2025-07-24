@@ -7,10 +7,14 @@ export type Gig = {
   authorId: number;
   category: string | undefined;
   totalPages?: number;
+  author?: {
+    username: string;
+  }
 }
 
 export type GigImageProp = {
   imgUrl: string | undefined;
+  className?: string;
 }
 
 export type GigFilters = {
@@ -49,8 +53,4 @@ export type GigCardProp = Gig & {
 
 export type CreateGigSidebarButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
-}
-
-export type GetGigAuthorResponse = {
-  username: string;
 }

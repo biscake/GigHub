@@ -500,9 +500,24 @@ export const findIfNotCreateConversation = async ({ gigId, userId, otherUserId }
           },
         ],
       },
+      include: {
+        participants: true
+      }
     });
 
-    if (conversation) return { conversation, title: gig.title, gigAuthorUsername: gig.author.username };
+    if (conversation) {
+      const participantUsers = await prisma.user.findMany({
+        where: { 
+          id: {
+            in: conversation.participants.map(p => p.userId)
+          }
+        },
+        select: {
+          username: true
+        }
+      })
+      return { conversation, title: gig.title, gigAuthorUsername: gig.author.username, participants:  participantUsers.map(p => p.username) };
+    } 
 
     const result = await prisma.conversation.create({
       data: {
@@ -524,6 +539,9 @@ export const findIfNotCreateConversation = async ({ gigId, userId, otherUserId }
         id: {
           in: result.participants.map(p => p.userId)
         }
+      },
+      select: {
+        username: true
       }
     })
     

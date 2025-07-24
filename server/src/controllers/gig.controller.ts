@@ -300,12 +300,10 @@ export const getUserPostedGigs = asyncHandler(async (req: Request, res: Response
   const { gigs, totalCount } = await getPostedGigsWithApplications({ userId: id, page, COUNT });
   const formatted = gigs.map(gig => {
     const imgUrl = `${process.env.R2_PUBLIC_ENDPOINT}/${gig.imgKey}`;
-    const applications = gig.GigApplication.map(({ user, ...rest }) => ({ user: { username: user.username, id: user.id }, ...rest }));
 
     return {
       ...gig,
       imgUrl,
-      applications
     }
   });
 
