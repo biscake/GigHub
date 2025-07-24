@@ -4,7 +4,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { BadRequestError } from "../errors/bad-request-error";
-import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams, updateNumberCompletedByGigIdParams } from "../types/user";
+import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams, updateNumberCompletedByGigIdParams, updateNumberPostedGigByUsernameParams } from "../types/user";
 import { Status } from "@prisma/client";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
@@ -201,7 +201,7 @@ export const deleteReviewInDatabase = async ({ id }: deleteReviewInDatabaseParam
   }
 }
 
-export const updateNumberPostedGigByUsername = async ({ id }: GetUserByIdParams) => {
+export const updateNumberPostedGigByUsername = async ({ id, value }: updateNumberPostedGigByUsernameParams) => {
   try {
     const result = await prisma.userProfile.update({
       where: {
@@ -209,7 +209,7 @@ export const updateNumberPostedGigByUsername = async ({ id }: GetUserByIdParams)
       },
       data: {
         numberOfGigsPosted: {
-          increment: 1
+          increment: value
         }
       }
     });

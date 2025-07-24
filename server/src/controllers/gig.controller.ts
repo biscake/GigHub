@@ -24,7 +24,7 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
   };
 
   const gig = await createGigInDatabase(gigDetails);
-  await updateNumberPostedGigByUsername({ id: req.user.id });
+  await updateNumberPostedGigByUsername({ id: req.user.id, value: 1 });
   
   if (file) {
     await uploadSingleImageToR2({
@@ -50,6 +50,7 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
   const idempotencyKey = req.idempotencyKey;
 
   const deletedGig = await deleteGigFromDatabase({ id: gig.id });
+  await updateNumberPostedGigByUsername({ id: req.user.id, value: -1 });
 
   if (deletedGig.imgKey !== "default/default.jpg") {
     await deleteSingleImageFromR2({ key: deletedGig.imgKey });
