@@ -12,7 +12,18 @@ export interface ChatMessagePayload {
 
 export interface ChatRecipientPayload {
   type: 'Chat';
-  conversationKey: string;
+  message: {
+    id: string;
+    from: {
+      userId: number;
+      deviceId: string;
+    };
+    ciphertext: string;
+    sentAt: string;
+    direction: "incoming" | "outgoing";
+    localUserId: number;
+    conversationKey: string;
+  }
 }
 
 export interface NewConversationCreatedPayload {

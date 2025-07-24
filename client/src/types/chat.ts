@@ -12,7 +12,7 @@ export interface ChatMessagePayload {
 
 export interface ChatRecipientPayload {
   type: 'Chat';
-  conversationKey: string;
+  message: StoredMessage;
 }
 
 export type WebSocketOnMessagePayload = ChatRecipientPayload | ReadReceiptPayload;

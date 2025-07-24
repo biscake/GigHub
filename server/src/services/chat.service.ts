@@ -144,14 +144,33 @@ export const storeCiphertextInDbByConversationKey = async ({ senderId, senderDev
         devices: {
           include: {
             recipientDevice: true,
-            senderDevice: true
+            senderDevice: true,
           }
         },
       },
     });
 
-    return result;
+    const formatted= result.devices.map(msg => {
+      const tmp = {
+        id: msg.id,
+        from: {
+          userId: msg.senderDevice.userId,
+          deviceId: msg.senderDevice.deviceId,
+        },
+        ciphertext: msg.ciphertext,
+        sentAt: result.sentAt.toISOString(),
+        direction: result.senderId === msg.recipientDevice.userId ? 'outgoing' : 'incoming',
+        localUserId: msg.recipientDevice.userId,
+        conversationKey: result.conversationKey,
+        recipientDeviceId: msg.recipientDevice.deviceId
+      }
+
+      return tmp;
+    }).filter(msg => msg !== null);
+
+    return formatted
   } catch (err) {
+    console.error(err)
     throw new ServiceError("Prisma", "Failed to store message in database");
   }
 }

@@ -206,10 +206,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     socketRef.current.onmessage = async (event) => {
       const data: WebSocketOnMessagePayload = JSON.parse(event.data);
       if (data.type === 'Chat') {
-        const isConversationMetaCached = isConversationMetaLoaded(data.conversationKey);
+        const isConversationMetaCached = isConversationMetaLoaded(data.message.conversationKey);
         if (!isConversationMetaCached) {
           try {
-            const res = await api.get<GetConversationMetaResponse>(`/api/chat/conversations/${data.conversationKey}/meta`);
+            const res = await api.get<GetConversationMetaResponse>(`/api/chat/conversations/${data.message.conversationKey}/meta`);
             const { conversationKey, title, participants } = res.data;
       
             await storeConversationMeta({
@@ -224,11 +224,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             console.error("Failed to fetch conversation meta", err);
           }
         }
-        const result = await fetchNewMessages(data.conversationKey);
 
-        if (result.status === 'ok') {
-          addNewMessagesByKey(result.messages[0].conversationKey, result.messages);
-        }
+        addNewMessagesByKey(data.message.conversationKey, [data.message]);
       }
 
       if (data.type === 'Read-Receipt') {

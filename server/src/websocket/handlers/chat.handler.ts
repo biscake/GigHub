@@ -6,22 +6,20 @@ export const handleChat = async (userId: number, deviceId: string, payload: Chat
   const messages = payload.messages;
 
   try {
-    let result: Awaited<ReturnType<typeof storeCiphertextInDbByConversationKey>> | Awaited<ReturnType<typeof storeCiphertextInDbNewConversation>>;
-    
-    if (payload.type === 'Chat') {
-      result = await storeCiphertextInDbByConversationKey({ senderId: userId, senderDeviceId: deviceId, conversationKey: payload.conversationKey, payloadMessages: messages });
-    }
+    const result = await storeCiphertextInDbByConversationKey({ senderId: userId, senderDeviceId: deviceId, conversationKey: payload.conversationKey, payloadMessages: messages });
 
     messages.forEach(msg => {
-      const device = result.devices.find(d => d.recipientDevice.deviceId === msg.deviceId);
-      if (!device) {
+      const message = result.find(d => d.recipientDeviceId === msg.deviceId);
+      if (!message) {
         console.warn('No matching device found for message', msg);
         return;
       }
+
+      const { recipientDeviceId, ...messageWithoutRecipientDeviceId } = message;
   
       clients.sendByUserId(msg.recipientId, msg.deviceId, {
         type: "Chat",
-        conversationKey: result.conversationKey
+        message: messageWithoutRecipientDeviceId
       } as ChatRecipientPayload);
     })
   } catch (err) {
