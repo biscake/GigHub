@@ -6,7 +6,7 @@ import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
-import { updateNumberCompletedByGigId, updateNumberPostedGigByUsername } from '../services/user.service';
+import { updateNumberCompletedByApplicationId, updateNumberPostedGigByUsername } from '../services/user.service';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -67,15 +67,20 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const completeGig = asyncHandler(async (req: Request, res: Response) => {
-  const gig = req.gig;
-  await updateCompletedById({ id: gig.id });
-  await updateNumberCompletedByGigId({ gigId: gig.id });
+  const appId = parseInt(req.params.appId);
+  const idempotencyKey = req.idempotencyKey;
 
-  res.status(200).json({
+  await updateCompletedById({ applicationId: appId });
+  await updateNumberCompletedByApplicationId({ applicationId: appId });
+
+  const responseBody = {
     success: true,
-    message: "Get gigs successfully",
-    gig
-  })
+    message: "Gig completed successfully"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
 })
 
 export const getGigs = asyncHandler(async (req: Request, res: Response) => {

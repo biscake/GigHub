@@ -68,7 +68,6 @@ model Gig {
   price          Decimal          @db.Decimal(10, 2)
   description    String
   category       String?
-  completed      Boolean          @default(false)
   published      Boolean          @default(false)
   createdAt      DateTime         @default(now())
   authorId       Int
@@ -203,4 +202,5 @@ enum Status {
   ACCEPTED
   REJECTED
   CANCELLED
+  COMPLETED
 }

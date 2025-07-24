@@ -42,6 +42,6 @@ export interface updateNumberPostedGigByUsernameParams {
   value: number;
 }
 
-export interface updateNumberCompletedByGigIdParams {
-  gigId: number;
+export interface updateNumberCompletedByGigApplicationIdParams {
+  applicationId: number;
 }

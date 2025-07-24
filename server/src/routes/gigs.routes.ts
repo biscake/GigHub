@@ -42,7 +42,7 @@ router.get('/:gigId',
   getGigWithId                 // Controller to handle get gig request
 );
 
-router.put('/:gigId/complete',
+router.put('/:gigId/:applicationId/complete',
   idempotencyKey,
   authenticateJWT,
   isValidGigId,

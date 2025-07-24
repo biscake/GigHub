@@ -4,7 +4,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { BadRequestError } from "../errors/bad-request-error";
-import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams, updateNumberCompletedByGigIdParams, updateNumberPostedGigByUsernameParams } from "../types/user";
+import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams, updateNumberPostedGigByUsernameParams, updateNumberCompletedByGigApplicationIdParams } from "../types/user";
 import { Status } from "@prisma/client";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
@@ -220,32 +220,27 @@ export const updateNumberPostedGigByUsername = async ({ id, value }: updateNumbe
   }
 }
 
-export const updateNumberCompletedByGigId = async ({ gigId }: updateNumberCompletedByGigIdParams) => {
+export const updateNumberCompletedByApplicationId = async ({ applicationId }: updateNumberCompletedByGigApplicationIdParams) => {
   try {
-    const acceptedApplications = await prisma.gigApplication.findMany({
-      where: {
-        gigId,
-        status: Status.ACCEPTED,
-      },
-      select: {
-        userId: true,
-      },
+    const application = await prisma.gigApplication.findUnique({
+      where: { id: applicationId },
+      select: { userId: true },
     });
 
-    const updates = acceptedApplications.map((app) =>
-      prisma.userProfile.update({
-        where: {
-          userId: app.userId,
+    if (!application) {
+      throw new NotFoundError("GigApplication does not exist");
+    }
+    
+    const profile = await prisma.userProfile.update({
+      where: { userId: application.userId },
+      data: {
+        numberOfGigsCompleted: {
+          increment: 1,
         },
-        data: {
-          numberOfGigsCompleted: {
-            increment: 1,
-          },
-        },
-      })
-    );
-
-    await prisma.$transaction(updates);
+      },
+    });
+    
+    return profile;
   } catch {
     throw new ServiceError("Prisma", "Failed to update user profile in database");
   }
