@@ -4,7 +4,8 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { BadRequestError } from "../errors/bad-request-error";
-import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams, updateNumberCompletedByGigIdParams } from "../types/user";
+import { Status } from "@prisma/client";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -214,6 +215,37 @@ export const updateNumberPostedGigByUsername = async ({ id }: GetUserByIdParams)
     });
     
     return result;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to update user profile in database");
+  }
+}
+
+export const updateNumberCompletedByGigId = async ({ gigId }: updateNumberCompletedByGigIdParams) => {
+  try {
+    const acceptedApplications = await prisma.gigApplication.findMany({
+      where: {
+        gigId,
+        status: Status.ACCEPTED,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    const updates = acceptedApplications.map((app) =>
+      prisma.userProfile.update({
+        where: {
+          userId: app.userId,
+        },
+        data: {
+          numberOfGigsCompleted: {
+            increment: 1,
+          },
+        },
+      })
+    );
+
+    await prisma.$transaction(updates);
   } catch {
     throw new ServiceError("Prisma", "Failed to update user profile in database");
   }

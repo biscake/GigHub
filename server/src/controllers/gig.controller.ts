@@ -2,11 +2,11 @@ import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getAcceptedApplicationsByUserId, getApplicationStatByUserId, getGigsFromDatabase, getPostedGigsWithApplications, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getAcceptedApplicationsByUserId, getApplicationStatByUserId, getGigsFromDatabase, getPostedGigsWithApplications, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById, updateCompletedById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
-import { updateNumberPostedGigByUsername } from '../services/user.service';
+import { updateNumberCompletedByGigId, updateNumberPostedGigByUsername } from '../services/user.service';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -63,6 +63,18 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
   await storeResponse({ responseBody, idempotencyKey });
 
   res.status(200).json(responseBody);
+})
+
+export const completeGig = asyncHandler(async (req: Request, res: Response) => {
+  const gig = req.gig;
+  await updateCompletedById({ id: gig.id });
+  await updateNumberCompletedByGigId({ gigId: gig.id });
+
+  res.status(200).json({
+    success: true,
+    message: "Get gigs successfully",
+    gig
+  })
 })
 
 export const getGigs = asyncHandler(async (req: Request, res: Response) => {

@@ -36,3 +36,7 @@ export interface GetNormalizedProfilesParams {
 export interface deleteReviewInDatabaseParams {
   id: number;
 }
+
+export interface updateNumberCompletedByGigIdParams {
+  gigId: number;
+}

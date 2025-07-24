@@ -146,6 +146,23 @@ export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParam
   }
 }
 
+export const updateCompletedById = async ({ id }: GetGigFromDatabaseByIdParams) => {
+  try {
+    const gig = await prisma.gig.update({
+      where: {
+        id: id
+      },
+      data: {
+        completed: true
+      }
+    })
+
+    return gig;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to update gig in database");
+  }
+}
+
 export const createGigApplicationById = async ({ gig, userId, message }: AcceptGigByIdParams) => {
   try {
     const isExist = await prisma.gigApplication.findFirst({
