@@ -35,7 +35,8 @@ export interface PostedGigsModalProps {
 
 export interface ApplicationListItemProps {
   username: string;
-  onClick: () => void;
+  onMessage: () => void;
+  onComplete: () => void;
 }
 
 export interface PostedGigsDropdownMenuProps {

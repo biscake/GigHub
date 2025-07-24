@@ -67,7 +67,7 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export const completeGig = asyncHandler(async (req: Request, res: Response) => {
-  const appId = parseInt(req.params.appId);
+  const appId = parseInt(req.params.applicationId);
   const idempotencyKey = req.idempotencyKey;
 
   await updateCompletedById({ applicationId: appId });
