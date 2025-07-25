@@ -17,10 +17,11 @@ export const getEncryptedPrivateKey = asyncHandler(async (req: Request, res: Res
 })
 
 export const postDeviceKeys = asyncHandler(async (req: Request, res: Response) => {
-  const { privateKey, publicKey, deviceId, userId } = req.body;
+  const { privateKey, publicKey, deviceId } = req.body;
+  const user = req.user;
   const { encryptedPrivateKey, iv, salt } = privateKey;
 
-  await updateDeviceKeys({ encryptedPrivateKey, iv, salt, publicKey, deviceId, userId });
+  await updateDeviceKeys({ encryptedPrivateKey, iv, salt, publicKey, deviceId, userId: user.id });
 
   res.status(200).json({
     success: true,

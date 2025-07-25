@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/private/:deviceId', authenticateJWT, getEncryptedPrivateKey);
 
-router.post('/', idempotencyKey, postDeviceKeys);
+router.post('/', idempotencyKey, authenticateJWT, postDeviceKeys);
 
 router.get('/public/:userId', getPublicKey);
 
