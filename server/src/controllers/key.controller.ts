@@ -4,7 +4,7 @@ import { getKeysByUserAndDeviceId, getPublicKeysByUserId, updateDeviceKeys } fro
 
 export const getEncryptedPrivateKey = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const deviceId = req.params.deviceId;
+  const deviceId = req.user.deviceId;
   const { encryptedPrivateKey, iv, salt } = await getKeysByUserAndDeviceId({ userId, deviceId });
 
   res.status(200).json({
@@ -25,7 +25,7 @@ export const postDeviceKeys = asyncHandler(async (req: Request, res: Response) =
 
   res.status(200).json({
     success: true,
-    message: "New device for user created successfully",
+    message: "New keys for user created successfully",
   })
 })
 

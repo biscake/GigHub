@@ -25,7 +25,7 @@ export const syncMessages = asyncHandler(
 
     res.status(200).json({
       success: true,
-      message: `Messages of coversation ${conversationKey}`,
+      message: `Messages of conversation ${conversationKey}`,
       chatMessages,
     })
   },
@@ -56,7 +56,7 @@ export const getConversations = asyncHandler(
     
     res.status(200).json({
       success: true,
-      message: `New messages fetched successfully`,
+      message: `Conversations fetched successfully`,
       conversations,
     })
   },
@@ -84,7 +84,7 @@ export const getConversationParticipants = asyncHandler(
 
     res.status(200).json({
       success: true,
-      message: `Get last read successfully`,
+      message: `Get conversation participants successfully`,
       participants: result,
       conversationKey
     })
@@ -101,7 +101,7 @@ export const getOrElseCreateConversation = asyncHandler(
 
     res.status(200).json({
       success: true,
-      message: `Get last read successfully`,
+      message: `Conversation fetched successfully`,
       conversationKey: result.conversation.conversationKey,
       title: result.title,
       participants: result.participants
@@ -118,7 +118,7 @@ export const getConversationMeta = asyncHandler(
 
     res.status(200).json({
       success: true,
-      message: `Get last read successfully`,
+      message: `Get conversation meta successfully`,
       conversationKey: result.conversationKey,
       title: result.title,
       participants: result.participants

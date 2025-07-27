@@ -5,7 +5,7 @@ import { getEncryptedPrivateKey, getPublicKey, postDeviceKeys } from '../control
 
 const router = Router();
 
-router.get('/private/:deviceId', authenticateJWT, getEncryptedPrivateKey);
+router.get('/private', authenticateJWT, getEncryptedPrivateKey);
 
 router.post('/', idempotencyKey, authenticateJWT, postDeviceKeys);
 

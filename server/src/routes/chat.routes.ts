@@ -10,7 +10,7 @@ router.get('/conversations/gigs/:gigId/user/:otherUserId', authenticateJWT, getO
 
 router.get('/conversations/read-receipt', authenticateJWT, getAllReadReceipts);
 
-router.get('/conversations/:conversationKey', authenticateJWT, getConversationParticipants)
+router.get('/conversations/:conversationKey/participants', authenticateJWT, getConversationParticipants)
 
 router.get('/conversations/:conversationKey/meta', authenticateJWT, getConversationMeta);
 

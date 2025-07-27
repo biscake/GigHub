@@ -31,7 +31,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
 
     if (data && data.deviceSecret && data?.userId) {
       try {
-        const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${deviceId}`);
+        const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private`);
         data.encryptedPrivateKey = base64ToArrayBuffer(res.data.encryptedPrivateKey);
         data.salt = base64ToUint8(res.data.salt);
         data.iv = base64ToUint8(res.data.iv);
@@ -73,7 +73,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
     if (!data || !data?.encryptedPrivateKey || !data?.iv || !data?.salt) {
       if (data?.deviceSecret && data?.wrappedDerivedKey && data?.userId) {
         try {
-          const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private/${deviceId}`);
+          const res = await api.get<EncryptedE2EEKeyResponse>(`/api/keys/private`);
 
           data.encryptedPrivateKey = base64ToArrayBuffer(res.data.encryptedPrivateKey);
           data.salt = base64ToUint8(res.data.salt);
@@ -144,7 +144,6 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
           },
           publicKey: keyPair.publicKey,
           deviceId: deviceId,
-          userId: user.id
         }
         ,
         {
@@ -203,7 +202,7 @@ export const E2EEProvider = ({ children }: { children: ReactNode }) => {
 
   const getAllPublicKeysConversation = useCallback(async (conversationKey: string): Promise<ImportedPublicKey[]> => {
     try {
-      const res = await api.get<GetConversationParticipantsResponse>(`/api/chat/conversations/${conversationKey}`);
+      const res = await api.get<GetConversationParticipantsResponse>(`/api/chat/conversations/${conversationKey}/participants`);
       
       const participants: Participant[] = res.data.participants;
       

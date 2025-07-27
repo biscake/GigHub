@@ -28,7 +28,7 @@ export const setupInterceptors = ({ logout, setAccessToken, accessToken }: ApiIn
     async (error) => {
       const originalRequest = error.config;
       const rememberMe = localStorage.getItem("rememberMe") === "true";
-  
+
       if (error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         
@@ -41,18 +41,18 @@ export const setupInterceptors = ({ logout, setAccessToken, accessToken }: ApiIn
               'Idempotency-Key': idempotencyKey
             }
           });
-  
+
           originalRequest.headers.Authorization = `Bearer ${res.data.accessToken}`;
 
           setAccessToken(res.data.accessToken);
-  
+
           return api(originalRequest);
         } catch (error) {
           logout();
           return Promise.reject(error);
         }
       }
-  
+
       return Promise.reject(error);
     }
   )
