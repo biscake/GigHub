@@ -38,8 +38,8 @@ export const passwordValidation : InputValidation = {
       message: 'Password is too short'
     },
     pattern: {
-      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,16}$/,
-      message: 'Invalid password'
+      value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,16}$/,
+      message: 'Password must be 8–16 characters and include uppercase, lowercase, number and a special character.'
     }
   }
 }
