@@ -7,6 +7,7 @@ import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
 import { updateNumberCompletedByApplicationId, updateNumberPostedGigByUsername } from '../services/user.service';
+import { sendAcceptedApplication, sendIncomingApplication, sendRejectedApplication } from '../services/mailer.service';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -116,6 +117,7 @@ export const postGigApplication = asyncHandler(async (req: Request, res: Respons
   const idempotencyKey = req.idempotencyKey;
 
   const application = await createGigApplicationById({ gig, userId, message });
+  await sendIncomingApplication({ gig });
 
   const responseBody = {
     success: true,
@@ -233,6 +235,7 @@ export const acceptGigApplication = asyncHandler(async (req: Request, res: Respo
   const user = req.user;
 
   await acceptGigApplicationById({ applicationId });
+  await sendAcceptedApplication({ applicantId: req.application.userId, gig: req.gig });
 
   const responseBody = {
     success: true,
@@ -249,6 +252,7 @@ export const rejectGigApplication = asyncHandler(async (req: Request, res: Respo
   const idempotencyKey = req.idempotencyKey;
 
   await rejectGigApplicationById({ applicationId });
+  await sendRejectedApplication({ applicantId: req.application.userId, gig: req.gig });
 
   const responseBody = {
     success: true,
