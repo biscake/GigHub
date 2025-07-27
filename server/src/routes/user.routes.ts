@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createReview, editUserProfile, getProfileByUsername, getReceivedReviewsByUsername } from '../controllers/user.controller';
+import { createReview, editUserProfile, getProfileByUsername, getReceivedReviewsByUsername, getUserIdByUsername } from '../controllers/user.controller';
 import { idempotencyKey } from '../middleware/idempotency-key.middleware';
 import { authenticateJWT } from '../middleware/auth/authenticate.middleware';
 import { isAuthorizedToModifyUser } from '../middleware/user/is-authorize-modify-user';
@@ -33,6 +33,10 @@ router.put('/:username/profile/edit',
   uploadSingleImage,                // Handles file upload from client making it available in req.file
   isAuthorizedToModifyUser,         // Checks if user is authorised to edit the user profile
   editUserProfile                   // Controller to handle the edit user profile request
+);
+
+router.get('/:username', 
+  getUserIdByUsername               // Controller to get UserId from Username
 );
 
 export default router;
