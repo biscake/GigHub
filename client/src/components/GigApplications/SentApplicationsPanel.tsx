@@ -5,7 +5,7 @@ import { useIdempotencyKey } from "../../hooks/useIdempotencyKey";
 import api from "../../lib/api";
 import type { ApiErrorResponse, GetApplicationResponse } from "../../types/api";
 import type { ApplicationListItemProps, SentApplicationsPanelProps } from "../../types/application";
-import type { GetGigAuthorResponse, Gig } from "../../types/gig";
+import type { Gig } from "../../types/gig";
 import { timeAgo } from "../../utils/timeAgo";
 import ApplicationDisclosureContainer from "./ApplicationDisclosureContainer";
 import ApplicationListButton from "./ApplicationListButton";
