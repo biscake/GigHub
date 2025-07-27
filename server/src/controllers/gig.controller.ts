@@ -2,10 +2,11 @@ import { createId } from '@paralleldrive/cuid2';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { BadRequestError } from '../errors/bad-request-error';
-import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getAcceptedApplicationsByUserId, getApplicationStatByUserId, getGigsFromDatabase, getPostedGigsWithApplications, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById } from '../services/gig.service';
+import { acceptGigApplicationById, createGigApplicationById, createGigInDatabase, deleteApplicationByApplicationId, deleteGigFromDatabase, getAcceptedApplicationsByUserId, getApplicationStatByUserId, getGigsFromDatabase, getPostedGigsWithApplications, getReceivedApplicationsByUserId, getSentApplicationsByUserId, rejectGigApplicationById, updateApplicationMessageById, updateCompletedById } from '../services/gig.service';
 import { storeResponse } from '../services/idempotency.service';
 import { deleteSingleImageFromR2, uploadSingleImageToR2 } from '../services/r2.service';
 import { CreateGigInDatabaseParams } from '../types/gig';
+import { updateNumberCompletedByApplicationId, updateNumberPostedGigByUsername } from '../services/user.service';
 
 export const createGig = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
@@ -23,6 +24,7 @@ export const createGig = asyncHandler(async (req: Request, res: Response) => {
   };
 
   const gig = await createGigInDatabase(gigDetails);
+  await updateNumberPostedGigByUsername({ id: req.user.id, value: 1 });
   
   if (file) {
     await uploadSingleImageToR2({
@@ -48,6 +50,7 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
   const idempotencyKey = req.idempotencyKey;
 
   const deletedGig = await deleteGigFromDatabase({ id: gig.id });
+  await updateNumberPostedGigByUsername({ id: req.user.id, value: -1 });
 
   if (deletedGig.imgKey !== "default/default.jpg") {
     await deleteSingleImageFromR2({ key: deletedGig.imgKey });
@@ -56,6 +59,23 @@ export const deleteGig = asyncHandler(async (req: Request, res: Response) => {
   const responseBody = {
     success: true,
     message: "Gig successfully deleted"
+  }
+
+  await storeResponse({ responseBody, idempotencyKey });
+
+  res.status(200).json(responseBody);
+})
+
+export const completeGig = asyncHandler(async (req: Request, res: Response) => {
+  const appId = parseInt(req.params.applicationId);
+  const idempotencyKey = req.idempotencyKey;
+
+  await updateCompletedById({ applicationId: appId });
+  await updateNumberCompletedByApplicationId({ applicationId: appId });
+
+  const responseBody = {
+    success: true,
+    message: "Gig completed successfully"
   }
 
   await storeResponse({ responseBody, idempotencyKey });

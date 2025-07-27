@@ -61,8 +61,6 @@ describe("Auth: register", () => {
     });
 
     expect(result).toEqual({
-      accessToken: mockAccessToken,
-      refreshToken: mockRefreshToken,
       user: mockUser
     })
   })

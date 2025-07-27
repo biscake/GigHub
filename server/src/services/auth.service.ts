@@ -107,7 +107,7 @@ export const login = async ({ username, password, deviceId }: loginInput) => {
     if (err instanceof BadRequestError) {
       throw err;
     }
-    console.error(err)
+
     throw new ServiceError("LoginService", "Failed to login user");
   }
 }
@@ -136,11 +136,11 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
     }
 
     if (!storedToken.device) {
-      throw new Error("Missing device to create refresh token");
+      throw new BadRequestError("Missing device to create refresh token");
     }
 
     if (!storedToken.device.user) {
-      throw new Error("Missing user to create refresh token");
+      throw new BadRequestError("Missing user to create refresh token");
     }
 
     const newAccessToken = issueAccessToken(storedToken.device.user, storedToken.device.deviceId);
@@ -169,10 +169,6 @@ export const rotateToken = async ({ refreshToken }: rotateTokenInput) => {
     return { newAccessToken, newRefreshToken, user: storedToken.device.user };
   } catch (err) {
     if (err instanceof BadRequestError) {
-      throw err;
-    }
-
-    if (err instanceof Error && err.message === "Missing user to create refresh token") {
       throw err;
     }
 

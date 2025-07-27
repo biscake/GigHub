@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { prisma } from "../../lib/__mocks__/prisma";
 import { login } from "../../services/auth.service";
-import { mockUser } from "../__mocks__/mock-prisma-models";
+import { mockDeviceUser1, mockUser, mockUser1Account } from "../__mocks__/mock-prisma-models";
 
 const mockAccessToken = "access_token";
 const mockRefreshToken = "refresh_token";
@@ -10,10 +10,10 @@ const mockRefreshToken = "refresh_token";
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 type MockUserWithAccounts = typeof mockUser & {
-  accounts: { passwordHash: string }[]
+  accounts: {
+    passwordHash: string
+  }[]
 };
-
-const mockPasswordHash = "testPasswordHash";
 
 vi.mock("../../lib/prisma", async () => {
   const actual = await vi.importActual("../../lib/__mocks__/prisma");
@@ -47,12 +47,16 @@ describe("Auth: login", () => {
   });
 
   it("Should issue access and refresh token if credentials are valid", async () => {
-    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash: mockPasswordHash }] };
+    const passwordHash = mockUser1Account.passwordHash;
+    if (!passwordHash) return;
+    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash }] };
     
     prisma.user.findUnique.mockResolvedValue(mockUserWithAccounts);
+    prisma.device.upsert.mockResolvedValue(mockDeviceUser1);
     (bcrypt.compare as Mock).mockResolvedValue(true);
 
-    const result = await login({ username: mockUser.username, password: "test_password" })
+
+    const result = await login({ username: mockUser.username, password: passwordHash , deviceId: mockDeviceUser1.deviceId })
 
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: {
@@ -74,7 +78,7 @@ describe("Auth: login", () => {
       data: {
         token: mockRefreshToken,
         expiresAt: new Date(Date.now() + TWO_WEEKS_MS),
-        userId: 1
+        deviceId: mockDeviceUser1.id
       }
     });
 
@@ -83,36 +87,56 @@ describe("Auth: login", () => {
       refreshToken: mockRefreshToken,
       user: mockUserWithAccounts
     });
+
+    expect(prisma.device.upsert).toHaveBeenCalledWith({
+      where: {
+        deviceId_userId: {
+          deviceId: mockDeviceUser1.deviceId,
+          userId: mockUser.id,
+        },
+      },
+      create: {
+        deviceId: mockDeviceUser1.deviceId,
+        userId: mockUser.id,
+      },
+      update: {},
+    });
   })
 
   it("Invalid username should throw error", async () => {
     prisma.user.findUnique.mockResolvedValue(null);
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("Invalid username or password");
+    await expect(login({ username: mockUser.username, password: "test_password", deviceId: mockDeviceUser1.deviceId })).rejects.toThrow("Invalid username or password");
   })
 
   it("Password hash missing should throw error", async () => {
-    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash: "" }] };
+    const passwordHash = mockUser1Account.passwordHash;
+    if (!passwordHash) return;
+    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash }] };
     prisma.user.findUnique.mockResolvedValue(mockUserWithAccounts);
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("Invalid username or password");
+    await expect(login({ username: mockUser.username, password: "test_password", deviceId: mockDeviceUser1.deviceId })).rejects.toThrow("Invalid username or password");
   })
 
   it("Invalid password should throw error", async () => {
-    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash: mockPasswordHash }] };
+    const passwordHash = mockUser1Account.passwordHash;
+    if (!passwordHash) return;
+    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash }] };
     
     prisma.user.findUnique.mockResolvedValue(mockUserWithAccounts);
     (bcrypt.compare as Mock).mockResolvedValue(false);
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("Invalid username or password");
+    await expect(login({ username: mockUser.username, password: "test_password", deviceId: mockDeviceUser1.deviceId })).rejects.toThrow("Invalid username or password");
   })
 
   it("Failure to create refresh token in database should throw error", async () => {
-    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash: mockPasswordHash }] };
+    const passwordHash = mockUser1Account.passwordHash;
+    if (!passwordHash) return;
+    const mockUserWithAccounts: MockUserWithAccounts = { ...mockUser, accounts: [{ passwordHash }] };
     
     prisma.user.findUnique.mockResolvedValue(mockUserWithAccounts);
     prisma.refreshToken.create.mockRejectedValue(new Error("Database error"));
 
     (bcrypt.compare as Mock).mockResolvedValue(true);
 
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("LoginService error: Failed to login user");
+    await expect(login({ username: mockUser.username, password: "test_password", deviceId: mockDeviceUser1.deviceId })).rejects.toThrow("LoginService error: Failed to login user");
   })
 
   it("Failure to find user in database should throw error", async () => {
@@ -120,6 +144,6 @@ describe("Auth: login", () => {
 
     (bcrypt.compare as Mock).mockResolvedValue(true);
 
-    await expect(login({ username: mockUser.username, password: "test_password" })).rejects.toThrow("LoginService error: Failed to login user");
+    await expect(login({ username: mockUser.username, password: "test_password", deviceId: mockDeviceUser1.deviceId })).rejects.toThrow("LoginService error: Failed to login user");
   })
 })

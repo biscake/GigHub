@@ -2,7 +2,7 @@ import { GigApplication, Prisma, Status } from "@prisma/client";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
-import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams } from "../types/gig";
+import { AcceptGigByIdParams, CreateGigInDatabaseParams, DeleteGigFromDatabaseParams, GetGigFromDatabaseByIdParams, GetGigsFromDatabaseParams, UpdateApplicationStatusByIdParams, UpdateCompletedByIdParams } from "../types/gig";
 import { AppError } from "../errors/app-error";
 import { NotFoundError } from "../errors/not-found-error";
 
@@ -24,7 +24,7 @@ export const createGigInDatabase = async (gig: CreateGigInDatabaseParams) => {
     if (err instanceof BadRequestError) {
       throw err;
     }
-console.log(err)
+    console.log(err)
     throw new ServiceError("Prisma", "Failed to create gig in database");
   }
 }
@@ -143,6 +143,23 @@ export const getGigFromDatabaseById = async ({ id }: GetGigFromDatabaseByIdParam
     return gig;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to fetch gig from database");
+  }
+}
+
+export const updateCompletedById = async ({ applicationId }: UpdateCompletedByIdParams) => {
+  try {
+    const application = await prisma.gigApplication.update({
+      where: {
+        id: applicationId
+      },
+      data: {
+        status: Status.COMPLETED
+      }
+    })
+    
+    return application;
+  } catch (err) {
+    throw new ServiceError("Prisma", "Failed to update gig application in database");
   }
 }
 

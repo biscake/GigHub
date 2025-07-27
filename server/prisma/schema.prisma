@@ -202,4 +202,5 @@ enum Status {
   ACCEPTED
   REJECTED
   CANCELLED
+  COMPLETED
 }

@@ -16,7 +16,10 @@ export const registerUser = asyncHandler(
     const responseBody = {
       success: true,
       message: 'User successfully registered',
-      user,
+      user: {
+        username: user.username,
+        email: user.email
+      },
     };
 
     await storeResponse({responseBody, idempotencyKey});
@@ -61,7 +64,10 @@ export const refreshToken = asyncHandler(
     const responseBody = {
       success: true,
       message: 'Access token refreshed',
-      user,
+      user: {
+        username: user.username,
+        email: user.email
+      },
       accessToken: newAccessToken,
     }
 
