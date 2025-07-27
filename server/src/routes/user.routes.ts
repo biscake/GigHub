@@ -39,13 +39,4 @@ router.put('/:username/profile/edit',
   editUserProfile                   // Controller to handle the edit user profile request
 );
 
-
-router.get('/:username', 
-  getUserIdByUsername               // Controller to get UserId from Username
-);
-
-router.get('/userid/:id', 
-  getUsernameByUserId               // Controller to get Username from UserId
-);
-
 export default router;

@@ -51,7 +51,7 @@ const Sidebar = () => {
             <SidebarNavLink to={`/${user.username}/profile`}>
               {user.username}
             </SidebarNavLink>
-            <button onClick={handleLogout} className="text-2xl hover:link-hover">Log out</button>
+            <button onClick={handleLogout} className="text-2xl hover:link-hover cursor-pointer">Log out</button>
           </div>
         ) : (
           <div className="space-x-4 flex flex-col gap-5 items-start">

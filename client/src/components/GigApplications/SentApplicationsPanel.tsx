@@ -13,6 +13,7 @@ import ApplicationListContent from "./ApplicationListContent";
 import ApplicationPanel from "./ApplicationPanel";
 import GigModal from "../GigModal/GigModal";
 import { callApplicationStatsRefetch } from "../../utils/applicationStatsRefetch";
+import { Link } from "react-router-dom";
 
 const SentApplicationsPanel: React.FC<SentApplicationsPanelProps> = memo(({ page, setTotalPages }) => {
   const idempotencyKey = useIdempotencyKey();
@@ -90,9 +91,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState(application?.message ?? "");
 
-  const { data } = useGetApi<GetGigAuthorResponse>(`/api/users/userid/${ application.gig.authorId }`);
-
-  const author = data ? data.username : application.gig.authorId;
+  const author = application.gig.author?.username;
 
   const handleCancelEdit = () => {
     setMessage(application?.message ?? "");
@@ -115,7 +114,9 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
           }
         </ApplicationListContent>
         <ApplicationListContent title="Gig Author">
-          {author}
+          <Link to={`/${author}/profile`}>
+            {author}
+          </Link>
         </ApplicationListContent>
         <span>Sent {timeAgo(application.createdAt)}</span>
         <div className="flex items-center">

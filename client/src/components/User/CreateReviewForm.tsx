@@ -35,7 +35,6 @@ const CreateReviewForm: React.FC<CreateReviewFormProps> = ({ setIsReview }) => {
 
       setIsReview(false);
     } catch (e) {
-      console.log(e)
       const err = e as AxiosError<ApiErrorResponse>;
       const errorMessage = err.response?.data?.message;
 

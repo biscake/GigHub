@@ -87,7 +87,7 @@ const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ application, 
           {application.message}
         </ApplicationListContent>
         <ApplicationListContent title="Applicant">
-          <Link to={`/${application.user.username}`}>
+          <Link to={`/${application.user.username}/profile`}>
             {application.user.username}
           </Link>
         </ApplicationListContent>
