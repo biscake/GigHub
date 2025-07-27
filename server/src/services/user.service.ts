@@ -116,18 +116,6 @@ export const getUserById = async ({ id }: GetUserByIdParams) => {
   }
 }
 
-export const getUserByName = async ({ username }: GetUserByNameParams) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { username }
-    });
-    
-    return user;
-  } catch {
-    throw new ServiceError("Prisma", "Failed to get user from database");
-  }
-}
-
 export const createReviewInDatabase = async (review: createReviewInDatabaseParams) => {
   try {
     const result = await prisma.review.create({
@@ -146,44 +134,6 @@ export const createReviewInDatabase = async (review: createReviewInDatabaseParam
     }
 
     throw new ServiceError("Prisma", "Failed to create review in database");
-  }
-}
-
-export const getUserData = async ({ search }: GetNormalizedProfilesParams) => {
-  try {
-    const users = await prisma.user.findMany({
-      where: {
-        username: {
-          contains: search,
-          mode: 'insensitive'
-        }
-      },
-      include: {
-        profile: true,
-      },
-      take: 30
-    });
-
-    const formatted = users.map(user => {
-      const profile = user.profile ?? {
-        bio: null,
-        averageRating: null,
-        numberOfGigsCompleted: 0,
-        numberOfGigsPosted: 0,
-        profilePictureKey: "default/Default_pfp.svg"
-      }
-    
-      return {
-        username: user.username,
-        userId: user.id,
-        profilePictureUrl: `${process.env.R2_PUBLIC_ENDPOINT}/${profile.profilePictureKey}`,
-        bio: profile.bio
-      }
-    })
-
-    return formatted;
-  } catch (err) {
-    throw new ServiceError("Prisma", "Failed to get user from database");
   }
 }
 
