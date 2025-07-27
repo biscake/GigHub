@@ -16,7 +16,7 @@ export type GigApplication = {
   message?: string;
 }
 
-type Status = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+type Status = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
 
 export type ApplicationListItemProps = {
   application: GigApplication;

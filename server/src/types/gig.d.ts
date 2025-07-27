@@ -35,3 +35,7 @@ export interface AcceptGigByIdParams {
 export interface UpdateApplicationStatusByIdParams {
   applicationId: number;
 }
+
+export interface UpdateCompletedByIdParams {
+  applicationId: number;
+}

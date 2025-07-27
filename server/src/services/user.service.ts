@@ -4,7 +4,8 @@ import { NotFoundError } from "../errors/not-found-error";
 import { ServiceError } from "../errors/service-error";
 import { prisma } from "../lib/prisma";
 import { BadRequestError } from "../errors/bad-request-error";
-import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams } from "../types/user";
+import { GetNormalizedProfilesParams, deleteReviewInDatabaseParams, createReviewInDatabaseParams, GetUserByIdParams, GetUserByNameParams, getUserWithNormalizedProfileByUsernameParams, GetUserWithReviewsByUsernameParams, updateUserByProfileParams, updateNumberPostedGigByUsernameParams, updateNumberCompletedByGigApplicationIdParams } from "../types/user";
+import { Status } from "@prisma/client";
 
 export const getUserWithNormalizedProfileByUsername = async ({ username }: getUserWithNormalizedProfileByUsernameParams) => {
   try {
@@ -197,5 +198,50 @@ export const deleteReviewInDatabase = async ({ id }: deleteReviewInDatabaseParam
     return result;
   } catch (err) {
     throw new ServiceError("Prisma", "Failed to delete review from database");
+  }
+}
+
+export const updateNumberPostedGigByUsername = async ({ id, value }: updateNumberPostedGigByUsernameParams) => {
+  try {
+    const result = await prisma.userProfile.update({
+      where: {
+        userId: id
+      },
+      data: {
+        numberOfGigsPosted: {
+          increment: value
+        }
+      }
+    });
+    
+    return result;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to update user profile in database");
+  }
+}
+
+export const updateNumberCompletedByApplicationId = async ({ applicationId }: updateNumberCompletedByGigApplicationIdParams) => {
+  try {
+    const application = await prisma.gigApplication.findUnique({
+      where: { id: applicationId },
+      select: { userId: true },
+    });
+
+    if (!application) {
+      throw new NotFoundError("GigApplication does not exist");
+    }
+    
+    const profile = await prisma.userProfile.update({
+      where: { userId: application.userId },
+      data: {
+        numberOfGigsCompleted: {
+          increment: 1,
+        },
+      },
+    });
+    
+    return profile;
+  } catch {
+    throw new ServiceError("Prisma", "Failed to update user profile in database");
   }
 }

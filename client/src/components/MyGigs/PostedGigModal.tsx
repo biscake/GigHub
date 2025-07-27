@@ -7,12 +7,14 @@ import api from '../../lib/api';
 import { getConversationMeta, storeConversationMeta } from '../../lib/indexeddb';
 import type { GetGigConversationResponse } from '../../types/api';
 import type { ApplicationListItemProps, PostedGigsModalProps } from '../../types/mygigs';
+import { useIdempotencyKey } from '../../hooks/useIdempotencyKey';
 
 const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, applications, setApplications }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const { cacheConversationMeta } = useMessageCache();
   const navigate = useNavigate();
+  const idempotencyKey = useIdempotencyKey();
 
   useEffect(() => {
     if (gig) {
@@ -28,6 +30,22 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
     }, 500);
 
     return () => clearTimeout(timeout);
+  }
+
+  const handleComplete = async (applicationId: number) => {
+    try {
+      if (!gig || !user) return;
+      
+      await api.put(`api/gigs/${gig.id}/${applicationId}/complete`, {}, {
+        headers: {
+          'Idempotency-Key': idempotencyKey.get()
+        }
+      });
+    } catch (err) {
+      console.error("Failed to complete gig application.")
+    } finally {
+      setIsOpen(false);
+    }
   }
 
   const startConversation = async (otherUserId: number) => {
@@ -75,7 +93,8 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
                   <div className="w-full">
                     {
                       applications && applications.length > 0
-                        ? applications.map((app, i) => <ApplicationListItem key={i} username={app.user.username} onClick={() => startConversation(app.user.id)} />)
+                        ? applications.map((app, i) => <ApplicationListItem 
+                          key={i} username={app.user.username} onMessage={() => startConversation(app.user.id)} onComplete={() => handleComplete(app.id)} />)
                         : "No ongoing applicants."
                     }
                   </div>
@@ -90,15 +109,22 @@ const PostedGigsModal: React.FC<PostedGigsModalProps> = ({ gig, setSelectedGig, 
   )
 }
 
-const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ username, onClick }) => {
+const ApplicationListItem: React.FC<ApplicationListItemProps> = ({ username, onMessage, onComplete }) => {
   return (
     <div className='flex'>
       <div className='flex-1'>
         <NavLink to={`/${username}/profile`} className='flex-1 hover:underline'>{username}</NavLink>
       </div>
       <button
+        onClick={onComplete}
+        className="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500
+          ring-1 ring-gray-300 ring-inset sm:mt-0 sm:w-auto sm:mr-2"
+      >
+        Complete
+      </button>
+      <button
         type="button"
-        onClick={onClick}
+        onClick={onMessage}
         className="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-
           900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
       >

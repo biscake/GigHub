@@ -17,6 +17,10 @@ const ProfileCard: React.FC<ProfileCardProp> = ({ profile, setIsEdit }) => {
               </button>
             </div>
           </div>
+          <div className="w-full text-md px-10 py-2 rounded-xl">
+            <p>Number of Gigs Posted: {profile.numberOfGigsPosted}</p>
+            <p>Number of Gigs Completed: {profile.numberOfGigsCompleted}</p>
+          </div>
           <div className="w-full text-2xl px-10 py-5 rounded-xl border-[0.5px] border-gray-200 shadow-xs">
             <p>Bio: </p>
             <p>{profile.bio}</p>
